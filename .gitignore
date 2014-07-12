@@ -1,3 +1,8 @@
+# Data Files for privacy purposes
+.json
+.mat
+DATA/
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

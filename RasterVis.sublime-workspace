@@ -1,0 +1,329 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"time",
+				"time_lines"
+			],
+			[
+				"plot",
+				"plot_buffer"
+			],
+			[
+				"Y",
+				"yScale"
+			],
+			[
+				"trial_",
+				"trial_select"
+			],
+			[
+				"select",
+				"selectAll"
+			],
+			[
+				"y",
+				"yScale"
+			],
+			[
+				"num",
+				"numTrials"
+			],
+			[
+				"sele",
+				"select"
+			],
+			[
+				"sle",
+				"selectAll"
+			],
+			[
+				"neuron",
+				"neuron_menu"
+			],
+			[
+				"fu",
+				"function"
+			],
+			[
+				"file",
+				"file_menu"
+			],
+			[
+				"option",
+				"option"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/C/Users/edenovellis/Dropbox/Visualizations/Raster/index.html",
+			"settings":
+			{
+				"buffer_size": 2695,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/edenovellis/Dropbox/Visualizations/Raster/js/raster_v4a.js",
+			"settings":
+			{
+				"buffer_size": 13067,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/edenovellis/Dropbox/Visualizations/Raster/js/raster_v4.js",
+			"settings":
+			{
+				"buffer_size": 11480,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/edenovellis/Dropbox/Visualizations/Raster/js/raster_v4a.js",
+		"/C/Users/edenovellis/Dropbox/Visualizations/Raster/js/raster_v4.js",
+		"/C/Users/edenovellis/Dropbox/Visualizations/Raster/js/raster_v3.js",
+		"/C/Users/edenovellis/Dropbox/Visualizations/Raster/js/d3/colorbrewer.js",
+		"/C/Users/edenovellis/Dropbox/Visualizations/Raster/style.txt",
+		"/C/Users/edenovellis/AppData/Roaming/Sublime Text 3/Packages/Default/Default (Windows).sublime-keymap",
+		"/C/Users/edenovellis/AppData/Roaming/Sublime Text 3/Packages/User/Default (Windows).sublime-keymap",
+		"/C/Users/edenovellis/Dropbox/Visualizations/Raster/raster_v3.js"
+	],
+	"find":
+	{
+		"height": 23.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"rule",
+			"yScale",
+			".name"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/C/Users/edenovellis/Dropbox/Visualizations/Raster/index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2695,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								153,
+								153
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/C/Users/edenovellis/Dropbox/Visualizations/Raster/js/raster_v4a.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13067,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								8736,
+								8736
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 3195.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/C/Users/edenovellis/Dropbox/Visualizations/Raster/js/raster_v4.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 11480,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7081,
+								7081
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 2805.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"project": "RasterVis.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

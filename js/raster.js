@@ -54,7 +54,8 @@
 			// note that execution won't be stopped if a style file isn't found
 			style.text(txt); // but if found, it can be embedded in the svg.
 			// ("#" + Math.random()) makes sure the script loads the file each time instead of using a cached version, remove once live
-			d3.json(params.data  + ".json" + "#" + Math.random(), function (error, json) {
+			cur_file_name = "/DATA/" + params.data  + ".json" + "#" + Math.random();
+			d3.json(cur_file_name, function (error, json) {
 				vis.data = json;
 				// populate drop-down menu with neuron names
 				var neuron_menu = d3.select("#neuron_menu");

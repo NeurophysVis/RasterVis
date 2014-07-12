@@ -1,141 +1,386 @@
-(function() {
-	vis={};
-	var width,height;
-	var chart,svg;
-	var defs, style;
-	var slider, step, maxStep, running;
-	var button;
+(function () {
+    vis = {};
+	var width, height,
+		chart, svg,
+		defs, style,
+		slider, step, maxStep, running,
+		button;
 
-	vis.init=function(params) {
-		if (!params) {params = {}}
-		chart = d3.select(params.chart||"#chart"); // placeholder div for svg
-		
-		margin = {top: 20, right: 20, bottom: 20, left: 20};
+	vis.init = function (params) {
+		if (!params) {params = {}; }
+		chart = d3.select(params.chart || "#chart"); // placeholder div for svg		
+		margin = {top: 30, right: 30, bottom: 30, left: 30};
 		padding = {top: 60, right: 60, bottom: 60, left: 60};
-		var outerWidth = params.width || 960;
-		var outerHeight = params.height || 500;
-		var innerWidth = outerWidth - margin.left - margin.right;
-		var innerHeight = outerHeight - margin.top - margin.bottom;
-		
+		var outerWidth = params.width || 960,
+			outerHeight = params.height || 500,
+			innerWidth = outerWidth - margin.left - margin.right,
+			innerHeight = outerHeight - margin.top - margin.bottom;
 		width = innerWidth - padding.left - padding.right;
 		height = innerHeight - padding.top - padding.bottom;
-		
 		chart.selectAll("svg")
-		.data([{width:width + margin.left + margin.right,height:height + margin.top + margin.bottom}]).enter()
-		.append("svg");
+			.data([{width: width + margin.left + margin.right, height: height + margin.top + margin.bottom}])
+			.enter()
+			.append("svg");
 		svg = d3.select("svg").attr({
-width:function(d) {return d.width + margin.left + margin.right},
-height:function(d) {return d.height + margin.top + margin.bottom}
+			width: function (d) {return d.width + margin.left + margin.right; },
+			height: function (d) {return d.height + margin.top + margin.bottom; }
 		})
-		.append("g")
-		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 		// vis.init can be re-ran to pass different height/width values
 		// to the svg. this doesn't create new svg elements.
-
 		style = svg.selectAll("style").data([{}]).enter()
-		.append("style")
-		.attr("type","text/css");
+			.append("style")
+			.attr("type", "text/css");
 		// this is where we can insert style that will affect the svg directly.
 
 		defs = svg.selectAll("defs").data([{}]).enter()
-		.append("defs");
-		// this is used if it's necessary to define gradients, patterns etc.
-
-		
-
-		button = d3.select(params.button || ".button");
-		if(button[0][0] && running> -1) {
-			button.on("click", function() {
-				if (running) {
-					vis.stop();
-				} else {
-					vis.start();
-				}
-			})
-		};
+			.append("defs");
 		vis.loaddata(params);
-	}
-	
-	vis.loaddata = function(params) {
-		if(!params) {params = {}}
-		d3.text(params.style||"style.txt", function (error,txt) {
+	};
+	vis.loaddata = function (params) {
+		if (!params) {params = {}; }
+		d3.text(params.style || "style.txt", function (error, txt) {
 			// note that execution won't be stopped if a style file isn't found
 			style.text(txt); // but if found, it can be embedded in the svg.
-			d3.json(params.data || "data.json", function(error,json) {
+			d3.json((params.data  + ".json") || "data.json", function (error, json) {
 				vis.data = json;
-				if(running > 0) {vis.start();} else {vis.draw(params);}
-			})
-		})
-	}
-	
+				// populate drop-down menu with neuron names
+				var neuron_menu = d3.select("#neuron_menu")
+						.append("select")
+						.attr("name", "neuron-list"),
+					neuron = vis.data[params.data].neurons,
+					options = neuron_menu.selectAll("option")
+						.data(neuron)
+						.enter()
+						.append("option");
+				neuron_menu.select("option")
+						.attr("selected", "selected");
+				options.text(function (d) { return d.Name; })
+						.attr("value", function (d) { return d.Name; });			
+				if (running > 0) {vis.start(); } else {vis.draw(params); }
+			});
+		});
+	};
 
-	vis.draw = function(params) {
-		
+	vis.draw = function (params) {
 		// Extract relevant trial and neuron information
 		// Future versions will include option to select neuron, select the first one
-		var neuron = vis.data.cc1.neurons[0];
-		// var trials = d3.nest().key(function(d) {return d.trial_id;}).entries(vis.data.cc1.trials);
-		var trials = vis.data.cc1.trials;
-		
-		var min_time = d3.min(neuron.spikes, function(d) {
-			return d3.min(d.spike_times, function(e) { return d3.min(e); });
-		});
-		
-		var max_time = d3.max(neuron.spikes, function(d) {
-			return d3.max(d.spike_times, function(e) { return d3.max(e); });
-		});
-		
-		var xScale = d3.scale.linear()
-		.domain([min_time, max_time])
-		.range([0, width]);
-		
-		var yScale = d3.scale.linear()
-		.domain([1, neuron.spikes.length])
-		.range([0, height]);
-		
-		var xAxis = d3.svg.axis()
-		.scale(xScale)
-		.orient("bottom");
-		
-		var yAxis = d3.svg.axis()
-		.scale(yScale)
-		.orient("left");
-		
-		// Match an as yet uncreated object .trial to the spike x trial data
-		// and append an svg container("g")
-		var trial = svg.selectAll(".trial")
-		.data(neuron.spikes, function(d) { return d.trial_id; })
-		.enter()
-		.append("g");
-		
-		// for each create trial group, append circles that correspond to the spike times
-		trial.selectAll("circle")
-		.data(function(d) { return d.spike_times; })
-		.enter()
-		.append("circle")
-		.attr("r", 2)
-		.attr("cx", function(d) {return xScale(d); })
-		.attr("cy", function(d, column_index, row_index) {return yScale(row_index); });
-		
-		//trial.sort(function() {return Math.random() - .5; })
-		
-		var nest = d3.nest()
-		.key(function(d) { return d.prep_time; })
-		.sortKeys(d3.ascending)
-		.entries(trials);
+		var neuron_menu = d3.select("#neuron_menu select"),
+			cur_neuron_name = neuron_menu.property("value"),
+			time_menu = d3.select("#time_menu select"),
+			time_menu_value = time_menu.property("value"),
+			factor_sort_menu = d3.select("#factor_sort_menu select"),
+			factor_sort_menu_value = factor_sort_menu.property("value"),
+			neuron = vis.data[params.data].neurons.filter(function (d) {return d.Name === cur_neuron_name; }), // == does type conversion before equality, === does not do type conversion
+			trial = vis.data[params.data].trials,
+			at_glance = d3.select("#at_glance")
+				.selectAll("table")
+				.data(neuron, function (d) {return d.Name;});
+		// Sort Data
+		trial
+			.sort(function (a, b) {
+				return d3.ascending(a.prep_time, b.prep_time);
+			})
+			.sort(function (a, b) {
+				return d3.ascending(a[factor_sort_menu_value], b[factor_sort_menu_value]);
+			});
 			
-		var circle = trial.selectAll("circle");
-		
-		circle.transition()
-		.duration(5000)
-		.attr("cy", function(d, column_index, row_index) {return yScale(row_index); });
-		
-		
-		svg.append("g")
-		.attr("class", "axis")
-		.attr("transform", "translate(0," + height + ")")
-		.call(xAxis);
+		// Display neuron info
+		at_glance.enter()
+				.append("table")
+				.append("tbody");
+		var tbody = at_glance.selectAll("tbody");	
+		var tr = tbody
+			.selectAll("tr")
+			.data(d3.keys(neuron[0]), String);
+		tr
+			.enter()
+			.append("tr")
+			.append("th")
+			.text(String);
+		tr
+			.selectAll("td")
+			.data(function (d) {
+				
+				return neuron.map(function(column) {
+					return {key: d, value: column[d]};
+				});
+			})
+			.enter()
+			.append("td")
+			.text(function(d) { return d.value; });
 
+		at_glance.exit().remove();
 		
-	}
+		// Set up scales
+		var	min_time, max_time;
+		(time_menu_value === "stim_onset") ? (
+				min_time = d3.min(trial, function (d) {
+					return d3.min(d[cur_neuron_name], function (e) { return d3.min(e); })  - d.prep_time;
+				}),
+				max_time = d3.max(trial, function (d) {
+					return d3.max(d[cur_neuron_name], function (e) { return d3.max(e); }) - d.prep_time;
+				})
+			)
+			: (
+				min_time = d3.min(trial, function (d) {
+					return d3.min(d[cur_neuron_name], function (e) { return d3.min(e); });
+				}),
+				max_time = d3.max(trial, function (d) {
+					return d3.max(d[cur_neuron_name], function (e) { return d3.max(e); });
+				})
+			);
+		var xScale = d3.scale.linear()
+					.domain([min_time, max_time])
+					.range([0, width]);
+		// For categorical variables, use selection.map to map categorical variable to an index starting at 1
+		// Use rangeBands or rangeRoundBands to divide the chart area into evenly-spaced, evenly-sized bands
+		var	yScale = d3.scale.ordinal()
+				.domain(d3.range(trial.length))
+				.rangeBands([height, 0]),
+			colorScale;
+		switch (factor_sort_menu_value) {
+		case "trial_id":
+		case "prep_time":
+			colorScale = d3.scale.ordinal()
+				.domain(0)
+				.range(["#000"]);
+			break;
+		case "Rule":
+			colorScale = d3.scale.ordinal()
+				.domain(d3.range(2))
+				.range(colorbrewer.RdBu[3]);
+			break;
+		case "ResponseDir":
+			colorScale = d3.scale.ordinal()
+				.domain(["Left", "Right"])
+				.range(["red", "green"]);
+			break;
+		case "SwitchDist":
+			// can build a continuous color scale
+			colorScale = d3.scale.linear()
+    			.domain([0, 11])
+    			.range(["magenta", "grey"]);
+			break;	
+		}
+		// Set up Axes
+		var	xAxis = d3.svg.axis()	
+				.scale(xScale)
+				.orient("bottom"),
+			yAxis = d3.svg.axis()
+				.scale(yScale)
+				.orient("left"),
+		// Join the trial data to svg containers ("g")
+			trial_select = svg.selectAll(".trial")
+				.data(trial, function (d) { return d.trial_id; });
+		// For each new data, append an svg container and set css class to trial
+		// for each group, translate its location to its index location in the trial object
+		trial_select
+			.enter()
+			.append("g")
+			.attr("class", "trial")
+			.attr("transform", function(d, i) {
+				return "translate(0," + yScale(i) + ")";
+			});
+		// For each new spike time, append circles that correspond to the spike times
+		// Set the x-position of the circles to their spike time and the y-position to the size of the ordinal scale range band
+		// that way the translate can move them to their appropriate position relative to the same coordinate system
+		trial_select.selectAll("circle")
+			.data(function (d, i) { 
+				return d[cur_neuron_name]; 
+			})
+			.enter()
+			.append("circle");
+			
+		(time_menu_value === "stim_onset") ?	
+			trial_select.selectAll("circle")
+				.transition()
+				.duration(1000)
+				.style("opacity", 1)
+				.attr("class", "spikes")
+				.attr("r", 2)
+				.attr("cx", function (d) {return xScale(d - this.parentNode.__data__.prep_time); })
+				.attr("cy", yScale.rangeBand() / 2)
+			:
+			trial_select.selectAll("circle")
+				.transition()
+				.duration(1000)
+				.style("opacity", 1)
+				.attr("class", "spikes")
+				.attr("r", 2)
+				.attr("cx", function (d) {return xScale(d); })
+				.attr("cy", yScale.rangeBand() / 2);
+			
+		// For all the trials, move them to the appropriate position with a delay for each trial to better display the transition	
+		trial_select
+			.transition()
+			.duration(10)
+			.delay(function(d, i) { return i; })
+			.attr("transform", function(d, i) { return "translate(0," + yScale(i) + ")"; })
+			.style("fill", function (d) {
+				return colorScale(d[factor_sort_menu_value]);
+			});			
+		// Draw a line corresponding to the stimulus onset time
+		var stimLineFun;
+		(time_menu_value === "stim_onset") ?
+			stimLineFun = d3.svg.line()
+				.x(function (d) { return xScale(0); })
+				.y(function (d, i) { return yScale(i); })
+				.interpolate("basis")
+		:
+			stimLineFun = d3.svg.line()
+				.x(function (d) { return xScale(d.prep_time); })
+				.y(function (d, i) { return yScale(i); })
+				.interpolate("basis");
+		// wrap trial object in array so that there's only one data point to join with selection
+		var stimOnset_line = svg.selectAll("#stimOnset_line")
+			.data([trial]);		
+		stimOnset_line
+			.enter()
+			.append("path")
+			.attr("class", "line")
+			.attr("id", "stimOnset_line")
+			.attr("d", stimLineFun);		
+		stimOnset_line
+			.transition()
+			.duration(1000)
+			.ease("linear")
+			.attr("d", stimLineFun);
+		// Add a label for stimulus onset
+		var stimOnset_label;
+		(time_menu_value === "stim_onset") ?
+			stimOnset_label = svg.selectAll("#stimOnset_label")
+				.data([0])		
+		:		
+			stimOnset_label = svg.selectAll("#stimOnset_label")
+				.data([trial[0].prep_time]);				
+		stimOnset_label
+			.enter()
+			.append("text")
+			.attr("id", "stimOnset_label");		
+		stimOnset_label
+			.transition()
+			.duration(1000)
+			.ease("linear")
+			.attr("x", function (d) {return xScale(d); })
+			.attr("y", yScale(0))
+			.attr("dx", "-3em")
+			.attr("dy", "-0.25em")
+			.text("Stimulus Onset");		
+		// Draw a line corresponding to the rule onset time
+		
+		var ruleLineFun;
+		(time_menu_value === "stim_onset") ?
+			ruleLineFun = d3.svg.line()
+				.x(function(d) { return xScale(0 - d.prep_time); })
+				.y(function(d, i) { return yScale(i); })
+				.interpolate("basis")
+		:
+			ruleLineFun = d3.svg.line()
+				.x(function(d) { return xScale(0); })
+				.y(function(d, i) { return yScale(i); })
+				.interpolate("basis");
+		var ruleOnset_line = svg.selectAll("#ruleOnset_line")
+			.data([trial]);
+		
+		ruleOnset_line
+			.enter()
+			.append("path")
+			.attr("class", "line")
+			.attr("id", "ruleOnset_line")
+			.attr("d", ruleLineFun);
+		
+		ruleOnset_line
+			.transition()
+			.duration(1000)
+			.ease("linear")
+			.attr("d", ruleLineFun);
+		// Add a label for rule onset
+		var ruleOnset_label;
+		(time_menu_value === "stim_onset") ?
+			ruleOnset_label = svg.selectAll("#ruleOnset_label")
+				.data([0 - trial[0].prep_time])
+		:
+			ruleOnset_label = svg.selectAll("#ruleOnset_label")
+				.data([0]);
+		
+		
+		ruleOnset_label
+			.enter()
+			.append("text")
+			.attr("id", "ruleOnset_label");
+		
+		ruleOnset_label
+			.transition()
+			.duration(1000)
+			.ease("linear")
+			.attr("x", function (d) {return xScale(d); })
+			.attr("y", yScale(0))
+			.attr("dx", "-2em")
+			.attr("dy", "-0.25em")
+			.text("Rule Onset");	
+		// Append the x-axis
+		svg
+			.append("g")
+			.attr("class", "axis")
+			.attr("transform", "translate(0," + height + ")")
+			.call(xAxis);
+			
+		var xLabel = svg.selectAll(".xLabel")
+			.data(["Time (ms)"], String);
+		xLabel
+			.enter()
+			.append("text")
+			.attr("class", "xLabel")
+			.attr("text-anchor", "end")
+			.attr("x", width - (width/2))
+			.attr("y", height)
+			.attr("dy", "2.50em")
+			.text("Time (ms)");
+		
+		var yLabel = svg.selectAll(".yLabel")
+			.data(["Trials"], String);
+		yLabel
+			.enter()
+			.append("text")
+			.attr("class", "yLabel")
+			.attr("text-anchor", "middle")
+			.attr("transform", "rotate(-90)")
+			.attr("x", 0 - (height/2))
+			.attr("y", 0)
+			.attr("dy", "-0.4em")
+			.text("Trials");
+		
+		// Remove trials that don't have matched data
+		trial_select.exit().remove();
+		
+		// Listen for changes on the drop-down menu	
+		factor_sort_menu
+			.on("change", function () {
+				vis.draw(params);
+			});  
+		neuron_menu
+			.on("change", function () {
+				d3.selectAll(".trial")
+					.remove();
+				d3.selectAll(".axis")
+					.transition()
+					.duration(10)
+					.ease("linear")
+					.remove();
+				vis.draw(params);
+			});
+		
+		time_menu
+			.on("change", function () {
+				d3.selectAll(".axis")
+					.transition()
+					.duration(10)
+					.ease("linear")
+					.remove();
+				vis.draw(params);
+			}); 	
+	};
+	
 })();

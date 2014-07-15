@@ -360,6 +360,10 @@
                 xAxis = d3.svg.axis()
                     .scale(xScale)
                     .orient("bottom");
+            // Remove any prior axes
+            cur_plot
+                .selectAll(".axis")
+                .remove();
             // Append the x-axis
             cur_plot
                 .append("g")

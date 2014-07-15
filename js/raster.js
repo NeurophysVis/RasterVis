@@ -349,13 +349,23 @@
         function time_line_draw(rule) {
             var cur_plot = d3.select(this),
                 lines = [
-                    {label: "Stimulus Onset", id: "stim_onset"},
                     {label: "Rule Onset", id: "rule_onset"},
+                    {label: "Stimulus Onset", id: "stim_onset"},
                     {label: "Saccade", id: "react_time"}
                 ],
                 event_line = cur_plot
                     .selectAll(".event_line")
                     .data(lines, function(d) {return d.id;});
+            // Append mean times for label position
+            lines = lines.map(function(line) {
+                return {
+                    label: line.label,
+                    id: line.id,
+                    mean_stat: d3.mean(rule.values.map(function(d) {
+                        return d[line.id] - d[time_menu_value];
+                    }))
+                };
+            });
             // Plot lines corresponding to trial events
             event_line
                 .enter()
@@ -377,6 +387,7 @@
             event_line.exit().remove();
 
             // Add labels corresponding to trial events
+
             event_label = cur_plot
                 .selectAll(".event_label")
                 .data(lines, function(d) {return d.id;});
@@ -387,7 +398,7 @@
                 .attr("class", "event_label")
                 .attr("id", function(d) {return d.id;})
                 .attr("x", function(d) {
-                        return xScale(rule.values[0][d.id] - rule.values[0][time_menu_value]);
+                        return xScale(d.mean_stat);
                 })
                 .attr("y", function(d) {return rule.yScale(0); })
                 .attr("dx", "-2em")
@@ -399,7 +410,7 @@
                 .duration(1000)
                 .ease("linear")
                 .attr("x", function(d) {
-                        return xScale(rule.values[0][d.id] - rule.values[0][time_menu_value]);
+                        return xScale(d.mean_stat);
                 });
 
             event_label.exit().remove();

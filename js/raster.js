@@ -89,7 +89,7 @@
 		});
 	};
 	vis.draw = function (params) {
-		plot_buffer = 50;
+		plot_buffer = 70;
 		// Extract relevant trial and neuron information
 		// Future versions will include option to select neuron, select the first one
 		var neuron_menu = d3.select("#neuron_menu select"),
@@ -122,9 +122,7 @@
 						.domain(d3.range(d.values.length))
 						.rangeBands([0, (height - plot_buffer)/2]);
   				});
-  		// Compute the number of trials in each for scales
-  		//trial.forEach(function(s) {s.numTrials = s.values.length});
-  		//trial.each(function(s) {s.numTrials = s.values.length});
+
 		// Display neuron info
 		at_glance.enter()
 				.append("table")
@@ -230,83 +228,13 @@
 				return colorScale(d[factor_sort_menu_value]);
 			});
 
+        // Remove trials that don't have matched data
+        trial_select.exit().remove();
+
         plot_g.each(time_line_draw);
+        plot_g.each(append_axis);
 
-		// Add a label for stimulus onset
-		/*
-		var stimOnset_label = svg.}selectAll("#stimOnset_label")
-				.data([trial[0].stim_onset - trial[0][time_menu_value]]);
-		stimOnset_label
-			.enter()
-			.append("text")
-			.attr("id", "stimOnset_label");
-		stimOnset_label
-			.transition()
-			.duration(1000)
-			.ease("linear")
-			.attr("x", function (d) {return xScale(d); })
-			.attr("y", yScale(0))
-			.attr("dx", "-3em")
-			.attr("dy", "-0.25em")
-			.text("Stimulus Onset");
 
-		// Add a label for rule onset
-		var ruleOnset_label = svg.selectAll("#ruleOnset_label")
-				.data([0 - (trial[0][time_menu_value]) ]);
-		ruleOnset_label
-			.enter()
-			.append("text")
-			.attr("id", "ruleOnset_label");
-		ruleOnset_label
-			.transition()
-			.duration(1000)
-			.ease("linear")
-			.attr("x", function (d) {return xScale(d); })
-			.attr("y", function (d) {return this.parentNode.__data__.yScale(0); })
-			.attr("dx", "-2em")
-			.attr("dy", "-0.25em")
-			.text("Rule Onset");
-
-		// Append the x-axis
-		svg
-			.append("g")
-			.attr("class", "axis")
-			.attr("transform", "translate(0," + height + ")")
-			.call(xAxis);
-		var xLabel = svg.selectAll(".xLabel")
-			.data(["Time (ms)"], String);
-		xLabel
-			.enter()
-			.append("text")
-			.attr("class", "xLabel")
-			.attr("text-anchor", "end")
-			.attr("x", width - (width/2))
-			.attr("y", height)
-			.attr("dy", "2.50em")
-			.text("Time (ms)");
-		var yLabel = svg.selectAll(".yLabel")
-			.data(["Trials"], String);
-		yLabel
-			.enter()
-			.append("text")
-			.attr("class", "yLabel")
-			.attr("text-anchor", "middle")
-			.attr("transform", "rotate(-90)")
-			.attr("x", 0 - (height/2))
-			.attr("y", 0)
-			.attr("dy", "-0.4em")
-			.text("Trials");
-		// Remove trials that don't have matched data
-		trial_select.exit().remove();
-
-		// Set up Axes
-		/*var	xAxis = d3.svg.axis()
-				.scale(xScale)
-				.orient("bottom"),
-			yAxis = d3.svg.axis()
-				.scale(yScale)
-				.orient("left");
-		*/
 		// Listen for changes on the drop-down menu
 		factor_sort_menu
 			.on("change", function () {
@@ -425,6 +353,43 @@
 
                 return line(values);
             }
+        }
+
+        function append_axis(rule) {
+            var cur_plot = d3.select(this),
+                xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom");
+            // Append the x-axis
+            cur_plot
+                .append("g")
+                .attr("class", "axis")
+                .attr("transform", function() {return "translate(0," + (height - plot_buffer)/2 + ")";})
+                .call(xAxis);
+            // Label x-axis
+            cur_plot.selectAll(".xLabel")
+                .data([{}])
+                .enter()
+                .append("text")
+                .attr("class", "xLabel")
+                .attr("text-anchor", "end")
+                .attr("x", width - (width/2))
+                .attr("transform", function() {return "translate(0," + (height - plot_buffer)/2 + ")";})
+                .attr("dy", "2.50em")
+                .text("Time (ms)");
+            // Label y-axis
+            cur_plot.selectAll(".yLabel")
+                .data([{}])
+                .enter()
+                .append("text")
+                .attr("class", "yLabel")
+                .attr("text-anchor", "middle")
+                .attr("transform", "rotate(-90)")
+                .attr("x", 0 - ((height - plot_buffer)/4))
+                .attr("y", 0)
+                .attr("dx", "0.4em")
+                .attr("dy", "-0.4em")
+                .text("Trials");
         }
 	};
 })();

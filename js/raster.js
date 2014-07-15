@@ -5,7 +5,7 @@
 		defs, style;
 	vis.init = function (params) {
 		if (!params) {params = {}; }
-		chart = d3.select(params.chart || "#chart"); // placeholder div for svg		
+		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
 		margin = {top: 30, right: 30, bottom: 30, left: 30};
 		padding = {top: 60, right: 60, bottom: 60, left: 60};
 		var outerWidth = params.width || 960,
@@ -44,7 +44,7 @@
 		file_menu.select("option")
 						.attr("selected", "selected");
 		options.text(String)
-				.attr("value", String);	
+				.attr("value", String);
 		// Load Data
 		vis.loaddata(params);
 	};
@@ -71,7 +71,7 @@
 						.select("select")
 						.selectAll("option")
 						.data(neuron, function(d) {return d.Name;});
-				options						
+				options
 					.enter()
 					.append("option")
 					.text(function (d) { return d.Name; })
@@ -81,9 +81,9 @@
 						.select("select")
 						.select("option")
 						.attr("selected", "selected");
-				
-				// Draw visualization			
-				
+
+				// Draw visualization
+
 				vis.draw(params);
 			});
 		});
@@ -109,27 +109,27 @@
 					return d3.ascending(a[factor_sort_menu_value], b[factor_sort_menu_value]);
 				})
       			.entries(vis.data[params.data].trials),
-      	// Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap	
+      	// Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
 			plot_g = svg.selectAll("g.plot_g").data(trial, function(d) {return d.key;});
 			plot_g
 				.enter()
   				.append("g")
   				.attr("transform", function(d,i) {return "translate(0," + ((height/2) + plot_buffer)*i + ")";})
   				.attr("class", "plot_g");
-  			plot_g		
+  			plot_g
   				.each(function(d) {
   					d.yScale = d3.scale.ordinal()
 						.domain(d3.range(d.values.length))
 						.rangeBands([0, (height - plot_buffer)/2]);
   				});
   		// Compute the number of trials in each for scales
-  		//trial.forEach(function(s) {s.numTrials = s.values.length});  		
-  		//trial.each(function(s) {s.numTrials = s.values.length});  		
+  		//trial.forEach(function(s) {s.numTrials = s.values.length});
+  		//trial.each(function(s) {s.numTrials = s.values.length});
 		// Display neuron info
 		at_glance.enter()
 				.append("table")
 				.append("tbody");
-		var tbody = at_glance.selectAll("tbody");	
+		var tbody = at_glance.selectAll("tbody");
 		var tr = tbody
 			.selectAll("tr")
 			.data(d3.keys(neuron[0]), String);
@@ -182,9 +182,9 @@
 			colorScale = d3.scale.linear()
 				.domain([0, 11])
 				.range(["magenta", "grey"]);
-			break;	
+			break;
 		}
-		
+
 		// Join the trial data to svg containers ("g")
 		function trial_id(d) { return d.trial_id; };
 		var	trial_select = plot_g.selectAll(".trial")
@@ -202,7 +202,7 @@
 		trial_select
 			.attr("transform", function(d, i) {
 				return "translate(0," + this.parentNode.__data__.yScale(i) + ")";
-			});	
+			});
 		// For each new spike time, append circles that correspond to the spike times
 		// Set the x-position of the circles to their spike time and the y-position to the size of the ordinal scale range band
 		// that way the translate can move them to their appropriate position relative to the same coordinate system
@@ -220,7 +220,7 @@
 			.attr("cx", function (d) {return xScale(d - (this.parentNode.__data__[time_menu_value])); })
 			.attr("cy", function (d) {return this.parentNode.parentNode.__data__.yScale.rangeBand() / 2; });
 		spikes.exit().remove();
-		// For all the trials, move them to the appropriate position with a delay for each trial to better display the transition	
+		// For all the trials, move them to the appropriate position with a delay for each trial to better display the transition
 		trial_select
 			.transition()
 			.duration(10)
@@ -230,50 +230,16 @@
 				return colorScale(d[factor_sort_menu_value]);
 			});
 
-		var line_names = ["stim_onset", "rule_onset", "react_time"];
+        plot_g.each(time_line_draw);
 
-		var transpose = line_names.map(function(name) {
-			return;	
-		 	});
-		var time_lines = plot_g.selectAll("time_lines")
-			.data(transpose);
-		time_lines
-			.enter()
-			.append("path");
-		/*// Draw a line corresponding to the stimulus onset time
-		function stimLineFun(d, scaleFun) {
-		 	var line =  d3.svg.line()
-				.x(function (e) { return xScale(e.stim_onset - e[time_menu_value]); })
-				.y(function (e, i) { return scaleFun(i); })
-				.interpolate("basis");
-
-			return line(d);
-		}
-		// wrap trial object in array so that there's only one data point to join with selection
-		var stimOnset_line = plot_g.selectAll("#stimOnset_line")
-			.data(function(d) {return [d]; }, function(d) {return d.key;});		
-		stimOnset_line
-			.enter()
-			.append("path")
-			.attr("class", "line")
-			.attr("id", "stimOnset_line")
-			.attr("d", function(d) {return stimLineFun(d.values, d.yScale); });	
-		stimOnset_line
-			.transition()
-			.duration(1000)
-			.ease("linear")
-			.attr("d", function(d) {return stimLineFun(d.values, d.yScale); });
-		stimOnset_line.exit().remove();
-		*/
-		
 		// Add a label for stimulus onset
 		/*
-		var stimOnset_label = svg.selectAll("#stimOnset_label")
-				.data([trial[0].stim_onset - trial[0][time_menu_value]]);				
+		var stimOnset_label = svg.}selectAll("#stimOnset_label")
+				.data([trial[0].stim_onset - trial[0][time_menu_value]]);
 		stimOnset_label
 			.enter()
 			.append("text")
-			.attr("id", "stimOnset_label");		
+			.attr("id", "stimOnset_label");
 		stimOnset_label
 			.transition()
 			.duration(1000)
@@ -282,26 +248,8 @@
 			.attr("y", yScale(0))
 			.attr("dx", "-3em")
 			.attr("dy", "-0.25em")
-			.text("Stimulus Onset");		
-		
-		// Draw a line corresponding to the rule onset time
-		var ruleLineFun = d3.svg.line()
-				.x(function(d) { return xScale(d.rule_onset - d[time_menu_value]); })
-				.y(function(d, i) { return this.parentNode.__data__.yScale(i); })
-				.interpolate("basis");
-		var ruleOnset_line = svg.selectAll("#ruleOnset_line")
-			.data([vis.data[params.data].trials]);
-		ruleOnset_line
-			.enter()
-			.append("path")
-			.attr("class", "line")
-			.attr("id", "ruleOnset_line")
-			.attr("d", ruleLineFun);
-		ruleOnset_line
-			.transition()
-			.duration(1000)
-			.ease("linear")
-			.attr("d", ruleLineFun);
+			.text("Stimulus Onset");
+
 		// Add a label for rule onset
 		var ruleOnset_label = svg.selectAll("#ruleOnset_label")
 				.data([0 - (trial[0][time_menu_value]) ]);
@@ -318,7 +266,7 @@
 			.attr("dx", "-2em")
 			.attr("dy", "-0.25em")
 			.text("Rule Onset");
-			
+
 		// Append the x-axis
 		svg
 			.append("g")
@@ -352,18 +300,18 @@
 		trial_select.exit().remove();
 
 		// Set up Axes
-		/*var	xAxis = d3.svg.axis()	
+		/*var	xAxis = d3.svg.axis()
 				.scale(xScale)
 				.orient("bottom"),
 			yAxis = d3.svg.axis()
 				.scale(yScale)
 				.orient("left");
 		*/
-		// Listen for changes on the drop-down menu	
+		// Listen for changes on the drop-down menu
 		factor_sort_menu
 			.on("change", function () {
 				vis.draw(params);
-			});  
+			});
 		neuron_menu
 			.on("change", function () {
 				d3.selectAll(".trial")
@@ -396,5 +344,40 @@
 				params.data = file_menu_value;
 				vis.loaddata(params);
 			});
+
+
+        function time_line_draw(rule) {
+            var cur_plot = d3.select(this),
+                line_names = ["stim_onset", "rule_onset", "react_time"],
+                time_line = cur_plot.selectAll(".time_line").data(line_names, function(d) {return d;});
+
+            time_line
+                .enter()
+                .append("path")
+                .attr("class", "time_line")
+                .attr("id", function(d) {return d;})
+                .attr("d", function(line_name) {
+                        return LineFun(rule.values, rule.yScale, line_name);
+                    });
+
+            time_line
+                .transition()
+                .duration(1000)
+                .ease("linear")
+                .attr("d", function(line_name) {
+                        return LineFun(rule.values, rule.yScale, line_name);
+                    });
+
+            time_line.exit().remove();
+
+            function LineFun(values, scaleFun, line_name) {
+                 var line = d3.svg.line()
+                    .x(function (e) { return xScale(e[line_name] - e[time_menu_value]); })
+                    .y(function (e, i) { return scaleFun(i); })
+                    .interpolate("basis");
+
+                return line(values);
+            }
+        }
 	};
 })();

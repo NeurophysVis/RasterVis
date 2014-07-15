@@ -8,7 +8,7 @@
 	font-family: sans-serif;
 	font-size: 14px;
 }
-.line {
+.time_line {
 	fill: none;
 	stroke: black;
 	stroke-width: 3.0px;
@@ -19,5 +19,5 @@
 }
 #stimOnset_label, #ruleOnset_label {
 	font-family: sans-serif;
-	font-size: 14px;	
+	font-size: 14px;
 }

@@ -157,31 +157,8 @@
 			xScale = d3.scale.linear()
 					.domain([min_time, max_time])
 					.range([0, width]);
-		var	colorScale;
-		switch (factor_sort_menu_value) {
-		case "trial_id":
-		case "stim_onset":
-			colorScale = d3.scale.ordinal()
-				.domain(0)
-				.range(["#000"]);
-			break;
-		case "Rule":
-			colorScale = d3.scale.ordinal()
-				.domain(d3.range(2))
-				.range(colorbrewer.RdBu[3]);
-			break;
-		case "ResponseDir":
-			colorScale = d3.scale.ordinal()
-				.domain(["Left", "Right"])
-				.range(["red", "green"]);
-			break;
-		case "SwitchDist":
-			// can build a continuous color scale
-			colorScale = d3.scale.linear()
-				.domain([0, 11])
-				.range(["magenta", "grey"]);
-			break;
-		}
+		var	colorScale = colorPicker();
+
 
         plot_g.each(draw_spikes)
         plot_g.each(draw_event_lines);
@@ -258,7 +235,7 @@
             trial_select.selectAll("circle.spikes")
                 .transition()
                 .duration(1000)
-                .style("opacity", .8)
+                .style("opacity", 0.9)
                 .attr("r", 2)
                 .attr("cx", function (d) {return xScale(d - (this.parentNode.__data__[time_menu_value])); })
                 .attr("cy", function (d) {return rule.yScale.rangeBand() / 2; });
@@ -398,5 +375,33 @@
                 .attr("dy", "-0.4em")
                 .text("Trials");
         }
+// ******************** Color Scale Function *******************
+            function colorPicker() {
+                switch (factor_sort_menu_value) {
+                    case "trial_id":
+                    case "stim_onset":
+                        colorScale = d3.scale.ordinal()
+                            .domain(0)
+                            .range(["black"]);
+                        break;
+                    case "Rule":
+                        colorScale = d3.scale.ordinal()
+                            .domain(["Color", "Orient."])
+                            .range(colorbrewer.RdBu[3]);
+                        break;
+                    case "ResponseDir":
+                        colorScale = d3.scale.ordinal()
+                            .domain(["Left", "Right"])
+                            .range(["red", "green"]);
+                        break;
+                    case "SwitchDist":
+                        // can build a continuous color scale
+                        colorScale = d3.scale.linear()
+                            .domain([0, 11])
+                            .range(["magenta", "grey"]);
+                        break;
+                }
+                    return colorScale;
+            }
 	};
 })();

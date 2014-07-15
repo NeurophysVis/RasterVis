@@ -183,55 +183,8 @@
 			break;
 		}
 
-		// Join the trial data to svg containers ("g")
-		function trial_id(d) { return d.trial_id; };
-		var	trial_select = plot_g.selectAll(".trial")
-				.data(function (d) { return d.values; }, trial_id);
-
-		// For each new data, append an svg container and set css class to trial
-		// for each group, translate its location to its index location in the trial object
-		trial_select
-			.enter()
-			.append("g")
-			.attr("class", "trial")
-			.attr("transform", function(d, i) {
-				return "translate(0," + this.parentNode.__data__.yScale(i) + ")";
-			});
-		trial_select
-			.attr("transform", function(d, i) {
-				return "translate(0," + this.parentNode.__data__.yScale(i) + ")";
-			});
-		// For each new spike time, append circles that correspond to the spike times
-		// Set the x-position of the circles to their spike time and the y-position to the size of the ordinal scale range band
-		// that way the translate can move them to their appropriate position relative to the same coordinate system
-		var spikes = trial_select.selectAll("circle.spikes")
-			.data(function (d, i) { return d[cur_neuron_name]; });
-		spikes
-			.enter()
-			.append("circle")
-			.attr("class", "spikes");
-		trial_select.selectAll("circle.spikes")
-			.transition()
-			.duration(1000)
-			.style("opacity", .8)
-			.attr("r", 2)
-			.attr("cx", function (d) {return xScale(d - (this.parentNode.__data__[time_menu_value])); })
-			.attr("cy", function (d) {return this.parentNode.parentNode.__data__.yScale.rangeBand() / 2; });
-		spikes.exit().remove();
-		// For all the trials, move them to the appropriate position with a delay for each trial to better display the transition
-		trial_select
-			.transition()
-			.duration(10)
-			.delay(function(d, i) { return i; })
-			.attr("transform", function(d, i) { return "translate(0," + this.parentNode.__data__.yScale(i) + ")"; })
-			.style("fill", function (d) {
-				return colorScale(d[factor_sort_menu_value]);
-			});
-
-        // Remove trials that don't have matched data
-        trial_select.exit().remove();
-
-        plot_g.each(time_line_draw);
+        plot_g.each(draw_spikes)
+        plot_g.each(draw_event_lines);
         plot_g.each(append_axis);
 
 
@@ -272,9 +225,59 @@
 				params.data = file_menu_value;
 				vis.loaddata(params);
 			});
+// ******************** Draw Spikes Function ******************
+        function draw_spikes(rule) {
+            var cur_plot = d3.select(this);
 
+            // Join the trial data to svg containers ("g")
+            var	trial_select = cur_plot.selectAll(".trial")
+                    .data(rule.values, function(d) {return d.trial_id; });
 
-        function time_line_draw(rule) {
+            // For each new data, append an svg container and set css class to trial
+            // for each group, translate its location to its index location in the trial object
+            trial_select
+                .enter()
+                .append("g")
+                .attr("class", "trial")
+                .attr("transform", function(d, i) {
+                    return "translate(0," + rule.yScale(i) + ")";
+                });
+            trial_select
+                .attr("transform", function(d, i) {
+                    return "translate(0," + rule.yScale(i) + ")";
+                });
+            // For each new spike time, append circles that correspond to the spike times
+            // Set the x-position of the circles to their spike time and the y-position to the size of the ordinal scale range band
+            // that way the translate can move them to their appropriate position relative to the same coordinate system
+            var spikes = trial_select.selectAll("circle.spikes")
+                .data(function (d) { return d[cur_neuron_name]; });
+            spikes
+                .enter()
+                .append("circle")
+                .attr("class", "spikes");
+            trial_select.selectAll("circle.spikes")
+                .transition()
+                .duration(1000)
+                .style("opacity", .8)
+                .attr("r", 2)
+                .attr("cx", function (d) {return xScale(d - (this.parentNode.__data__[time_menu_value])); })
+                .attr("cy", function (d) {return rule.yScale.rangeBand() / 2; });
+            spikes.exit().remove();
+            // For all the trials, move them to the appropriate position with a delay for each trial to better display the transition
+            trial_select
+                .transition()
+                .duration(10)
+                .delay(function(d, i) { return i; })
+                .attr("transform", function(d, i) { return "translate(0," + rule.yScale(i) + ")"; })
+                .style("fill", function (d) {
+                    return colorScale(d[factor_sort_menu_value]);
+                });
+
+            // Remove trials that don't have matched data
+            trial_select.exit().remove();
+        }
+// ******************** Event Line Function *******************
+        function draw_event_lines(rule) {
             var cur_plot = d3.select(this),
                 lines = [
                     {label: "Rule Onset", id: "rule_onset"},
@@ -354,7 +357,7 @@
                 return line(values);
             }
         }
-
+// ******************** Axis Function *******************
         function append_axis(rule) {
             var cur_plot = d3.select(this),
                 xAxis = d3.svg.axis()

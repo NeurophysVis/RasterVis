@@ -348,33 +348,69 @@
 
         function time_line_draw(rule) {
             var cur_plot = d3.select(this),
-                line_names = ["stim_onset", "rule_onset", "react_time"],
-                time_line = cur_plot.selectAll(".time_line").data(line_names, function(d) {return d;});
-
-            time_line
+                lines = [
+                    {label: "Stimulus Onset", id: "stim_onset"},
+                    {label: "Rule Onset", id: "rule_onset"},
+                    {label: "Saccade", id: "react_time"}
+                ],
+                event_line = cur_plot
+                    .selectAll(".event_line")
+                    .data(lines, function(d) {return d.id;});
+            // Plot lines corresponding to trial events
+            event_line
                 .enter()
                 .append("path")
-                .attr("class", "time_line")
-                .attr("id", function(d) {return d;})
-                .attr("d", function(line_name) {
-                        return LineFun(rule.values, rule.yScale, line_name);
-                    });
+                .attr("class", "event_line")
+                .attr("id", function(d) {return d.id;})
+                .attr("d", function(line) {
+                        return LineFun(rule.values, rule.yScale, line.id);
+                });
 
-            time_line
+            event_line
                 .transition()
                 .duration(1000)
                 .ease("linear")
-                .attr("d", function(line_name) {
-                        return LineFun(rule.values, rule.yScale, line_name);
-                    });
+                .attr("d", function(line) {
+                        return LineFun(rule.values, rule.yScale, line.id);
+                });
 
-            time_line.exit().remove();
+            event_line.exit().remove();
+
+            // Add labels corresponding to trial events
+            event_label = cur_plot
+                .selectAll(".event_label")
+                .data(lines, function(d) {return d.id;});
+
+            event_label
+                .enter()
+                .append("text")
+                .attr("class", "event_label")
+                .attr("id", function(d) {return d.id;})
+                .attr("x", function(d) {
+                        return xScale(rule.values[0][d.id] - rule.values[0][time_menu_value]);
+                })
+                .attr("y", function(d) {return rule.yScale(0); })
+                .attr("dx", "-2em")
+                .attr("dy", "-0.25em")
+                .text(function(d) {return d.label; })
+
+            event_label
+                .transition()
+                .duration(1000)
+                .ease("linear")
+                .attr("x", function(d) {
+                        return xScale(rule.values[0][d.id] - rule.values[0][time_menu_value]);
+                });
+
+            event_label.exit().remove();
 
             function LineFun(values, scaleFun, line_name) {
+
+                // Setup helper line function
                  var line = d3.svg.line()
-                    .x(function (e) { return xScale(e[line_name] - e[time_menu_value]); })
-                    .y(function (e, i) { return scaleFun(i); })
-                    .interpolate("basis");
+                    .x(function (d) { return xScale(d[line_name] - d[time_menu_value]); })
+                    .y(function (d, i) { return scaleFun(i); })
+                    .interpolate("linear");
 
                 return line(values);
             }

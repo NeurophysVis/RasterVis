@@ -8,7 +8,7 @@
 	font-family: sans-serif;
 	font-size: 14px;
 }
-.time_line {
+.event_line {
 	fill: none;
 	stroke: black;
 	stroke-width: 3.0px;
@@ -17,7 +17,7 @@
 .xLabel, .yLabel {
 	font-size: 16px;
 }
-#stimOnset_label, #ruleOnset_label {
+.event_label {
 	font-family: sans-serif;
 	font-size: 14px;
 }

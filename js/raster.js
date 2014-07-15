@@ -89,19 +89,18 @@
 		});
 	};
 	vis.draw = function (params) {
-		plot_buffer = 70;
+		plot_buffer = 60; // Defines separation between plots
 		// Extract relevant trial and neuron information
-		// Future versions will include option to select neuron, select the first one
 		var neuron_menu = d3.select("#neuron_menu select"),
 			cur_neuron_name = neuron_menu.property("value"),
 			time_menu = d3.select("#time_menu select"),
 			time_menu_value = time_menu.property("value"),
 			factor_sort_menu = d3.select("#factor_sort_menu select"),
 			factor_sort_menu_value = factor_sort_menu.property("value"),
-			neuron = vis.data[params.data].neurons.filter(function (d) {return d.Name === cur_neuron_name; }), // == does type conversion before equality, === does not do type conversion
-			at_glance = d3.select("#at_glance")
-				.selectAll("table")
-				.data(neuron, function (d) {return d.Name;}),
+			neuron = vis.data[params.data].neurons
+                .filter(function (d) {
+                    return d.Name === cur_neuron_name;
+            }),
 		// Nest and Sort Data
 			trial = d3.nest()
 				.key(function(d) {return d.Rule;}) // nests data by Rule
@@ -114,40 +113,19 @@
 			plot_g
 				.enter()
   				.append("g")
-  				.attr("transform", function(d,i) {return "translate(0," + ((height/2) + plot_buffer)*i + ")";})
+  				.attr("transform", function(d,i) {
+                      return "translate(0," + ((height/2) + plot_buffer)*i + ")";
+                })
   				.attr("class", "plot_g");
-  			plot_g
-  				.each(function(d) {
-  					d.yScale = d3.scale.ordinal()
-						.domain(d3.range(d.values.length))
-						.rangeBands([0, (height - plot_buffer)/2]);
-  				});
+        // Append a y-scale to each plot so that the scale is adaptive to the range of each plot
+  		plot_g
+  			.each(function(d) {
+  				d.yScale = d3.scale.ordinal()
+					.domain(d3.range(d.values.length))
+					.rangeBands([0, (height - plot_buffer)/2]);
+  			});
 
-		// Display neuron info
-		at_glance.enter()
-				.append("table")
-				.append("tbody");
-		var tbody = at_glance.selectAll("tbody");
-		var tr = tbody
-			.selectAll("tr")
-			.data(d3.keys(neuron[0]), String);
-		tr
-			.enter()
-			.append("tr")
-			.append("th")
-			.text(String);
-		tr
-			.selectAll("td")
-			.data(function (d) {
-				return neuron.map(function(column) {
-					return {key: d, value: column[d]};
-				});
-			})
-			.enter()
-			.append("td")
-			.text(function(d) { return d.value; });
-		at_glance.exit().remove();
-		// Set up scales
+		// Set up x-scale, colorScale to be the same for both plots
 		var	min_time = d3.min(vis.data[params.data].trials, function (d) {
 				return d3.min(d[cur_neuron_name], function (e) { return d3.min(e); })  - d[time_menu_value];
 			}),
@@ -159,10 +137,28 @@
 					.range([0, width]);
 		var	colorScale = colorPicker();
 
-
-        plot_g.each(draw_spikes)
+        // Draw spikes, event lines, axes
+        update_neural_info();
+        plot_g.each(draw_spikes);
         plot_g.each(draw_event_lines);
         plot_g.each(append_axis);
+
+        // Add labels to each plot
+        rule_colorScale = d3.scale.ordinal()
+            .domain(["Color", "Orientation"])
+            .range(["#ef8a62","#67a9cf"]);
+
+        plot_labels = plot_g
+            .selectAll(".plot_label")
+            .data(function(d) {return [d];})
+            .enter()
+            .append("text")
+            .attr("class", "plot_label")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("dy", "-0.95em")
+            .style("fill", function(d) {return rule_colorScale(d.key);})
+            .text(function(d) {return d.key + " Rule";});
 
 
 		// Listen for changes on the drop-down menu
@@ -202,6 +198,9 @@
 				params.data = file_menu_value;
 				vis.loaddata(params);
 			});
+
+// ******************** Helper Functions **********************
+
 // ******************** Draw Spikes Function ******************
         function draw_spikes(rule) {
             var cur_plot = d3.select(this);
@@ -237,15 +236,21 @@
                 .duration(1000)
                 .style("opacity", 0.9)
                 .attr("r", 2)
-                .attr("cx", function (d) {return xScale(d - (this.parentNode.__data__[time_menu_value])); })
-                .attr("cy", function (d) {return rule.yScale.rangeBand() / 2; });
+                .attr("cx", function (d) {
+                    return xScale(d - (this.parentNode.__data__[time_menu_value]));
+                })
+                .attr("cy", function (d) {
+                    return rule.yScale.rangeBand() / 2;
+                });
             spikes.exit().remove();
             // For all the trials, move them to the appropriate position with a delay for each trial to better display the transition
             trial_select
                 .transition()
                 .duration(10)
                 .delay(function(d, i) { return i; })
-                .attr("transform", function(d, i) { return "translate(0," + rule.yScale(i) + ")"; })
+                .attr("transform", function(d, i) {
+                     return "translate(0," + rule.yScale(i) + ")";
+                })
                 .style("fill", function (d) {
                     return colorScale(d[factor_sort_menu_value]);
                 });
@@ -327,7 +332,9 @@
 
                 // Setup helper line function
                  var line = d3.svg.line()
-                    .x(function (d) { return xScale(d[line_name] - d[time_menu_value]); })
+                    .x(function (d) {
+                        return xScale(d[line_name] - d[time_menu_value]);
+                    })
                     .y(function (d, i) { return scaleFun(i); })
                     .interpolate("linear");
 
@@ -348,7 +355,9 @@
             cur_plot
                 .append("g")
                 .attr("class", "axis")
-                .attr("transform", function() {return "translate(0," + (height - plot_buffer)/2 + ")";})
+                .attr("transform", function() {
+                    return "translate(0," + (height - plot_buffer)/2 + ")";
+                })
                 .call(xAxis);
             // Label x-axis
             cur_plot.selectAll(".xLabel")
@@ -358,7 +367,9 @@
                 .attr("class", "xLabel")
                 .attr("text-anchor", "end")
                 .attr("x", width - (width/2))
-                .attr("transform", function() {return "translate(0," + (height - plot_buffer)/2 + ")";})
+                .attr("transform", function() {
+                    return "translate(0," + (height - plot_buffer)/2 + ")";
+                })
                 .attr("dy", "2.50em")
                 .text("Time (ms)");
             // Label y-axis
@@ -386,8 +397,8 @@
                         break;
                     case "Rule":
                         colorScale = d3.scale.ordinal()
-                            .domain(["Color", "Orient."])
-                            .range(colorbrewer.RdBu[3]);
+                            .domain(["Color", "Orientation"])
+                            .range(["#ef8a62","#67a9cf"]);
                         break;
                     case "ResponseDir":
                         colorScale = d3.scale.ordinal()
@@ -402,6 +413,36 @@
                         break;
                 }
                     return colorScale;
+            }
+// ******************** Neuron Info Function *******************
+            function update_neural_info() {
+                at_glance = d3.select("#at_glance")
+                    .selectAll("table")
+                    .data(neuron, function (d) {return d.Name;});
+                // Display neuron info
+                at_glance.enter()
+                        .append("table")
+                        .append("tbody");
+                var tbody = at_glance.selectAll("tbody");
+                var tr = tbody
+                    .selectAll("tr")
+                    .data(d3.keys(neuron[0]), String);
+                tr
+                    .enter()
+                    .append("tr")
+                    .append("th")
+                    .text(String);
+                tr
+                    .selectAll("td")
+                    .data(function (d) {
+                        return neuron.map(function(column) {
+                            return {key: d, value: column[d]};
+                        });
+                    })
+                    .enter()
+                    .append("td")
+                    .text(function(d) { return d.value; });
+                at_glance.exit().remove();
             }
 	};
 })();

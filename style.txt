@@ -21,3 +21,8 @@
 	font-family: sans-serif;
 	font-size: 14px;
 }
+.plot_label {
+	font-family: sans-serif;
+	font-size: 18px;
+	font-weight: bold;
+}

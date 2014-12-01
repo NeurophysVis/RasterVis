@@ -170,29 +170,14 @@
 			.on("change", function () {
 				d3.selectAll(".trial")
 					.remove();
-				d3.selectAll(".axis")
-					.transition()
-					.duration(10)
-					.ease("linear")
-					.remove();
 				ruleRaster.draw(params);
 			});
 		timeMenu
 			.on("change", function () {
-				d3.selectAll(".axis")
-					.transition()
-					.duration(10)
-					.ease("linear")
-					.remove();
 				ruleRaster.draw(params);
 			});
 		fileMenu
 			.on("change", function () {
-				d3.selectAll(".axis")
-					.transition()
-					.duration(100)
-					.ease("linear")
-					.remove();
 				var fileMenuValue = fileMenu.property("value");
 				params.data = fileMenuValue;
 				ruleRaster.loaddata(params);
@@ -346,18 +331,19 @@
                 xAxis = d3.svg.axis()
                     .scale(xScale)
                     .orient("bottom");
-            // Remove any prior axes
-            curPlot
-                .selectAll(".axis")
-                .remove();
             // Append the x-axis
-            curPlot
+            var axisG = curPlot.selectAll("g.axis").data([{}]);
+            axisG.enter()
                 .append("g")
                 .attr("class", "axis")
                 .attr("transform", function() {
                     return "translate(0," + (height - PLOT_BUFFER)/2 + ")";
-                })
-                .call(xAxis);
+                });
+            axisG
+              .transition()
+                .duration(10)
+                  .ease("linear")
+              .call(xAxis);
             // Label x-axis
             curPlot.selectAll(".xLabel")
                 .data([{}])

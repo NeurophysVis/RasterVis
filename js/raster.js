@@ -231,8 +231,8 @@
         function drawEventLines(rule) {
             var curPlot = d3.select(this),
                 lines = [
-                    {label: "Rule Onset", id: "rule_onset"},
-                    {label: "Stimulus Onset", id: "stim_onset"},
+                    {label: "Rule Cue", id: "rule_onset"},
+                    {label: "Test Stimulus Cue", id: "stim_onset"},
                     {label: "Saccade", id: "react_time"}
                 ],
                 eventLine = curPlot
@@ -274,8 +274,7 @@
                   .attr("class", "eventLabel")
                   .attr("id", function(d) {return d.id;})
                   .attr("y", function(d) {return rule.yScale(0); })
-                  .attr("dx", "-2em")
-                  .attr("dy", "-0.25em")
+                  .attr("text-anchor", "middle")
                   .text(function(d) {return d.label; });
 
             eventLabel

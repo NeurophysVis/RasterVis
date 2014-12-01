@@ -59,23 +59,19 @@
 				ruleRaster.data = json;
 				// populate drop-down menu with neuron names
 				var neuronMenu = d3.select("#neuronMenu");
-				neuronMenu
-						.selectAll("select.main")
+				neuronMenu.selectAll("select.main")
 						.data([{}])
 						.enter()
-						.append("select")
-						.attr("name", "neuron-list")
-						.classed("main", 1);
+						      .append("select")
+						            .attr("name", "neuron-list")
+						            .classed("main", 1);
 				var	neuron = ruleRaster.data[params.data].neurons,
-					options = neuronMenu
-						.select("select")
-						.selectAll("option")
+					options = neuronMenu.select("select").selectAll("option")
 						.data(neuron, function(d) {return d.Name;});
-				options
-					.enter()
+				options.enter()
 					.append("option")
-					.text(function (d) { return d.Name; })
-					.attr("value", function (d) { return d.Name; });
+					     .text(function (d) { return d.Name; })
+					     .attr("value", function (d) { return d.Name; });
 				options.exit().remove();
 				neuronMenu // add option to select neuron based on parameters from the browser
 						.select("select")
@@ -148,18 +144,16 @@
             .domain(["Color", "Orientation"])
             .range(["#ef8a62","#67a9cf"]);
 
-        plotLabels = plotG
-            .selectAll(".plotLabel")
+        plotLabels = plotG.selectAll(".plotLabel")
             .data(function(d) {return [d];})
             .enter()
-            .append("text")
-            .attr("class", "plotLabel")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("dy", "-0.95em")
-            .style("fill", function(d) {return ruleColorScale(d.key);})
-            .text(function(d) {return d.key + " Rule";});
-
+              .append("text")
+                .attr("class", "plotLabel")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("dy", "-0.95em")
+                .style("fill", function(d) {return ruleColorScale(d.key);})
+                .text(function(d) {return d.key + " Rule";});
 
 		// Listen for changes on the drop-down menu
 		factorSortMenu
@@ -178,8 +172,7 @@
 			});
 		fileMenu
 			.on("change", function () {
-				var fileMenuValue = fileMenu.property("value");
-				params.data = fileMenuValue;
+				params.data =  fileMenu.property("value");
 				ruleRaster.loaddata(params);
 			});
 
@@ -191,18 +184,20 @@
 
             // Join the trial data to svg containers ("g")
             var	trialG = curPlot.selectAll(".trial")
-                    .data(rule.values, function(d) {return d.trial_id; });
+                  .data(rule.values, function(d) {return d.trial_id; });
 
             // For each new data, append an svg container and set css class to trial
             // for each group, translate its location to its index location in the trial object
-            trialG
-                .enter()
+            trialG.enter()
                 .append("g")
-                .attr("class", "trial")
-                .attr("transform", function(d, i) {
-                    return "translate(0," + rule.yScale(i) + ")";
-                });
+                  .attr("class", "trial")
             trialG
+                .style("fill", function (d) {
+                    return colorScale(d[factorSortMenuValue]);
+                })
+                .transition()
+                  .duration(10)
+                  .delay(function(d, i) { return i; })
                 .attr("transform", function(d, i) {
                     return "translate(0," + rule.yScale(i) + ")";
                 });
@@ -211,36 +206,26 @@
             // that way the translate can move them to their appropriate position relative to the same coordinate system
             var spikes = trialG.selectAll("circle.spikes")
                 .data(function (d) { return d[curNeuronName]; });
-            spikes
-                .enter()
+            spikes.enter()
                 .append("circle")
-                .attr("class", "spikes");
-            trialG.selectAll("circle.spikes")
+                  .attr("class", "spikes")
+                  .style("opacity", 1E-5)
+                  .attr("r", 2)
+                  .attr("cy", function (d) {
+                      return rule.yScale.rangeBand() / 2;
+                    });
+            spikes
                 .transition()
-                .duration(1000)
-                .style("opacity", 0.9)
-                .attr("r", 2)
+                  .duration(1000)
                 .attr("cx", function (d) {
                     return xScale(d - (this.parentNode.__data__[timeMenuValue]));
                 })
-                .attr("cy", function (d) {
-                    return rule.yScale.rangeBand() / 2;
-                });
-            spikes.exit().remove();
-            // For all the trials, move them to the appropriate position with a delay for each trial to better display the transition
-            trialG
-                .transition()
-                .duration(10)
-                .delay(function(d, i) { return i; })
-                .attr("transform", function(d, i) {
-                     return "translate(0," + rule.yScale(i) + ")";
-                })
-                .style("fill", function (d) {
-                    return colorScale(d[factorSortMenuValue]);
-                });
-
+                .style("opacity", 0.9);
+            spikes.exit()
+                .remove();
             // Remove trials that don't have matched data
-            trialG.exit().remove();
+            trialG.exit()
+                .remove();
         }
 // ******************** Event Line Function *******************
         function drawEventLines(rule) {
@@ -264,53 +249,45 @@
                 };
             });
             // Plot lines corresponding to trial events
-            eventLine
-                .enter()
+            eventLine.enter()
                 .append("path")
-                .attr("class", "eventLine")
-                .attr("id", function(d) {return d.id;})
-                .attr("d", function(line) {
-                        return LineFun(rule.values, rule.yScale, line.id);
-                });
+                  .attr("class", "eventLine")
+                  .attr("id", function(d) {return d.id;});
 
             eventLine
                 .transition()
-                .duration(1000)
-                .ease("linear")
+                  .duration(1000)
+                  .ease("linear")
                 .attr("d", function(line) {
                         return LineFun(rule.values, rule.yScale, line.id);
                 });
 
-            eventLine.exit().remove();
+            eventLine.exit()
+              .remove();
 
             // Add labels corresponding to trial events
-
-            eventLabel = curPlot
-                .selectAll(".eventLabel")
+            eventLabel = curPlot.selectAll(".eventLabel")
                 .data(lines, function(d) {return d.id;});
 
-            eventLabel
-                .enter()
+            eventLabel.enter()
                 .append("text")
-                .attr("class", "eventLabel")
-                .attr("id", function(d) {return d.id;})
-                .attr("x", function(d) {
-                        return xScale(d.mean_stat);
-                })
-                .attr("y", function(d) {return rule.yScale(0); })
-                .attr("dx", "-2em")
-                .attr("dy", "-0.25em")
-                .text(function(d) {return d.label; })
+                  .attr("class", "eventLabel")
+                  .attr("id", function(d) {return d.id;})
+                  .attr("y", function(d) {return rule.yScale(0); })
+                  .attr("dx", "-2em")
+                  .attr("dy", "-0.25em")
+                  .text(function(d) {return d.label; });
 
             eventLabel
                 .transition()
-                .duration(1000)
-                .ease("linear")
+                  .duration(1000)
+                  .ease("linear")
                 .attr("x", function(d) {
                         return xScale(d.mean_stat);
                 });
 
-            eventLabel.exit().remove();
+            eventLabel.exit()
+              .remove();
 
             function LineFun(values, scaleFun, line_name) {
 
@@ -347,29 +324,29 @@
             // Label x-axis
             curPlot.selectAll(".xLabel")
                 .data([{}])
-                .enter()
-                .append("text")
-                .attr("class", "xLabel")
-                .attr("text-anchor", "end")
-                .attr("x", width - (width/2))
-                .attr("transform", function() {
-                    return "translate(0," + (height - PLOT_BUFFER)/2 + ")";
-                })
-                .attr("dy", "2.50em")
-                .text("Time (ms)");
+                  .enter()
+                    .append("text")
+                      .attr("class", "xLabel")
+                      .attr("text-anchor", "end")
+                      .attr("x", width - (width/2))
+                      .attr("transform", function() {
+                        return "translate(0," + (height - PLOT_BUFFER)/2 + ")";
+                      })
+                      .attr("dy", "2.50em")
+                      .text("Time (ms)");
             // Label y-axis
             curPlot.selectAll(".yLabel")
                 .data([{}])
                 .enter()
-                .append("text")
-                .attr("class", "yLabel")
-                .attr("text-anchor", "middle")
-                .attr("transform", "rotate(-90)")
-                .attr("x", 0 - ((height - PLOT_BUFFER)/4))
-                .attr("y", 0)
-                .attr("dx", "0.4em")
-                .attr("dy", "-0.4em")
-                .text("Trials");
+                  .append("text")
+                    .attr("class", "yLabel")
+                    .attr("text-anchor", "middle")
+                    .attr("transform", "rotate(-90)")
+                    .attr("x", 0 - ((height - PLOT_BUFFER)/4))
+                    .attr("y", 0)
+                    .attr("dx", "0.4em")
+                    .attr("dy", "-0.4em")
+                    .text("Trials");
         }
 // ******************** Color Scale Function *******************
             function colorPicker() {
@@ -401,8 +378,7 @@
             }
 // ******************** Neuron Info Function *******************
             function updateNeuralInfo() {
-                atGlance = d3.select("#atGlance")
-                    .selectAll("table")
+                atGlance = d3.select("#atGlance").selectAll("table")
                     .data(neuron, function (d) {return d.Name;});
                 // Display neuron info
                 atGlance.enter()
@@ -412,22 +388,21 @@
                 var tr = tbody
                     .selectAll("tr")
                     .data(d3.keys(neuron[0]), String);
-                tr
-                    .enter()
+                tr.enter()
                     .append("tr")
                     .append("th")
                     .text(String);
-                tr
-                    .selectAll("td")
+                tr.selectAll("td")
                     .data(function (d) {
                         return neuron.map(function(column) {
                             return {key: d, value: column[d]};
                         });
                     })
                     .enter()
-                    .append("td")
-                    .text(function(d) { return d.value; });
-                atGlance.exit().remove();
+                      .append("td")
+                      .text(function(d) { return d.value; });
+                atGlance.exit()
+                  .remove();
             }
 	};
 })();

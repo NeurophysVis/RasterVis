@@ -1,9 +1,9 @@
 (function () {
-    raster = {};
+    ruleRaster = {};
 	var width, height,
 		chart, svg,
 		defs, style;
-	raster.init = function (params) {
+	ruleRaster.init = function (params) {
 		if (!params) {params = {}; }
 		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
 		margin = {top: 30, right: 30, bottom: 30, left: 30};
@@ -24,7 +24,7 @@
 		})
 			.append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-		// raster.init can be re-ran to pass different height/width values
+		// ruleRaster.init can be re-ran to pass different height/width values
 		// to the svg. this doesn't create new svg elements.
 		style = svg.selectAll("style").data([{}]).enter()
 			.append("style")
@@ -33,41 +33,41 @@
 		defs = svg.selectAll("defs").data([{}]).enter()
 			.append("defs");
 		// Create neuron file menu
-		file_names = ["cc1", "isa9"];
-		file_menu = d3.selectAll("#file_menu")
+		fileNames = ["cc1", "isa9"];
+		fileMenu = d3.selectAll("#fileMenu")
 			.append("select")
 			.attr("name", "file-list");
-		var options = file_menu.selectAll("option")
-			.data(file_names)
+		var options = fileMenu.selectAll("option")
+			.data(fileNames)
 			.enter()
 			.append("option");
-		file_menu.select("option")
+		fileMenu.select("option")
 						.attr("selected", "selected");
 		options.text(String)
 				.attr("value", String);
 		// Load Data
-		raster.loaddata(params);
+		ruleRaster.loaddata(params);
 	};
-	raster.loaddata = function (params) {
+	ruleRaster.loaddata = function (params) {
 		if (!params) {params = {}; }
 		d3.text(params.style || "style.txt", function (error, txt) {
 			// note that execution won't be stopped if a style file isn't found
 			style.text(txt); // but if found, it can be embedded in the svg.
 			// ("#" + Math.random()) makes sure the script loads the file each time instead of using a cached version, remove once live
-			var cur_file_name = "/DATA/" + params.data  + ".json" + "#" + Math.random();
-			d3.json(cur_file_name, function (error, json) {
-				raster.data = json;
+			var curFileName = "/DATA/" + params.data  + ".json" + "#" + Math.random();
+			d3.json(curFileName, function (error, json) {
+				ruleRaster.data = json;
 				// populate drop-down menu with neuron names
-				var neuron_menu = d3.select("#neuron_menu");
-				neuron_menu
+				var neuronMenu = d3.select("#neuronMenu");
+				neuronMenu
 						.selectAll("select.main")
 						.data([{}])
 						.enter()
 						.append("select")
 						.attr("name", "neuron-list")
 						.classed("main", 1);
-				var	neuron = raster.data[params.data].neurons,
-					options = neuron_menu
+				var	neuron = ruleRaster.data[params.data].neurons,
+					options = neuronMenu
 						.select("select")
 						.selectAll("option")
 						.data(neuron, function(d) {return d.Name;});
@@ -77,96 +77,96 @@
 					.text(function (d) { return d.Name; })
 					.attr("value", function (d) { return d.Name; });
 				options.exit().remove();
-				neuron_menu // add option to select neuron based on parameters from the browser
+				neuronMenu // add option to select neuron based on parameters from the browser
 						.select("select")
 						.select("option")
 						.attr("selected", "selected");
 
 				// Draw visualization
 
-				raster.draw(params);
+				ruleRaster.draw(params);
 			});
 		});
 	};
-	raster.draw = function (params) {
-		plot_buffer = 60; // Defines separation between plots
+	ruleRaster.draw = function (params) {
+		PLOT_BUFFER = 60; // Defines separation between plots
 		// Extract relevant trial and neuron information
-		var neuron_menu = d3.select("#neuron_menu select"),
-			cur_neuron_name = neuron_menu.property("value"),
-			time_menu = d3.select("#time_menu select"),
-			time_menu_value = time_menu.property("value"),
-			factor_sort_menu = d3.select("#factor_sort_menu select"),
-			factor_sort_menu_value = factor_sort_menu.property("value"),
-			neuron = raster.data[params.data].neurons
+		var neuronMenu = d3.select("#neuronMenu select"),
+			curNeuronName = neuronMenu.property("value"),
+			timeMenu = d3.select("#timeMenu select"),
+			timeMenuValue = timeMenu.property("value"),
+			factorSortMenu = d3.select("#factorSortMenu select"),
+			factorSortMenuValue = factorSortMenu.property("value"),
+			neuron = ruleRaster.data[params.data].neurons
                 .filter(function (d) {
-                    return d.Name === cur_neuron_name;
+                    return d.Name === curNeuronName;
             }),
 		// Nest and Sort Data
 			trial = d3.nest()
 				.key(function(d) {return d.Rule;}) // nests data by Rule
       			.sortValues(function (a, b) { // sorts data based on selected option
-					return d3.ascending(a[factor_sort_menu_value], b[factor_sort_menu_value]);
+					return d3.ascending(a[factorSortMenuValue], b[factorSortMenuValue]);
 				})
-      			.entries(raster.data[params.data].trials),
+      			.entries(ruleRaster.data[params.data].trials),
       	// Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
-			plot_g = svg.selectAll("g.plot_g").data(trial, function(d) {return d.key;});
-			plot_g
+			plotG = svg.selectAll("g.plotG").data(trial, function(d) {return d.key;});
+			plotG
 				.enter()
   				.append("g")
   				.attr("transform", function(d,i) {
-                      return "translate(0," + ((height/2) + plot_buffer)*i + ")";
+                      return "translate(0," + ((height/2) + PLOT_BUFFER)*i + ")";
                 })
-  				.attr("class", "plot_g");
+  				.attr("class", "plotG");
         // Append a y-scale to each plot so that the scale is adaptive to the range of each plot
-  		plot_g
+  		plotG
   			.each(function(d) {
   				d.yScale = d3.scale.ordinal()
 					.domain(d3.range(d.values.length))
-					.rangeBands([0, (height - plot_buffer)/2]);
+					.rangeBands([0, (height - PLOT_BUFFER)/2]);
   			});
 
 		// Set up x-scale, colorScale to be the same for both plots
-		var	min_time = d3.min(raster.data[params.data].trials, function (d) {
-				return d3.min(d[cur_neuron_name], function (e) { return d3.min(e); })  - d[time_menu_value];
+		var	minTime = d3.min(ruleRaster.data[params.data].trials, function (d) {
+				return d3.min(d[curNeuronName], function (e) { return d3.min(e); })  - d[timeMenuValue];
 			}),
-			max_time = d3.max(raster.data[params.data].trials, function (d) {
-				return d3.max(d[cur_neuron_name], function (e) { return d3.max(e); }) - d[time_menu_value];
+			maxTime = d3.max(ruleRaster.data[params.data].trials, function (d) {
+				return d3.max(d[curNeuronName], function (e) { return d3.max(e); }) - d[timeMenuValue];
 			}),
 			xScale = d3.scale.linear()
-					.domain([min_time, max_time])
+					.domain([minTime, maxTime])
 					.range([0, width]);
 		var	colorScale = colorPicker();
 
         // Draw spikes, event lines, axes
-        update_neural_info();
-        plot_g.each(draw_spikes);
-        plot_g.each(draw_event_lines);
-        plot_g.each(append_axis);
+        updateNeuralInfo();
+        plotG.each(drawSpikes);
+        plotG.each(drawEventLines);
+        plotG.each(appendAxis);
 
         // Add labels to each plot
-        rule_colorScale = d3.scale.ordinal()
+        ruleColorScale = d3.scale.ordinal()
             .domain(["Color", "Orientation"])
             .range(["#ef8a62","#67a9cf"]);
 
-        plot_labels = plot_g
-            .selectAll(".plot_label")
+        plotLabels = plotG
+            .selectAll(".plotLabel")
             .data(function(d) {return [d];})
             .enter()
             .append("text")
-            .attr("class", "plot_label")
+            .attr("class", "plotLabel")
             .attr("x", 0)
             .attr("y", 0)
             .attr("dy", "-0.95em")
-            .style("fill", function(d) {return rule_colorScale(d.key);})
+            .style("fill", function(d) {return ruleColorScale(d.key);})
             .text(function(d) {return d.key + " Rule";});
 
 
 		// Listen for changes on the drop-down menu
-		factor_sort_menu
+		factorSortMenu
 			.on("change", function () {
-				raster.draw(params);
+				ruleRaster.draw(params);
 			});
-		neuron_menu
+		neuronMenu
 			.on("change", function () {
 				d3.selectAll(".trial")
 					.remove();
@@ -175,76 +175,75 @@
 					.duration(10)
 					.ease("linear")
 					.remove();
-				raster.draw(params);
+				ruleRaster.draw(params);
 			});
-		time_menu
+		timeMenu
 			.on("change", function () {
 				d3.selectAll(".axis")
 					.transition()
 					.duration(10)
 					.ease("linear")
 					.remove();
-				raster.draw(params);
+				ruleRaster.draw(params);
 			});
-		file_menu
+		fileMenu
 			.on("change", function () {
 				d3.selectAll(".axis")
 					.transition()
 					.duration(100)
 					.ease("linear")
 					.remove();
-				var file_menu_value = file_menu.property("value");
-				cur_file = file_menu_value;
-				params.data = file_menu_value;
-				raster.loaddata(params);
+				var fileMenuValue = fileMenu.property("value");
+				params.data = fileMenuValue;
+				ruleRaster.loaddata(params);
 			});
 
 // ******************** Helper Functions **********************
 
 // ******************** Draw Spikes Function ******************
-        function draw_spikes(rule) {
-            var cur_plot = d3.select(this);
+        function drawSpikes(rule) {
+            var curPlot = d3.select(this);
 
             // Join the trial data to svg containers ("g")
-            var	trial_select = cur_plot.selectAll(".trial")
+            var	trialG = curPlot.selectAll(".trial")
                     .data(rule.values, function(d) {return d.trial_id; });
 
             // For each new data, append an svg container and set css class to trial
             // for each group, translate its location to its index location in the trial object
-            trial_select
+            trialG
                 .enter()
                 .append("g")
                 .attr("class", "trial")
                 .attr("transform", function(d, i) {
                     return "translate(0," + rule.yScale(i) + ")";
                 });
-            trial_select
+            trialG
                 .attr("transform", function(d, i) {
                     return "translate(0," + rule.yScale(i) + ")";
                 });
             // For each new spike time, append circles that correspond to the spike times
             // Set the x-position of the circles to their spike time and the y-position to the size of the ordinal scale range band
             // that way the translate can move them to their appropriate position relative to the same coordinate system
-            var spikes = trial_select.selectAll("circle.spikes")
-                .data(function (d) { return d[cur_neuron_name]; });
+            var spikes = trialG.selectAll("circle.spikes")
+                .data(function (d) { return d[curNeuronName]; });
             spikes
                 .enter()
                 .append("circle")
                 .attr("class", "spikes");
-            trial_select.selectAll("circle.spikes")
+            trialG.selectAll("circle.spikes")
                 .transition()
                 .duration(1000)
                 .style("opacity", 0.9)
                 .attr("r", 2)
                 .attr("cx", function (d) {
-                    return xScale(d - (this.parentNode.__data__[time_menu_value]));
+                    return xScale(d - (this.parentNode.__data__[timeMenuValue]));
                 })
                 .attr("cy", function (d) {
                     return rule.yScale.rangeBand() / 2;
                 });
             spikes.exit().remove();
             // For all the trials, move them to the appropriate position with a delay for each trial to better display the transition
-            trial_select
+            trialG
                 .transition()
                 .duration(10)
                 .delay(function(d, i) { return i; })
@@ -252,22 +251,22 @@
                      return "translate(0," + rule.yScale(i) + ")";
                 })
                 .style("fill", function (d) {
-                    return colorScale(d[factor_sort_menu_value]);
+                    return colorScale(d[factorSortMenuValue]);
                 });
 
             // Remove trials that don't have matched data
-            trial_select.exit().remove();
+            trialG.exit().remove();
         }
 // ******************** Event Line Function *******************
-        function draw_event_lines(rule) {
-            var cur_plot = d3.select(this),
+        function drawEventLines(rule) {
+            var curPlot = d3.select(this),
                 lines = [
                     {label: "Rule Onset", id: "rule_onset"},
                     {label: "Stimulus Onset", id: "stim_onset"},
                     {label: "Saccade", id: "react_time"}
                 ],
-                event_line = cur_plot
-                    .selectAll(".event_line")
+                eventLine = curPlot
+                    .selectAll(".eventLine")
                     .data(lines, function(d) {return d.id;});
             // Append mean times for label position
             lines = lines.map(function(line) {
@@ -275,21 +274,21 @@
                     label: line.label,
                     id: line.id,
                     mean_stat: d3.mean(rule.values.map(function(d) {
-                        return d[line.id] - d[time_menu_value];
+                        return d[line.id] - d[timeMenuValue];
                     }))
                 };
             });
             // Plot lines corresponding to trial events
-            event_line
+            eventLine
                 .enter()
                 .append("path")
-                .attr("class", "event_line")
+                .attr("class", "eventLine")
                 .attr("id", function(d) {return d.id;})
                 .attr("d", function(line) {
                         return LineFun(rule.values, rule.yScale, line.id);
                 });
 
-            event_line
+            eventLine
                 .transition()
                 .duration(1000)
                 .ease("linear")
@@ -297,18 +296,18 @@
                         return LineFun(rule.values, rule.yScale, line.id);
                 });
 
-            event_line.exit().remove();
+            eventLine.exit().remove();
 
             // Add labels corresponding to trial events
 
-            event_label = cur_plot
-                .selectAll(".event_label")
+            eventLabel = curPlot
+                .selectAll(".eventLabel")
                 .data(lines, function(d) {return d.id;});
 
-            event_label
+            eventLabel
                 .enter()
                 .append("text")
-                .attr("class", "event_label")
+                .attr("class", "eventLabel")
                 .attr("id", function(d) {return d.id;})
                 .attr("x", function(d) {
                         return xScale(d.mean_stat);
@@ -318,7 +317,7 @@
                 .attr("dy", "-0.25em")
                 .text(function(d) {return d.label; })
 
-            event_label
+            eventLabel
                 .transition()
                 .duration(1000)
                 .ease("linear")
@@ -326,14 +325,14 @@
                         return xScale(d.mean_stat);
                 });
 
-            event_label.exit().remove();
+            eventLabel.exit().remove();
 
             function LineFun(values, scaleFun, line_name) {
 
                 // Setup helper line function
                  var line = d3.svg.line()
                     .x(function (d) {
-                        return xScale(d[line_name] - d[time_menu_value]);
+                        return xScale(d[line_name] - d[timeMenuValue]);
                     })
                     .y(function (d, i) { return scaleFun(i); })
                     .interpolate("linear");
@@ -342,25 +341,25 @@
             }
         }
 // ******************** Axis Function *******************
-        function append_axis(rule) {
-            var cur_plot = d3.select(this),
+        function appendAxis(rule) {
+            var curPlot = d3.select(this),
                 xAxis = d3.svg.axis()
                     .scale(xScale)
                     .orient("bottom");
             // Remove any prior axes
-            cur_plot
+            curPlot
                 .selectAll(".axis")
                 .remove();
             // Append the x-axis
-            cur_plot
+            curPlot
                 .append("g")
                 .attr("class", "axis")
                 .attr("transform", function() {
-                    return "translate(0," + (height - plot_buffer)/2 + ")";
+                    return "translate(0," + (height - PLOT_BUFFER)/2 + ")";
                 })
                 .call(xAxis);
             // Label x-axis
-            cur_plot.selectAll(".xLabel")
+            curPlot.selectAll(".xLabel")
                 .data([{}])
                 .enter()
                 .append("text")
@@ -368,19 +367,19 @@
                 .attr("text-anchor", "end")
                 .attr("x", width - (width/2))
                 .attr("transform", function() {
-                    return "translate(0," + (height - plot_buffer)/2 + ")";
+                    return "translate(0," + (height - PLOT_BUFFER)/2 + ")";
                 })
                 .attr("dy", "2.50em")
                 .text("Time (ms)");
             // Label y-axis
-            cur_plot.selectAll(".yLabel")
+            curPlot.selectAll(".yLabel")
                 .data([{}])
                 .enter()
                 .append("text")
                 .attr("class", "yLabel")
                 .attr("text-anchor", "middle")
                 .attr("transform", "rotate(-90)")
-                .attr("x", 0 - ((height - plot_buffer)/4))
+                .attr("x", 0 - ((height - PLOT_BUFFER)/4))
                 .attr("y", 0)
                 .attr("dx", "0.4em")
                 .attr("dy", "-0.4em")
@@ -388,7 +387,7 @@
         }
 // ******************** Color Scale Function *******************
             function colorPicker() {
-                switch (factor_sort_menu_value) {
+                switch (factorSortMenuValue) {
                     case "trial_id":
                     case "stim_onset":
                         colorScale = d3.scale.ordinal()
@@ -415,15 +414,15 @@
                     return colorScale;
             }
 // ******************** Neuron Info Function *******************
-            function update_neural_info() {
-                at_glance = d3.select("#at_glance")
+            function updateNeuralInfo() {
+                atGlance = d3.select("#atGlance")
                     .selectAll("table")
                     .data(neuron, function (d) {return d.Name;});
                 // Display neuron info
-                at_glance.enter()
+                atGlance.enter()
                         .append("table")
                         .append("tbody");
-                var tbody = at_glance.selectAll("tbody");
+                var tbody = atGlance.selectAll("tbody");
                 var tr = tbody
                     .selectAll("tr")
                     .data(d3.keys(neuron[0]), String);
@@ -442,7 +441,7 @@
                     .enter()
                     .append("td")
                     .text(function(d) { return d.value; });
-                at_glance.exit().remove();
+                atGlance.exit().remove();
             }
 	};
 })();

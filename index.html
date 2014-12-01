@@ -19,9 +19,9 @@
         </div>
         <div class="row-fluid">
             <div id="menus" class="span2">
-                <div id="file_menu" ><b>File:</b><br></div>
-                <div id="neuron_menu" ><b>Neuron:</b><br></div>
-                <div id="factor_sort_menu">
+                <div id="fileMenu" ><b>File:</b><br></div>
+                <div id="neuronMenu" ><b>Neuron:</b><br></div>
+                <div id="factorSortMenu">
                     <b>Sort by Experimental Factor:</b><br>
                     <select>
                         <option disabled="disabled">Select a factor</option>
@@ -32,7 +32,7 @@
                         <option value="SwitchDist">Distance from Rule Switch (# of trials)</option>
                     </select>
                 </div>
-                <div id="time_menu">
+                <div id="timeMenu">
                     <b>Time relative to:</b><br>
                     <select>
                         <option selected="selected" value="rule_onset">Rule Onset</option>
@@ -40,7 +40,7 @@
                         <option value="react_time">Reaction Time</option>
                     </select>
                 </div>
-                <div id="at_glance" class="table">
+                <div id="atGlance" class="table">
                 </div>
             </div>
 
@@ -64,7 +64,7 @@
             params[p[0]] = p[1]
         })
         // Initialized visualization
-        raster.init(params);
+        ruleRaster.init(params);
     </script>
 </body>
 </html>

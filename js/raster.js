@@ -1,9 +1,9 @@
 (function () {
-    vis = {};
+    raster = {};
 	var width, height,
 		chart, svg,
 		defs, style;
-	vis.init = function (params) {
+	raster.init = function (params) {
 		if (!params) {params = {}; }
 		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
 		margin = {top: 30, right: 30, bottom: 30, left: 30};
@@ -24,7 +24,7 @@
 		})
 			.append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-		// vis.init can be re-ran to pass different height/width values
+		// raster.init can be re-ran to pass different height/width values
 		// to the svg. this doesn't create new svg elements.
 		style = svg.selectAll("style").data([{}]).enter()
 			.append("style")
@@ -46,9 +46,9 @@
 		options.text(String)
 				.attr("value", String);
 		// Load Data
-		vis.loaddata(params);
+		raster.loaddata(params);
 	};
-	vis.loaddata = function (params) {
+	raster.loaddata = function (params) {
 		if (!params) {params = {}; }
 		d3.text(params.style || "style.txt", function (error, txt) {
 			// note that execution won't be stopped if a style file isn't found
@@ -56,7 +56,7 @@
 			// ("#" + Math.random()) makes sure the script loads the file each time instead of using a cached version, remove once live
 			var cur_file_name = "/DATA/" + params.data  + ".json" + "#" + Math.random();
 			d3.json(cur_file_name, function (error, json) {
-				vis.data = json;
+				raster.data = json;
 				// populate drop-down menu with neuron names
 				var neuron_menu = d3.select("#neuron_menu");
 				neuron_menu
@@ -66,7 +66,7 @@
 						.append("select")
 						.attr("name", "neuron-list")
 						.classed("main", 1);
-				var	neuron = vis.data[params.data].neurons,
+				var	neuron = raster.data[params.data].neurons,
 					options = neuron_menu
 						.select("select")
 						.selectAll("option")
@@ -84,11 +84,11 @@
 
 				// Draw visualization
 
-				vis.draw(params);
+				raster.draw(params);
 			});
 		});
 	};
-	vis.draw = function (params) {
+	raster.draw = function (params) {
 		plot_buffer = 60; // Defines separation between plots
 		// Extract relevant trial and neuron information
 		var neuron_menu = d3.select("#neuron_menu select"),
@@ -97,7 +97,7 @@
 			time_menu_value = time_menu.property("value"),
 			factor_sort_menu = d3.select("#factor_sort_menu select"),
 			factor_sort_menu_value = factor_sort_menu.property("value"),
-			neuron = vis.data[params.data].neurons
+			neuron = raster.data[params.data].neurons
                 .filter(function (d) {
                     return d.Name === cur_neuron_name;
             }),
@@ -107,7 +107,7 @@
       			.sortValues(function (a, b) { // sorts data based on selected option
 					return d3.ascending(a[factor_sort_menu_value], b[factor_sort_menu_value]);
 				})
-      			.entries(vis.data[params.data].trials),
+      			.entries(raster.data[params.data].trials),
       	// Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
 			plot_g = svg.selectAll("g.plot_g").data(trial, function(d) {return d.key;});
 			plot_g
@@ -126,10 +126,10 @@
   			});
 
 		// Set up x-scale, colorScale to be the same for both plots
-		var	min_time = d3.min(vis.data[params.data].trials, function (d) {
+		var	min_time = d3.min(raster.data[params.data].trials, function (d) {
 				return d3.min(d[cur_neuron_name], function (e) { return d3.min(e); })  - d[time_menu_value];
 			}),
-			max_time = d3.max(vis.data[params.data].trials, function (d) {
+			max_time = d3.max(raster.data[params.data].trials, function (d) {
 				return d3.max(d[cur_neuron_name], function (e) { return d3.max(e); }) - d[time_menu_value];
 			}),
 			xScale = d3.scale.linear()
@@ -164,7 +164,7 @@
 		// Listen for changes on the drop-down menu
 		factor_sort_menu
 			.on("change", function () {
-				vis.draw(params);
+				raster.draw(params);
 			});
 		neuron_menu
 			.on("change", function () {
@@ -175,7 +175,7 @@
 					.duration(10)
 					.ease("linear")
 					.remove();
-				vis.draw(params);
+				raster.draw(params);
 			});
 		time_menu
 			.on("change", function () {
@@ -184,7 +184,7 @@
 					.duration(10)
 					.ease("linear")
 					.remove();
-				vis.draw(params);
+				raster.draw(params);
 			});
 		file_menu
 			.on("change", function () {
@@ -196,7 +196,7 @@
 				var file_menu_value = file_menu.property("value");
 				cur_file = file_menu_value;
 				params.data = file_menu_value;
-				vis.loaddata(params);
+				raster.loaddata(params);
 			});
 
 // ******************** Helper Functions **********************

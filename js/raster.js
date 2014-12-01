@@ -60,7 +60,7 @@
         // Downsample if too many trials
         if (json[params.data].neurons[0].Number_of_Trials > 2000) {
           json[params.data].trials = json[params.data].trials.filter(function(d) {
-            return Math.random() > 0.5;
+            return Math.random() > 0.7;
           })
         };
 

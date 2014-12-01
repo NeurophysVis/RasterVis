@@ -56,6 +56,14 @@
 			// ("#" + Math.random()) makes sure the script loads the file each time instead of using a cached version, remove once live
 			var curFileName = "/DATA/" + params.data  + ".json" + "#" + Math.random();
 			d3.json(curFileName, function (error, json) {
+
+        // Downsample if too many trials
+        if (json[params.data].neurons[0].Number_of_Trials > 2000) {
+          json[params.data].trials = json[params.data].trials.filter(function(d) {
+            return Math.random() > 0.5;
+          })
+        };
+
 				ruleRaster.data = json;
 				// populate drop-down menu with neuron names
 				var neuronMenu = d3.select("#neuronMenu");
@@ -96,18 +104,17 @@
 			neuron = ruleRaster.data[params.data].neurons
                 .filter(function (d) {
                     return d.Name === curNeuronName;
-            }),
+            });
 		// Nest and Sort Data
-			trial = d3.nest()
+		var trial = d3.nest()
 				.key(function(d) {return d.Rule;}) // nests data by Rule
       			.sortValues(function (a, b) { // sorts data based on selected option
-					return d3.ascending(a[factorSortMenuValue], b[factorSortMenuValue]);
+					         return d3.ascending(a[factorSortMenuValue], b[factorSortMenuValue]);
 				})
       			.entries(ruleRaster.data[params.data].trials),
       	// Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
 			plotG = svg.selectAll("g.plotG").data(trial, function(d) {return d.key;});
-			plotG
-				.enter()
+			plotG.enter()
   				.append("g")
   				.attr("transform", function(d,i) {
                       return "translate(0," + ((height/2) + PLOT_BUFFER)*i + ")";
@@ -162,8 +169,6 @@
 			});
 		neuronMenu
 			.on("change", function () {
-				d3.selectAll(".trial")
-					.remove();
 				ruleRaster.draw(params);
 			});
 		timeMenu
@@ -191,13 +196,15 @@
             trialG.enter()
                 .append("g")
                   .attr("class", "trial")
+                  .attr("transform", function(d, i) {
+                      return "translate(0," + rule.yScale(i) + ")";
+                  });
             trialG
                 .style("fill", function (d) {
                     return colorScale(d[factorSortMenuValue]);
                 })
                 .transition()
-                  .duration(10)
-                  .delay(function(d, i) { return i; })
+                  .duration(1000)
                 .attr("transform", function(d, i) {
                     return "translate(0," + rule.yScale(i) + ")";
                 });
@@ -274,6 +281,7 @@
                   .attr("class", "eventLabel")
                   .attr("id", function(d) {return d.id;})
                   .attr("y", function(d) {return rule.yScale(0); })
+                  .attr("dy", "-0.25em")
                   .attr("text-anchor", "middle")
                   .text(function(d) {return d.label; });
 

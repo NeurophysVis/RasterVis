@@ -54,7 +54,7 @@
 			// note that execution won't be stopped if a style file isn't found
 			style.text(txt); // but if found, it can be embedded in the svg.
 			// ("#" + Math.random()) makes sure the script loads the file each time instead of using a cached version, remove once live
-			var curFileName = "/DATA/" + params.data  + ".json" + "#" + Math.random();
+			var curFileName = "DATA/" + params.data  + ".json" + "#" + Math.random();
 			d3.json(curFileName, function (error, json) {
 
         // Downsample if too many trials

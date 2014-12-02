@@ -50,9 +50,8 @@
         </div>
     </div>
     <script>
-        var cur_file = "cc1";
-        var params = {
-            data: cur_file,
+        var rasterParams = {
+            data: "cc1",
             width:960,
             height:800
         };
@@ -61,10 +60,10 @@
         var vars = query.split("&");
         vars.forEach(function(v) {
             var p = v.split("=");
-            params[p[0]] = p[1]
+            rasterParams[p[0]] = p[1]
         })
         // Initialized visualization
-        ruleRaster.init(params);
+        ruleRaster.init(rasterParams);
     </script>
 </body>
 </html>

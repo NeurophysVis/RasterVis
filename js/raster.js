@@ -6,8 +6,8 @@
 	ruleRaster.init = function (params) {
 		if (!params) {params = {}; }
 		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
-		margin = {top: 30, right: 30, bottom: 30, left: 30};
-		padding = {top: 60, right: 60, bottom: 60, left: 60};
+		var margin = {top: 30, right: 30, bottom: 30, left: 30};
+		var padding = {top: 60, right: 60, bottom: 60, left: 60};
 		var outerWidth = params.width || 960,
 			outerHeight = params.height || 500,
 			innerWidth = outerWidth - margin.left - margin.right,
@@ -33,8 +33,8 @@
 		defs = svg.selectAll("defs").data([{}]).enter()
 			.append("defs");
 		// Create neuron file menu
-		fileNames = ["cc1", "isa9"];
-		fileMenu = d3.selectAll("#fileMenu")
+		var fileNames = ["cc1", "isa9"];
+		var fileMenu = d3.selectAll("#fileMenu")
 			.append("select")
 			.attr("name", "file-list");
 		var options = fileMenu.selectAll("option")
@@ -46,9 +46,9 @@
 		options.text(String)
 				.attr("value", String);
 		// Load Data
-		ruleRaster.loaddata(params);
+		ruleRaster.loadData(params);
 	};
-	ruleRaster.loaddata = function (params) {
+	ruleRaster.loadData = function (params) {
 		if (!params) {params = {}; }
 		d3.text(params.style || "style.txt", function (error, txt) {
 			// note that execution won't be stopped if a style file isn't found
@@ -93,12 +93,13 @@
 		});
 	};
 	ruleRaster.draw = function (params) {
-		PLOT_BUFFER = 60; // Defines separation between plots
+		var PLOT_BUFFER = 60; // Defines separation between plots
 		// Extract relevant trial and neuron information
 		var neuronMenu = d3.select("#neuronMenu select"),
 			curNeuronName = neuronMenu.property("value"),
 			timeMenu = d3.select("#timeMenu select"),
 			timeMenuValue = timeMenu.property("value"),
+      fileMenu = d3.selectAll("#fileMenu"),
 			factorSortMenu = d3.select("#factorSortMenu select"),
 			factorSortMenuValue = factorSortMenu.property("value"),
 			neuron = ruleRaster.data[params.data].neurons
@@ -151,7 +152,7 @@
             .domain(["Color", "Orientation"])
             .range(["#ef8a62","#67a9cf"]);
 
-        plotLabels = plotG.selectAll(".plotLabel")
+    var plotLabels = plotG.selectAll(".plotLabel")
             .data(function(d) {return [d];})
             .enter()
               .append("text")
@@ -175,10 +176,10 @@
 			.on("change", function () {
 				ruleRaster.draw(params);
 			});
-		fileMenu
+    fileMenu
 			.on("change", function () {
-				params.data =  fileMenu.property("value");
-				ruleRaster.loaddata(params);
+				params.data = d3.selectAll("#fileMenu select").property("value"),
+				ruleRaster.loadData(params);
 			});
 
 // ******************** Helper Functions **********************
@@ -273,7 +274,7 @@
               .remove();
 
             // Add labels corresponding to trial events
-            eventLabel = curPlot.selectAll(".eventLabel")
+            var eventLabel = curPlot.selectAll(".eventLabel")
                 .data(lines, function(d) {return d.id;});
 
             eventLabel.enter()
@@ -385,7 +386,7 @@
             }
 // ******************** Neuron Info Function *******************
             function updateNeuralInfo() {
-                atGlance = d3.select("#atGlance").selectAll("table")
+                var atGlance = d3.select("#atGlance").selectAll("table")
                     .data(neuron, function (d) {return d.Name;});
                 // Display neuron info
                 atGlance.enter()

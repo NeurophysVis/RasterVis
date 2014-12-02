@@ -6,7 +6,7 @@
 	ruleRaster.init = function (params) {
 		if (!params) {params = {}; }
 		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
-		var margin = {top: 30, right: 30, bottom: 30, left: 30};
+		var margin = {top: 40, right: 30, bottom: 40, left: 120};
 		var padding = {top: 60, right: 60, bottom: 60, left: 60};
 		var outerWidth = params.width || 960,
 			outerHeight = params.height || 500,
@@ -93,7 +93,7 @@
 		});
 	};
 	ruleRaster.draw = function (params) {
-		var PLOT_BUFFER = 60; // Defines separation between plots
+		var PLOT_BUFFER = 0; // Defines separation between plots
 		// Extract relevant trial and neuron information
 		var neuronMenu = d3.select("#neuronMenu select"),
 			curNeuronName = neuronMenu.property("value"),
@@ -108,17 +108,19 @@
             });
 		// Nest and Sort Data
 		var trial = d3.nest()
-				.key(function(d) {return d.Rule;}) // nests data by Rule
+				.key(function(d) {return d[factorSortMenuValue];}) // nests data by Rule
       			.sortValues(function (a, b) { // sorts data based on selected option
-					         return d3.ascending(a[factorSortMenuValue], b[factorSortMenuValue]);
+					         return d3.ascending(a["Rule"], b["Rule"]);
 				})
       			.entries(ruleRaster.data[params.data].trials),
       	// Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
 			plotG = svg.selectAll("g.plotG").data(trial, function(d) {return d.key;});
+      plotG.exit()
+          .remove();
 			plotG.enter()
   				.append("g")
   				.attr("transform", function(d,i) {
-                      return "translate(0," + ((height/2) + PLOT_BUFFER)*i + ")";
+                      return "translate(0," + ((height/trial.length) + PLOT_BUFFER)*i + ")";
                 })
   				.attr("class", "plotG");
         // Append a y-scale to each plot so that the scale is adaptive to the range of each plot
@@ -126,7 +128,7 @@
   			.each(function(d) {
   				d.yScale = d3.scale.ordinal()
 					.domain(d3.range(d.values.length))
-					.rangeBands([0, (height - PLOT_BUFFER)/2]);
+					.rangeBands([0, (height - PLOT_BUFFER)/trial.length]);
   			});
 
 		// Set up x-scale, colorScale to be the same for both plots
@@ -151,18 +153,18 @@
         ruleColorScale = d3.scale.ordinal()
             .domain(["Color", "Orientation"])
             .range(["#ef8a62","#67a9cf"]);
-
+    if (factorSortMenuValue != "stim_onset") {
     var plotLabels = plotG.selectAll(".plotLabel")
             .data(function(d) {return [d];})
             .enter()
               .append("text")
                 .attr("class", "plotLabel")
                 .attr("x", 0)
-                .attr("y", 0)
-                .attr("dy", "-0.95em")
+                .attr("text-anchor", "end")
+                .attr("y", height/trial.length/2)
                 .style("fill", function(d) {return ruleColorScale(d.key);})
-                .text(function(d) {return d.key + " Rule";});
-
+                .text(function(d) {return factorSortMenuValue + " " + d.key;});
+              }
 		// Listen for changes on the drop-down menu
 		factorSortMenu
 			.on("change", function () {
@@ -185,12 +187,12 @@
 // ******************** Helper Functions **********************
 
 // ******************** Draw Spikes Function ******************
-        function drawSpikes(rule) {
+        function drawSpikes(data, ind) {
             var curPlot = d3.select(this);
 
             // Join the trial data to svg containers ("g")
             var	trialG = curPlot.selectAll(".trial")
-                  .data(rule.values, function(d) {return d.trial_id; });
+                  .data(data.values, function(d) {return d.trial_id; });
 
             // For each new data, append an svg container and set css class to trial
             // for each group, translate its location to its index location in the trial object
@@ -198,16 +200,16 @@
                 .append("g")
                   .attr("class", "trial")
                   .attr("transform", function(d, i) {
-                      return "translate(0," + rule.yScale(i) + ")";
+                      return "translate(0," + data.yScale(i) + ")";
                   });
             trialG
                 .style("fill", function (d) {
-                    return colorScale(d[factorSortMenuValue]);
+                    return colorScale(d["Rule"]);
                 })
                 .transition()
                   .duration(1000)
                 .attr("transform", function(d, i) {
-                    return "translate(0," + rule.yScale(i) + ")";
+                    return "translate(0," + data.yScale(i) + ")";
                 });
             // For each new spike time, append circles that correspond to the spike times
             // Set the x-position of the circles to their spike time and the y-position to the size of the ordinal scale range band
@@ -220,7 +222,7 @@
                   .style("opacity", 1E-5)
                   .attr("r", 2)
                   .attr("cy", function (d) {
-                      return rule.yScale.rangeBand() / 2;
+                      return data.yScale.rangeBand() / 2;
                     });
             spikes
                 .transition()
@@ -236,7 +238,7 @@
                 .remove();
         }
 // ******************** Event Line Function *******************
-        function drawEventLines(rule) {
+        function drawEventLines(data, ind) {
             var curPlot = d3.select(this),
                 lines = [
                     {label: "Rule Cue", id: "rule_onset"},
@@ -251,7 +253,7 @@
                 return {
                     label: line.label,
                     id: line.id,
-                    mean_stat: d3.mean(rule.values.map(function(d) {
+                    mean_stat: d3.mean(data.values.map(function(d) {
                         return d[line.id] - d[timeMenuValue];
                     }))
                 };
@@ -267,13 +269,14 @@
                   .duration(1000)
                   .ease("linear")
                 .attr("d", function(line) {
-                        return LineFun(rule.values, rule.yScale, line.id);
+                        return LineFun(data.values, data.yScale, line.id);
                 });
 
             eventLine.exit()
               .remove();
 
             // Add labels corresponding to trial events
+            if (ind != 0){return;}
             var eventLabel = curPlot.selectAll(".eventLabel")
                 .data(lines, function(d) {return d.id;});
 
@@ -281,7 +284,7 @@
                 .append("text")
                   .attr("class", "eventLabel")
                   .attr("id", function(d) {return d.id;})
-                  .attr("y", function(d) {return rule.yScale(0); })
+                  .attr("y", function(d) {return data.yScale(0); })
                   .attr("dy", "-0.25em")
                   .attr("text-anchor", "middle")
                   .text(function(d) {return d.label; });
@@ -311,7 +314,10 @@
             }
         }
 // ******************** Axis Function *******************
-        function appendAxis(rule) {
+        function appendAxis(data, ind) {
+
+          if (ind != trial.length-1){return;}
+
             var curPlot = d3.select(this),
                 xAxis = d3.svg.axis()
                     .scale(xScale)
@@ -322,7 +328,7 @@
                 .append("g")
                 .attr("class", "axis")
                 .attr("transform", function() {
-                    return "translate(0," + (height - PLOT_BUFFER)/2 + ")";
+                    return "translate(0," + (height)/trial.length + ")";
                 });
             axisG
               .transition()
@@ -338,27 +344,14 @@
                       .attr("text-anchor", "end")
                       .attr("x", width - (width/2))
                       .attr("transform", function() {
-                        return "translate(0," + (height - PLOT_BUFFER)/2 + ")";
+                        return "translate(0," + (height)/trial.length + ")";
                       })
                       .attr("dy", "2.50em")
                       .text("Time (ms)");
-            // Label y-axis
-            curPlot.selectAll(".yLabel")
-                .data([{}])
-                .enter()
-                  .append("text")
-                    .attr("class", "yLabel")
-                    .attr("text-anchor", "middle")
-                    .attr("transform", "rotate(-90)")
-                    .attr("x", 0 - ((height - PLOT_BUFFER)/4))
-                    .attr("y", 0)
-                    .attr("dx", "0.4em")
-                    .attr("dy", "-0.4em")
-                    .text("Trials");
         }
 // ******************** Color Scale Function *******************
             function colorPicker() {
-                switch (factorSortMenuValue) {
+                switch ("Rule") {
                     case "trial_id":
                     case "stim_onset":
                         colorScale = d3.scale.ordinal()
@@ -377,9 +370,9 @@
                         break;
                     case "SwitchDist":
                         // can build a continuous color scale
-                        colorScale = d3.scale.linear()
-                            .domain([0, 11])
-                            .range(["magenta", "grey"]);
+                        colorScale = d3.scale.ordinal()
+                            .domain(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
+                            .range(colorbrewer.Paired["12"]);
                         break;
                 }
                     return colorScale;

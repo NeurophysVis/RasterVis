@@ -12,7 +12,7 @@
 	fill: none;
 	stroke: black;
 	stroke-width: 1.0px;
-	stroke-opacity: 0.3;
+	stroke-opacity: 0.2;
 }
 .xLabel, .yLabel {
 	font-size: 16px;

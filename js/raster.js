@@ -93,7 +93,6 @@
 		});
 	};
 	ruleRaster.draw = function (params) {
-		var PLOT_BUFFER = 0; // Defines separation between plots
 		// Extract relevant trial and neuron information
 		var neuronMenu = d3.select("#neuronMenu select"),
 			curNeuronName = neuronMenu.property("value"),
@@ -107,28 +106,31 @@
                     return d.Name === curNeuronName;
             });
 		// Nest and Sort Data
-		var trial = d3.nest()
-				.key(function(d) {return d[factorSortMenuValue];}) // nests data by Rule
-      			.sortValues(function (a, b) { // sorts data based on selected option
+		var factor = d3.nest()
+				.key(function(d) {return d[factorSortMenuValue];}) // nests data by selected factor
+      			.sortValues(function (a, b) { // sorts data based on Rule
 					         return d3.ascending(a["Rule"], b["Rule"]);
-				})
-      			.entries(ruleRaster.data[params.data].trials),
-      	// Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
-			plotG = svg.selectAll("g.plotG").data(trial, function(d) {return d.key;});
-      plotG.exit()
+				             })
+      	.entries(ruleRaster.data[params.data].trials);
+    var factorScale = d3.scale.ordinal()
+        .domain(factor.map(function(d){return d.key;}))
+        .rangeBands([0, height]);
+    // Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
+		var plotG = svg.selectAll("g.plotG").data(factor, function(d) {return d.key;});
+    plotG.exit()
           .remove();
-			plotG.enter()
+		plotG.enter()
   				.append("g")
-  				.attr("transform", function(d,i) {
-                      return "translate(0," + ((height/trial.length) + PLOT_BUFFER)*i + ")";
+  				.attr("transform", function(d) {
+                      return "translate(0," + factorScale(d.key) + ")";
                 })
   				.attr("class", "plotG");
-        // Append a y-scale to each plot so that the scale is adaptive to the range of each plot
-  		plotG
+   // Append a y-scale to each plot so that the scale is adaptive to the range of each plot
+   plotG
   			.each(function(d) {
   				d.yScale = d3.scale.ordinal()
 					.domain(d3.range(d.values.length))
-					.rangeBands([0, (height - PLOT_BUFFER)/trial.length]);
+					.rangeBands([0, factorScale.rangeBand()]);
   			});
 
 		// Set up x-scale, colorScale to be the same for both plots
@@ -141,30 +143,20 @@
 			xScale = d3.scale.linear()
 					.domain([minTime, maxTime])
 					.range([0, width]);
+
 		var	colorScale = colorPicker();
 
         // Draw spikes, event lines, axes
         updateNeuralInfo();
         plotG.each(drawSpikes);
         plotG.each(drawEventLines);
-        plotG.each(appendAxis);
+        appendAxis();
 
         // Add labels to each plot
         ruleColorScale = d3.scale.ordinal()
             .domain(["Color", "Orientation"])
             .range(["#ef8a62","#67a9cf"]);
-    if (factorSortMenuValue != "stim_onset") {
-    var plotLabels = plotG.selectAll(".plotLabel")
-            .data(function(d) {return [d];})
-            .enter()
-              .append("text")
-                .attr("class", "plotLabel")
-                .attr("x", 0)
-                .attr("text-anchor", "end")
-                .attr("y", height/trial.length/2)
-                .style("fill", function(d) {return ruleColorScale(d.key);})
-                .text(function(d) {return factorSortMenuValue + " " + d.key;});
-              }
+
 		// Listen for changes on the drop-down menu
 		factorSortMenu
 			.on("change", function () {
@@ -269,85 +261,69 @@
                   .duration(1000)
                   .ease("linear")
                 .attr("d", function(line) {
-                        return LineFun(data.values, data.yScale, line.id);
+                        return LineFun(data.values, line.id);
                 });
-
-            eventLine.exit()
-              .remove();
 
             // Add labels corresponding to trial events
-            if (ind != 0){return;}
-            var eventLabel = curPlot.selectAll(".eventLabel")
+            var eventLabel = svg.selectAll(".eventLabel")
                 .data(lines, function(d) {return d.id;});
 
-            eventLabel.enter()
-                .append("text")
-                  .attr("class", "eventLabel")
-                  .attr("id", function(d) {return d.id;})
-                  .attr("y", function(d) {return data.yScale(0); })
-                  .attr("dy", "-0.25em")
-                  .attr("text-anchor", "middle")
-                  .text(function(d) {return d.label; });
+            if (ind == 0){
 
-            eventLabel
-                .transition()
-                  .duration(1000)
-                  .ease("linear")
-                .attr("x", function(d) {
-                        return xScale(d.mean_stat);
-                });
+                eventLabel.enter()
+                    .append("text")
+                      .attr("class", "eventLabel")
+                      .attr("id", function(d) {return d.id;})
+                      .attr("y", 0)
+                      .attr("dy", "-0.25em")
+                      .attr("text-anchor", "middle")
+                      .text(function(d) {return d.label; });
 
-            eventLabel.exit()
-              .remove();
 
-            function LineFun(values, scaleFun, line_name) {
+                eventLabel
+                    .transition()
+                      .duration(1000)
+                      .ease("linear")
+                    .attr("x", function(d) {
+                            return xScale(d.mean_stat);
+                    });
+            }
 
+            function LineFun(values, lineName) {
+                var valuesInd = d3.range(values.length);
+                var newValues = values.concat(values);
+                valuesInd = valuesInd.concat(valuesInd);
+                // newValues.sort(function (a, b) { 
+                //        return d3.ascending(a["Rule"], b["Rule"]);
+                //          })
                 // Setup helper line function
                  var line = d3.svg.line()
                     .x(function (d) {
-                        return xScale(d[line_name] - d[timeMenuValue]);
+                        return xScale(d[lineName] - d[timeMenuValue]);
                     })
-                    .y(function (d, i) { return scaleFun(i); })
+                    .y(function (d, i) { return data.yScale(i); })
                     .interpolate("linear");
 
                 return line(values);
             }
         }
 // ******************** Axis Function *******************
-        function appendAxis(data, ind) {
+        function appendAxis() {
 
-          if (ind != trial.length-1){return;}
-
-            var curPlot = d3.select(this),
-                xAxis = d3.svg.axis()
+            var xAxis = d3.svg.axis()
                     .scale(xScale)
                     .orient("bottom");
             // Append the x-axis
-            var axisG = curPlot.selectAll("g.axis").data([{}]);
+            var axisG = svg.selectAll("g.axis").data([{}]);
             axisG.enter()
                 .append("g")
                 .attr("class", "axis")
-                .attr("transform", function() {
-                    return "translate(0," + (height)/trial.length + ")";
-                });
+                .attr("transform", "translate(0, " + height + ")");
             axisG
               .transition()
                 .duration(10)
                   .ease("linear")
               .call(xAxis);
-            // Label x-axis
-            curPlot.selectAll(".xLabel")
-                .data([{}])
-                  .enter()
-                    .append("text")
-                      .attr("class", "xLabel")
-                      .attr("text-anchor", "end")
-                      .attr("x", width - (width/2))
-                      .attr("transform", function() {
-                        return "translate(0," + (height)/trial.length + ")";
-                      })
-                      .attr("dy", "2.50em")
-                      .text("Time (ms)");
         }
 // ******************** Color Scale Function *******************
             function colorPicker() {

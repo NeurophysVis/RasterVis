@@ -250,6 +250,17 @@
                     }))
                 };
             });
+
+            var valuesInd = d3.range(data.values.length);
+            var newValues = data.values.concat(data.values);
+            valuesInd = valuesInd.concat(valuesInd);
+            newValues = newValues.map(function(d,i){
+              d.ind = valuesInd[i];
+              return d;
+            });
+            newValues.sort(function (a, b) {
+                   return d3.ascending(a["ind"], b["ind"]);
+                 });
             // Plot lines corresponding to trial events
             eventLine.enter()
                 .append("path")
@@ -290,12 +301,7 @@
             }
 
             function LineFun(values, lineName) {
-                var valuesInd = d3.range(values.length);
-                var newValues = values.concat(values);
-                valuesInd = valuesInd.concat(valuesInd);
-                // newValues.sort(function (a, b) { 
-                //        return d3.ascending(a["Rule"], b["Rule"]);
-                //          })
+
                 // Setup helper line function
                  var line = d3.svg.line()
                     .x(function (d) {

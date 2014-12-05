@@ -255,11 +255,11 @@
             var newValues = data.values.concat(data.values);
             valuesInd = valuesInd.concat(valuesInd);
             newValues = newValues.map(function(d,i){
-              d.ind = valuesInd[i];
+              d.sortInd = valuesInd[i];
               return d;
             });
             newValues.sort(function (a, b) {
-                   return d3.ascending(a["ind"], b["ind"]);
+                   return d3.ascending(a["sortInd"], b["sortInd"]);
                  });
             // Plot lines corresponding to trial events
             eventLine.enter()
@@ -272,7 +272,7 @@
                   .duration(1000)
                   .ease("linear")
                 .attr("d", function(line) {
-                        return LineFun(data.values, line.id);
+                        return LineFun(newValues, line.id);
                 });
 
             // Add labels corresponding to trial events
@@ -307,7 +307,14 @@
                     .x(function (d) {
                         return xScale(d[lineName] - d[timeMenuValue]);
                     })
-                    .y(function (d, i) { return data.yScale(i); })
+                    .y(function (d, i) {
+                      if (i % 2 == 0) {
+                        return data.yScale(d.sortInd);
+                      } else {
+                        return data.yScale(d.sortInd) + data.yScale.rangeBand();
+                      }
+
+                      })
                     .interpolate("linear");
 
                 return line(values);

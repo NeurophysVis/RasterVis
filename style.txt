@@ -10,9 +10,9 @@
 }
 .eventLine {
 	fill: none;
-	stroke: black;
+	stroke: #aaa;
 	stroke-width: 1.0px;
-	stroke-opacity: 0.2;
+	stroke-opacity: 0.4;
 }
 .xLabel, .yLabel {
 	font-size: 16px;

@@ -112,25 +112,33 @@
 					         return d3.ascending(a["Rule"], b["Rule"]);
 				             })
       	.entries(ruleRaster.data[params.data].trials);
-    var factorScale = d3.scale.ordinal()
-        .domain(factor.map(function(d){return d.key;}))
-        .rangeBands([0, height]);
+    // Compute variables for placing plots (plots maintain constant size for each trial)
+    var factorLength = factor.map(function(d) {return d.values.length;});
+    var factorRangeBand = factorLength.map(function(d) {return height * (d/d3.sum(factorLength))});
+    var factorPoints = [0];
+    factorRangeBand.forEach(function(d,i) {
+      factorPoints[i+1] = factorPoints[i] + d;
+    });
+    factorPoints = factorPoints.slice(0, factorPoints.length-1);
+
     // Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
-		var plotG = svg.selectAll("g.plotG").data(factor, function(d) {return d.key;});
+		var plotG = svg.selectAll("g.plotG")
+          .data(factor, function(d) {return d.key;});
     plotG.exit()
           .remove();
 		plotG.enter()
   				.append("g")
-  				.attr("transform", function(d) {
-                      return "translate(0," + factorScale(d.key) + ")";
-                })
-  				.attr("class", "plotG");
+  				.attr("class", "plotG")
+          .attr("id", function(d) {return d.key;});
+    plotG.attr("transform", function(d, i) {
+          return "translate(0," + factorPoints[i] + ")";
+        });
    // Append a y-scale to each plot so that the scale is adaptive to the range of each plot
    plotG
-  			.each(function(d) {
+  			.each(function(d,i) {
   				d.yScale = d3.scale.ordinal()
-					.domain(d3.range(d.values.length))
-					.rangeBands([0, factorScale.rangeBand()]);
+					             .domain(d3.range(d.values.length))
+					             .rangeBands([0, factorRangeBand[i]]);
   			});
 
 		// Set up x-scale, colorScale to be the same for both plots
@@ -148,8 +156,8 @@
 
         // Draw spikes, event lines, axes
         updateNeuralInfo();
-        plotG.each(drawSpikes);
         plotG.each(drawEventLines);
+        plotG.each(drawSpikes);
         appendAxis();
 
         // Add labels to each plot
@@ -160,6 +168,7 @@
 		// Listen for changes on the drop-down menu
 		factorSortMenu
 			.on("change", function () {
+        svg.selectAll(".eventLine").remove();
 				ruleRaster.draw(params);
 			});
 		neuronMenu
@@ -172,6 +181,7 @@
 			});
     fileMenu
 			.on("change", function () {
+        svg.selectAll(".eventLine").remove();
 				params.data = d3.selectAll("#fileMenu select").property("value"),
 				ruleRaster.loadData(params);
 			});
@@ -185,7 +195,9 @@
             // Join the trial data to svg containers ("g")
             var	trialG = curPlot.selectAll(".trial")
                   .data(data.values, function(d) {return d.trial_id; });
-
+            // Remove trials that don't have matched data
+            trialG.exit()
+                  .remove();
             // For each new data, append an svg container and set css class to trial
             // for each group, translate its location to its index location in the trial object
             trialG.enter()
@@ -208,14 +220,14 @@
             // that way the translate can move them to their appropriate position relative to the same coordinate system
             var spikes = trialG.selectAll("circle.spikes")
                 .data(function (d) { return d[curNeuronName]; });
+            spikes.exit()
+                .remove();
             spikes.enter()
                 .append("circle")
                   .attr("class", "spikes")
                   .style("opacity", 1E-5)
-                  .attr("r", 2)
-                  .attr("cy", function (d) {
-                      return data.yScale.rangeBand() / 2;
-                    });
+                  .attr("r", data.yScale.rangeBand())
+                  .attr("cy", data.yScale.rangeBand() / 2);
             spikes
                 .transition()
                   .duration(1000)
@@ -223,11 +235,6 @@
                     return xScale(d - (this.parentNode.__data__[timeMenuValue]));
                 })
                 .style("opacity", 0.9);
-            spikes.exit()
-                .remove();
-            // Remove trials that don't have matched data
-            trialG.exit()
-                .remove();
         }
 // ******************** Event Line Function *******************
         function drawEventLines(data, ind) {
@@ -237,9 +244,10 @@
                     {label: "Test Stimulus Cue", id: "stim_onset"},
                     {label: "Saccade", id: "react_time"}
                 ],
-                eventLine = curPlot
-                    .selectAll(".eventLine")
+                eventLine = curPlot.selectAll("path.eventLine")
                     .data(lines, function(d) {return d.id;});
+                eventLine.exit()
+                    .remove();
             // Append mean times for label position
             lines = lines.map(function(line) {
                 return {

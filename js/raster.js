@@ -221,20 +221,54 @@
             var spikes = trialG.selectAll("circle.spikes")
                 .data(function (d) { return d[curNeuronName]; });
             spikes.exit()
-                .remove();
+              .transition()
+                .duration(1000)
+              .style("opacity", 1E-5)
+              .remove();
             spikes.enter()
                 .append("circle")
                   .attr("class", "spikes")
-                  .style("opacity", 1E-5)
-                  .attr("r", data.yScale.rangeBand())
-                  .attr("cy", data.yScale.rangeBand() / 2);
+                  .style("opacity", 1E-5);
             spikes
                 .transition()
                   .duration(1000)
                 .attr("cx", function (d) {
                     return xScale(d - (this.parentNode.__data__[timeMenuValue]));
                 })
-                .style("opacity", 0.9);
+                .style("opacity", 0.9)
+                .attr("r", data.yScale.rangeBand())
+                .attr("cy", data.yScale.rangeBand() / 2);
+            // Y axis labels
+            var yAxisG = curPlot.selectAll("g.yAxis")
+                .data(data.key);
+            yAxisG.enter()
+                .append("g")
+                .attr("class", "yAxis");
+            yAxisG.exit()
+                .remove();
+            var yAxis = d3.svg.axis()
+                    .scale(data.yScale)
+                    .orient("left")
+                    .tickValues(data.yScale.domain().filter(function(d, i) {
+                      return false;
+                    }));
+            yAxisG
+              .call(yAxis);
+            yAxisLabel = yAxisG.selectAll("text.yLabel")
+              .data([data.key]);
+            if (factorLength.length < 13) {
+                yAxisLabel.enter()
+                  .append("text")
+                  .attr("class", "yLabel");
+                yAxisLabel
+                  .attr("x", 0)
+                  .attr("dx", -0.5 + "em")
+                  .attr("y", factorRangeBand[ind]/2)
+                  .attr("text-anchor", "end")
+                  .text(function(d) {return factorSortMenuValue + " " + d;})
+            }
+
+
         }
 // ******************** Event Line Function *******************
         function drawEventLines(data, ind) {
@@ -335,10 +369,10 @@
                     .scale(xScale)
                     .orient("bottom");
             // Append the x-axis
-            var axisG = svg.selectAll("g.axis").data([{}]);
+            var axisG = svg.selectAll("g.xAxis").data([{}]);
             axisG.enter()
                 .append("g")
-                .attr("class", "axis")
+                .attr("class", "xAxis")
                 .attr("transform", "translate(0, " + height + ")");
             axisG
               .transition()

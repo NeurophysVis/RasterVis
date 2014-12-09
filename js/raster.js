@@ -41,7 +41,8 @@
 			.data(fileNames)
 			.enter()
 			.append("option");
-		fileMenu.select("option")
+		options
+      .filter(function(d) {return d == params.curFile;})
 						.attr("selected", "selected");
 		options.text(String)
 				.attr("value", String);
@@ -54,12 +55,12 @@
 			// note that execution won't be stopped if a style file isn't found
 			style.text(txt); // but if found, it can be embedded in the svg.
 			// ("#" + Math.random()) makes sure the script loads the file each time instead of using a cached version, remove once live
-			var curFileName = "DATA/" + params.data  + ".json" + "#" + Math.random();
+			var curFileName = "DATA/" + params.curFile  + ".json" + "#" + Math.random();
 			d3.json(curFileName, function (error, json) {
 
         // Downsample if too many trials
-        if (json[params.data].neurons[0].Number_of_Trials > 2000) {
-          json[params.data].trials = json[params.data].trials.filter(function(d) {
+        if (json[params.curFile].neurons[0].Number_of_Trials > 2000) {
+          json[params.curFile].trials = json[params.curFile].trials.filter(function(d) {
             return Math.random() > 0.7;
           })
         };
@@ -67,24 +68,24 @@
 				ruleRaster.data = json;
 				// populate drop-down menu with neuron names
 				var neuronMenu = d3.select("#neuronMenu");
-				neuronMenu.selectAll("select.main")
-						.data([{}])
-						.enter()
+				neuronMenu.selectAll("select.main").data([{}]).enter()
 						      .append("select")
 						            .attr("name", "neuron-list")
 						            .classed("main", 1);
-				var	neuron = ruleRaster.data[params.data].neurons,
+				var	neuron = ruleRaster.data[params.curFile].neurons,
 					options = neuronMenu.select("select").selectAll("option")
 						.data(neuron, function(d) {return d.Name;});
 				options.enter()
 					.append("option")
 					     .text(function (d) { return d.Name; })
 					     .attr("value", function (d) { return d.Name; });
-				options.exit().remove();
-				neuronMenu // add option to select neuron based on parameters from the browser
-						.select("select")
-						.select("option")
-						.attr("selected", "selected");
+				options.exit()
+          .remove();
+        var curNeuron = params.curNeuron || ruleRaster.data[params.curFile].neurons[0].Name;
+				options
+          .filter(function(d) {
+            return d.Name == curNeuron;})
+            .attr("selected", "selected");
 
 				// Draw visualization
 
@@ -101,7 +102,7 @@
       fileMenu = d3.selectAll("#fileMenu"),
 			factorSortMenu = d3.select("#factorSortMenu select"),
 			factorSortMenuValue = factorSortMenu.property("value"),
-			neuron = ruleRaster.data[params.data].neurons
+			neuron = ruleRaster.data[params.curFile].neurons
                 .filter(function (d) {
                     return d.Name === curNeuronName;
             });
@@ -112,14 +113,14 @@
               .sortValues(function (a, b) { // sorts data based on Rule
                      return d3.ascending(a["Rule"], b["Rule"]);
                        })
-          .entries(ruleRaster.data[params.data].trials);
+          .entries(ruleRaster.data[params.curFile].trials);
     } else {
       var factor = d3.nest()
           .key(function(d) {return d[factorSortMenuValue];}) // nests data by selected factor
             .sortValues(function (a, b) { // sorts data based on Rule
                    return d3.ascending(a["trial_id"], b["trial_id"]);
                      })
-          .entries(ruleRaster.data[params.data].trials);
+          .entries(ruleRaster.data[params.curFile].trials);
     }
 
     // Compute variables for placing plots (plots maintain constant size for each trial)
@@ -152,10 +153,10 @@
   			});
 
 		// Set up x-scale, colorScale to be the same for both plots
-		var	minTime = d3.min(ruleRaster.data[params.data].trials, function (d) {
+		var	minTime = d3.min(ruleRaster.data[params.curFile].trials, function (d) {
 				return d3.min(d[curNeuronName], function (e) { return d3.min(e); })  - d[timeMenuValue];
 			}),
-			maxTime = d3.max(ruleRaster.data[params.data].trials, function (d) {
+			maxTime = d3.max(ruleRaster.data[params.curFile].trials, function (d) {
 				return d3.max(d[curNeuronName], function (e) { return d3.max(e); }) - d[timeMenuValue];
 			}),
 			xScale = d3.scale.linear()
@@ -189,7 +190,7 @@
     fileMenu
 			.on("change", function () {
         svg.selectAll(".eventLine").remove();
-				params.data = d3.selectAll("#fileMenu select").property("value"),
+				params.curFile = d3.selectAll("#fileMenu select").property("value"),
 				ruleRaster.loadData(params);
 			});
 

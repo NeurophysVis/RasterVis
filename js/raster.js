@@ -106,12 +106,22 @@
                     return d.Name === curNeuronName;
             });
 		// Nest and Sort Data
-		var factor = d3.nest()
-				.key(function(d) {return d[factorSortMenuValue];}) // nests data by selected factor
-      			.sortValues(function (a, b) { // sorts data based on Rule
-					         return d3.ascending(a["Rule"], b["Rule"]);
-				             })
-      	.entries(ruleRaster.data[params.data].trials);
+    if (factorSortMenuValue != "Name"){
+      var factor = d3.nest()
+          .key(function(d) {return d[factorSortMenuValue];}) // nests data by selected factor
+              .sortValues(function (a, b) { // sorts data based on Rule
+                     return d3.ascending(a["Rule"], b["Rule"]);
+                       })
+          .entries(ruleRaster.data[params.data].trials);
+    } else {
+      var factor = d3.nest()
+          .key(function(d) {return d[factorSortMenuValue];}) // nests data by selected factor
+            .sortValues(function (a, b) { // sorts data based on Rule
+                   return d3.ascending(a["trial_id"], b["trial_id"]);
+                     })
+          .entries(ruleRaster.data[params.data].trials);
+    }
+
     // Compute variables for placing plots (plots maintain constant size for each trial)
     var factorLength = factor.map(function(d) {return d.values.length;});
     var factorRangeBand = factorLength.map(function(d) {return height * (d/d3.sum(factorLength))});
@@ -235,7 +245,7 @@
                 .attr("cx", function (d) {
                     return xScale(d - (this.parentNode.__data__[timeMenuValue]));
                 })
-                .style("opacity", 0.9)
+                .style("opacity", 1.0)
                 .attr("r", data.yScale.rangeBand())
                 .attr("cy", data.yScale.rangeBand() / 2);
             // Y axis labels
@@ -251,12 +261,13 @@
                     .orient("left")
                     .tickValues(data.yScale.domain().filter(function(d, i) {
                       return false;
-                    }));
+                    }))
+                    .tickSize(-width);
             yAxisG
               .call(yAxis);
             yAxisLabel = yAxisG.selectAll("text.yLabel")
               .data([factorSortMenuValue + " " + data.key]);
-            if (factorLength.length < 13) {
+            if (factorLength.length < 13 && factorSortMenuValue != "Name") {
                 yAxisLabel.enter()
                   .append("text")
                   .attr("class", "yLabel");
@@ -369,18 +380,29 @@
 
             var xAxis = d3.svg.axis()
                     .scale(xScale)
-                    .orient("bottom");
+                    .orient("bottom")
+                    .ticks(10)
+                    .tickSize(0);
             // Append the x-axis
-            var axisG = svg.selectAll("g.xAxis").data([{}]);
-            axisG.enter()
+            var xAxisG = svg.selectAll("g.xAxis").data([{}]);
+            xAxisG.enter()
                 .append("g")
                 .attr("class", "xAxis")
                 .attr("transform", "translate(0, " + height + ")");
-            axisG
+            xAxisG
               .transition()
                 .duration(10)
                   .ease("linear")
               .call(xAxis);
+            var xAxisLabel = xAxisG.selectAll("text.xLabel")
+              .data(["Time (ms)"]);
+            xAxisLabel.enter()
+                .append("text")
+                .attr("class", "xLabel")
+                .attr("x", width/2)
+                .attr("text-anchor", "middle")
+                .text(function(d) {return d;})
+
         }
 // ******************** Color Scale Function *******************
             function colorPicker() {

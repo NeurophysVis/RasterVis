@@ -1,7 +1,8 @@
 .yAxis path, .xAxis path,
 .yAxis line, .xAxis line {
 	fill: none;
-	stroke: black;
+	stroke: #aaa;
+	stroke-opacity: 0.2;
 	shape-rendering: crispEdges;
 }
 .yAxis text, .xAxis text, .yLabel text {
@@ -15,8 +16,8 @@
 .eventLine {
 	fill: none;
 	stroke: #aaa;
-	stroke-width: 1.0px;
-	stroke-opacity: 0.4;
+	stroke-width: 1.5px;
+	stroke-opacity: 0.55;
 }
 .eventLabel {
 	font-family: sans-serif;

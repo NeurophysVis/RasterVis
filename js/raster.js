@@ -162,18 +162,15 @@
 					.domain([minTime-10, maxTime+10])
 					.range([0, width]);
 
-		var	colorScale = colorPicker();
+		var	colorScale = d3.scale.ordinal()
+        .domain(["Color", "Orientation"])
+        .range(["#ef8a62","#67a9cf"]);
 
         // Draw spikes, event lines, axes
         updateNeuralInfo();
         plotG.each(drawEventLines);
         plotG.each(drawSpikes);
         appendAxis();
-
-        // Add labels to each plot
-        ruleColorScale = d3.scale.ordinal()
-            .domain(["Color", "Orientation"])
-            .range(["#ef8a62","#67a9cf"]);
 
 		// Listen for changes on the drop-down menu
 		factorSortMenu
@@ -265,20 +262,36 @@
                     .tickSize(-width);
             yAxisG
               .call(yAxis);
-            yAxisLabel = yAxisG.selectAll("text.yLabel")
+            var yAxisLabel = yAxisG.selectAll("text.yLabel")
               .data([factorSortMenuValue + " " + data.key]);
-            if (factorLength.length < 13 && factorSortMenuValue != "Name") {
-                yAxisLabel.enter()
-                  .append("text")
-                  .attr("class", "yLabel");
-                yAxisLabel
-                  .attr("x", 0)
-                  .attr("dx", -0.4 + "em")
-                  .attr("y", factorRangeBand[ind]/2)
-                  .attr("text-anchor", "end")
-                  .text(function(d) {return d;})
-            }
+            yAxisLabel.enter()
+                .append("text")
+                .attr("class", "yLabel")
+                .attr("dx", -0.4 + "em")
+                .attr("text-anchor", "end");
 
+            switch (factorSortMenuValue) {
+                case "Name":
+                  yAxisLabel
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("transform", "rotate(-90)")
+                    .text("Trials")
+                  break;
+                case "stim_onset":
+                  yAxisLabel
+                    .remove();
+                    break;
+                default:
+                    yAxisLabel
+                      .attr("x", 0)
+                      .attr("dx", -0.4 + "em")
+                      .attr("transform", "rotate(0,0)")
+                      .attr("y", factorRangeBand[ind]/2)
+                      .attr("text-anchor", "end")
+                      .text(function(d) {return d;})
+                    break;
+            }
 
         }
 // ******************** Event Line Function *******************
@@ -399,40 +412,12 @@
             xAxisLabel.enter()
                 .append("text")
                 .attr("class", "xLabel")
-                .attr("dy", 2 + "em")
+                .attr("dy", 2.5 + "em")
                 .attr("x", width/2)
                 .attr("text-anchor", "middle")
                 .text(function(d) {return d;})
 
         }
-// ******************** Color Scale Function *******************
-            function colorPicker() {
-                switch ("Rule") {
-                    case "trial_id":
-                    case "stim_onset":
-                        colorScale = d3.scale.ordinal()
-                            .domain(0)
-                            .range(["black"]);
-                        break;
-                    case "Rule":
-                        colorScale = d3.scale.ordinal()
-                            .domain(["Color", "Orientation"])
-                            .range(["#ef8a62","#67a9cf"]);
-                        break;
-                    case "ResponseDir":
-                        colorScale = d3.scale.ordinal()
-                            .domain(["Left", "Right"])
-                            .range(["red", "green"]);
-                        break;
-                    case "SwitchDist":
-                        // can build a continuous color scale
-                        colorScale = d3.scale.ordinal()
-                            .domain(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
-                            .range(colorbrewer.Paired["12"]);
-                        break;
-                }
-                    return colorScale;
-            }
 // ******************** Neuron Info Function *******************
             function updateNeuralInfo() {
                 var atGlance = d3.select("#atGlance").selectAll("table")

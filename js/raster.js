@@ -325,7 +325,7 @@
                 .transition()
                   .duration(1000)
                   .ease("linear")
-                .attr("opacity", 1.0)
+                .attr("opacity", 0.90)
                 .attr("d", function(line) {
                         return LineFun(newValues, line.id);
                 });
@@ -399,6 +399,7 @@
             xAxisLabel.enter()
                 .append("text")
                 .attr("class", "xLabel")
+                .attr("dy", 2 + "em")
                 .attr("x", width/2)
                 .attr("text-anchor", "middle")
                 .text(function(d) {return d;})

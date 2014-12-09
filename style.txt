@@ -2,7 +2,7 @@
 .yAxis line, .xAxis line {
 	fill: none;
 	stroke: #aaa;
-	stroke-opacity: 0.2;
+	stroke-opacity: 0.15;
 	shape-rendering: crispEdges;
 }
 .yAxis text, .xAxis text, .yLabel text {

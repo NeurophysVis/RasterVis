@@ -149,7 +149,7 @@
 				return d3.max(d[curNeuronName], function (e) { return d3.max(e); }) - d[timeMenuValue];
 			}),
 			xScale = d3.scale.linear()
-					.domain([minTime, maxTime])
+					.domain([minTime-10, maxTime+10])
 					.range([0, width]);
 
 		var	colorScale = colorPicker();
@@ -240,7 +240,7 @@
                 .attr("cy", data.yScale.rangeBand() / 2);
             // Y axis labels
             var yAxisG = curPlot.selectAll("g.yAxis")
-                .data(data.key);
+                .data([data.key]);
             yAxisG.enter()
                 .append("g")
                 .attr("class", "yAxis");
@@ -255,17 +255,17 @@
             yAxisG
               .call(yAxis);
             yAxisLabel = yAxisG.selectAll("text.yLabel")
-              .data([data.key]);
+              .data([factorSortMenuValue + " " + data.key]);
             if (factorLength.length < 13) {
                 yAxisLabel.enter()
                   .append("text")
                   .attr("class", "yLabel");
                 yAxisLabel
                   .attr("x", 0)
-                  .attr("dx", -0.5 + "em")
+                  .attr("dx", -0.4 + "em")
                   .attr("y", factorRangeBand[ind]/2)
                   .attr("text-anchor", "end")
-                  .text(function(d) {return factorSortMenuValue + " " + d;})
+                  .text(function(d) {return d;})
             }
 
 
@@ -307,12 +307,14 @@
             eventLine.enter()
                 .append("path")
                   .attr("class", "eventLine")
-                  .attr("id", function(d) {return d.id;});
+                  .attr("id", function(d) {return d.id;})
+                  .attr("opacity", 1E-6);
 
             eventLine
                 .transition()
                   .duration(1000)
                   .ease("linear")
+                .attr("opacity", 1.0)
                 .attr("d", function(line) {
                         return LineFun(newValues, line.id);
                 });

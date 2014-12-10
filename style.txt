@@ -1,5 +1,5 @@
-.yAxis path, .xAxis path,
-.yAxis line, .xAxis line {
+.xAxis path,
+ .xAxis line {
 	fill: none;
 	stroke: #aaa;
 	stroke-opacity: 0.15;
@@ -12,6 +12,16 @@
 	color: #777;
 	font-weight: 400;
 	display: block;
+}
+
+.yLabel text {
+	fill: #777;
+	color: #777;
+}
+
+.yAxis line, .yAxis path {
+	stroke: black;
+	fill: none;
 }
 .eventLine {
 	fill: none;

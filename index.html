@@ -26,10 +26,16 @@
                     <select>
                         <option disabled="disabled">Select a factor</option>
                         <option selected="selected" value="Name">Trial ID</option>
-                        <option value="stim_onset">Preparation Time before Stimulus Onset (ms)</option>
                         <option value="Rule">Rule (Color vs. Orientation)</option>
-                        <option value="ResponseDir">Response Direction (Left vs. Right Saccade)</option>
-                        <option value="SwitchDist">Distance from Rule Switch (# of trials)</option>
+                        <option value="Previous_Error">Error on Previous Trial</option>
+                        <option value="Rule_Repetition">Number of Rule Repetitions (# of trials)</option>
+                        <option value="Current_Congruency">Current Trial Congruency</option>
+                        <option value="Previous_Congruency">Previous Trial Congruency</option>
+                        <option value="Preparation_Time">Preparation Time before Stimulus Onset (ms)</option>
+                        <option value="Response_Direction">Response Direction (Left vs. Right Saccade)</option>
+                        <option value="Test_Stimulus">Test Stimulus Cue</option>
+                        <option value="Rule_Cues">Rule Cues</option>
+                        <option value="Rule_Cue_Repetition">Rule Cue Repetition</option>
                     </select>
                 </div>
                 <div id="timeMenu">
@@ -52,7 +58,7 @@
     <script>
         var rasterParams = {
             curFile: "cc1",
-            width:960,
+            width:1000,
             height:2100
         };
         // Extract parameters from the browser

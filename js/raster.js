@@ -6,7 +6,7 @@
 	ruleRaster.init = function (params) {
 		if (!params) {params = {}; }
 		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
-		var margin = {top: 40, right: 30, bottom: 40, left: 120};
+		var margin = {top: 40, right: 30, bottom: 40, left: 200};
 		var padding = {top: 60, right: 60, bottom: 60, left: 60};
 		var outerWidth = params.width || 960,
 			outerHeight = params.height || 500,
@@ -260,11 +260,11 @@
                     .tickValues(data.yScale.domain().filter(function(d, i) {
                       return false;
                     }))
-                    .tickSize(-width);
+                    .tickSize(-10);
             yAxisG
               .call(yAxis);
             var yAxisLabel = yAxisG.selectAll("text.yLabel")
-              .data([factorSortMenuValue + " " + data.key]);
+              .data([factorSortMenuValue + ": " + data.key]);
             yAxisLabel.enter()
                 .append("text")
                 .attr("class", "yLabel")
@@ -279,18 +279,29 @@
                     .attr("transform", "rotate(-90)")
                     .text("Trials")
                   break;
-                case "stim_onset":
+                case "Preparation_Time":
                   yAxisLabel
-                    .remove();
-                    break;
+                    .attr("x", 0)
+                    .attr("dx", -0.4 + "em")
+                    .attr("transform", "rotate(0)")
+                    .attr("y", factorRangeBand[ind]/2)
+                    .attr("text-anchor", "end")
+                    .text(function(){
+                        if (+data.key % 10 == 0) {
+                          return fixDimNames(factorSortMenuValue) + ": " + data.key + " ms-";
+                        } else {
+                          return "";
+                        }
+                      });
+                  break;
                 default:
                     yAxisLabel
                       .attr("x", 0)
                       .attr("dx", -0.4 + "em")
-                      .attr("transform", "rotate(0,0)")
+                      .attr("transform", "rotate(0)")
                       .attr("y", factorRangeBand[ind]/2)
                       .attr("text-anchor", "end")
-                      .text(function(d) {return d;})
+                      .text(function(d) {return fixDimNames(d) + " -";})
                     break;
             }
 
@@ -448,4 +459,12 @@
                   .remove();
             }
 	};
+            // Replaces underscores with blanks and "plus" with "+"
+        function fixDimNames(dimName) {
+                var pat1 = /plus/,
+                    pat2 = /_/g,
+                    pat3 = /minus/;
+                var fixedName = dimName.replace(pat1, "+").replace(pat2, " ").replace(pat3, "-");
+                return fixedName;
+            }
 })();

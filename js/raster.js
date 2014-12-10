@@ -14,21 +14,20 @@
 			innerHeight = outerHeight - margin.top - margin.bottom;
 		width = innerWidth - padding.left - padding.right;
 		height = innerHeight - padding.top - padding.bottom;
-		chart.selectAll("svg")
-			.data([{width: width + margin.left + margin.right, height: height + margin.top + margin.bottom}])
+		chart.selectAll("svg").data([{width: width + margin.left + margin.right, height: height + margin.top + margin.bottom}])
 			.enter()
-			.append("svg");
+			   .append("svg");
 		svg = d3.select("svg").attr({
 			width: function (d) {return d.width + margin.left + margin.right; },
 			height: function (d) {return d.height + margin.top + margin.bottom; }
 		})
 			.append("g")
-			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 		// ruleRaster.init can be re-ran to pass different height/width values
 		// to the svg. this doesn't create new svg elements.
 		style = svg.selectAll("style").data([{}]).enter()
 			.append("style")
-			.attr("type", "text/css");
+			   .attr("type", "text/css");
 		// this is where we can insert style that will affect the svg directly.
 		defs = svg.selectAll("defs").data([{}]).enter()
 			.append("defs");
@@ -36,10 +35,8 @@
 		var fileNames = ["cc1", "isa9"];
 		var fileMenu = d3.selectAll("#fileMenu")
 			.append("select")
-			.attr("name", "file-list");
-		var options = fileMenu.selectAll("option")
-			.data(fileNames)
-			.enter()
+			   .attr("name", "file-list");
+		var options = fileMenu.selectAll("option").data(fileNames).enter()
 			.append("option");
 		options
       .filter(function(d) {return d == params.curFile;})
@@ -60,9 +57,11 @@
 
         // Downsample if too many trials
         if (json[params.curFile].neurons[0].Number_of_Trials > 2000) {
-          json[params.curFile].trials = json[params.curFile].trials.filter(function(d) {
-            return Math.random() > 0.7;
-          })
+          json[params.curFile].trials = d3.shuffle(json[params.curFile].trials);
+          json[params.curFile].trials = json[params.curFile].trials.slice(0, 800);
+          json[params.curFile].trials = json[params.curFile].trials.sort(function (a, b) {
+                 return d3.ascending(+a["trial_id"], +b["trial_id"]);
+               });;
         };
 
 				ruleRaster.data = json;
@@ -243,7 +242,7 @@
                 .attr("cx", function (d) {
                     return xScale(d - (this.parentNode.__data__[timeMenuValue]));
                 })
-                .style("opacity", 1.0)
+                .style("opacity", 0.7)
                 .attr("r", data.yScale.rangeBand())
                 .attr("cy", data.yScale.rangeBand() / 2);
             // Y axis labels

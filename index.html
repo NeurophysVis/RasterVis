@@ -19,7 +19,11 @@
         </div>
         <div class="row-fluid">
             <div id="menus" class="span2">
-                <div id="fileMenu" ><b>File:</b><br></div>
+                <div id="fileMenu" ><b>File:</b><br>
+                <select name="file-list">
+                  <option selected="selected" value="cc1">cc1</option>
+                  <option value="isa9">isa9</option></select>
+                </div>
                 <div id="neuronMenu" ><b>Neuron:</b><br></div>
                 <div id="factorSortMenu">
                     <b>Sort by Experimental Factor:</b><br>
@@ -58,8 +62,8 @@
     <script>
         var rasterParams = {
             curFile: "cc1",
-            width:1000,
-            height:2100
+            width:960,
+            height:5000
         };
         // Extract parameters from the browser
         var query = window.location.search.substring(1);

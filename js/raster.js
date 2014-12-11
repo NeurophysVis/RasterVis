@@ -6,7 +6,7 @@
 	ruleRaster.init = function (params) {
 		if (!params) {params = {}; }
 		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
-		var margin = {top: 40, right: 30, bottom: 40, left: 200};
+		var margin = {top: 40, right: 10, bottom: 40, left: 300};
 		var padding = {top: 60, right: 60, bottom: 60, left: 60};
 		var outerWidth = params.width || 960,
 			outerHeight = params.height || 500,
@@ -31,18 +31,7 @@
 		// this is where we can insert style that will affect the svg directly.
 		defs = svg.selectAll("defs").data([{}]).enter()
 			.append("defs");
-		// Create neuron file menu
-		var fileNames = ["cc1", "isa9"];
-		var fileMenu = d3.selectAll("#fileMenu")
-			.append("select")
-			   .attr("name", "file-list");
-		var options = fileMenu.selectAll("option").data(fileNames).enter()
-			.append("option");
-		options
-      .filter(function(d) {return d == params.curFile;})
-						.attr("selected", "selected");
-		options.text(String)
-				.attr("value", String);
+
 		// Load Data
 		ruleRaster.loadData(params);
 	};
@@ -56,9 +45,10 @@
 			d3.json(curFileName, function (error, json) {
 
         // Downsample if too many trials
-        if (json[params.curFile].neurons[0].Number_of_Trials > 2000) {
+        var MAX_TRIALS = 700;
+        if (json[params.curFile].neurons[0].Number_of_Trials > MAX_TRIALS ) {
           json[params.curFile].trials = d3.shuffle(json[params.curFile].trials);
-          json[params.curFile].trials = json[params.curFile].trials.slice(0, 800);
+          json[params.curFile].trials = json[params.curFile].trials.slice(0, MAX_TRIALS );
           json[params.curFile].trials = json[params.curFile].trials.sort(function (a, b) {
                  return d3.ascending(+a["trial_id"], +b["trial_id"]);
                });;
@@ -109,25 +99,26 @@
     if (factorSortMenuValue != "Name"){
       var factor = d3.nest()
           .key(function(d) {return d[factorSortMenuValue];}) // nests data by selected factor
-              .sortValues(function (a, b) { // sorts data based on Rule
+              .sortValues(function (a, b) { // sorts values based on Rule
                      return d3.ascending(a["Rule"], b["Rule"]);
                        })
           .entries(ruleRaster.data[params.curFile].trials);
     } else {
       var factor = d3.nest()
           .key(function(d) {return d[factorSortMenuValue];}) // nests data by selected factor
-            .sortValues(function (a, b) { // sorts data based on Rule
+            .sortValues(function (a, b) { // sorts values based on trial
                    return d3.ascending(a["trial_id"], b["trial_id"]);
                      })
           .entries(ruleRaster.data[params.curFile].trials);
     }
 
     // Compute variables for placing plots (plots maintain constant size for each trial)
+    var PLOT_BUFFER = 4;
     var factorLength = factor.map(function(d) {return d.values.length;});
-    var factorRangeBand = factorLength.map(function(d) {return height * (d/d3.sum(factorLength))});
+    var factorRangeBand = factorLength.map(function(d) {return (height + (factorLength.length * -PLOT_BUFFER) ) * (d/d3.sum(factorLength))});
     var factorPoints = [0];
     factorRangeBand.forEach(function(d,i) {
-      factorPoints[i+1] = factorPoints[i] + d;
+      factorPoints[i+1] = factorPoints[i] + d + PLOT_BUFFER;
     });
     factorPoints = factorPoints.slice(0, factorPoints.length-1);
 
@@ -156,7 +147,7 @@
 				return d3.min(d[curNeuronName], function (e) { return d3.min(e); })  - d[timeMenuValue];
 			}),
 			maxTime = d3.max(ruleRaster.data[params.curFile].trials, function (d) {
-				return d3.max(d[curNeuronName], function (e) { return d3.max(e); }) - d[timeMenuValue];
+				return d["react_time"] - d[timeMenuValue];
 			}),
 			xScale = d3.scale.linear()
 					.domain([minTime-10, maxTime+10])
@@ -192,12 +183,52 @@
 				params.curFile = d3.selectAll("#fileMenu select").property("value"),
 				ruleRaster.loadData(params);
 			});
+      // ******************** Axis Function *******************
+              function appendAxis() {
+
+                  var xAxis = d3.svg.axis()
+                          .scale(xScale)
+                          .orient("bottom")
+                          .ticks(10)
+                          .tickSize(0);
+                  // Append the x-axis
+                  var xAxisG = svg.selectAll("g.xAxis").data([{}]);
+                  xAxisG.enter()
+                      .append("g")
+                      .attr("class", "xAxis")
+                      .attr("transform", "translate(0, " + (height - PLOT_BUFFER) + ")");
+                  xAxisG
+                    .transition()
+                      .duration(10)
+                        .ease("linear")
+                    .call(xAxis);
+                  var xAxisLabel = xAxisG.selectAll("text.xLabel")
+                    .data(["Time (ms)"]);
+                  xAxisLabel.enter()
+                      .append("text")
+                      .attr("class", "xLabel")
+                      .attr("dy", 2.5 + "em")
+                      .attr("x", width/2)
+                      .attr("text-anchor", "middle")
+                      .text(function(d) {return d;})
+
+              }
 
 // ******************** Helper Functions **********************
 
 // ******************** Draw Spikes Function ******************
         function drawSpikes(data, ind) {
             var curPlot = d3.select(this);
+            var curPlotRect = curPlot.selectAll("rect.background")
+                .data([{}]);
+            curPlotRect.enter()
+                .append("rect")
+                  .attr("class", "background");
+            curPlotRect
+                  .attr("x", -10)
+                  .attr("y", 0)
+                  .attr("width", width+10)
+                  .attr("height", factorRangeBand[ind]);
 
             // Join the trial data to svg containers ("g")
             var	trialG = curPlot.selectAll(".trial")
@@ -217,8 +248,6 @@
                 .style("fill", function (d) {
                     return colorScale(d["Rule"]);
                 })
-                .transition()
-                  .duration(1000)
                 .attr("transform", function(d, i) {
                     return "translate(0," + data.yScale(i) + ")";
                 });
@@ -243,14 +272,15 @@
                     return xScale(d - (this.parentNode.__data__[timeMenuValue]));
                 })
                 .style("opacity", 0.7)
-                .attr("r", data.yScale.rangeBand())
+                .attr("r", data.yScale.rangeBand() / 2)
                 .attr("cy", data.yScale.rangeBand() / 2);
             // Y axis labels
             var yAxisG = curPlot.selectAll("g.yAxis")
                 .data([data.key]);
             yAxisG.enter()
                 .append("g")
-                .attr("class", "yAxis");
+                .attr("class", "yAxis")
+                .attr("transform", "translate(-10,0)");
             yAxisG.exit()
                 .remove();
             var yAxis = d3.svg.axis()
@@ -267,16 +297,15 @@
             yAxisLabel.enter()
                 .append("text")
                 .attr("class", "yLabel")
-                .attr("dx", -0.4 + "em")
                 .attr("text-anchor", "end");
 
             switch (factorSortMenuValue) {
                 case "Name":
                   yAxisLabel
                     .attr("x", 0)
-                    .attr("y", 0)
+                    .attr("y", -3)
                     .attr("transform", "rotate(-90)")
-                    .text("Trials")
+                    .text("← Trials ")
                   break;
                 case "Preparation_Time":
                   yAxisLabel
@@ -287,7 +316,7 @@
                     .attr("text-anchor", "end")
                     .text(function(){
                         if (+data.key % 10 == 0) {
-                          return fixDimNames(factorSortMenuValue) + ": " + data.key + " ms-";
+                          return fixDimNames(factorSortMenuValue) + ": " + data.key + " ms";
                         } else {
                           return "";
                         }
@@ -300,7 +329,7 @@
                       .attr("transform", "rotate(0)")
                       .attr("y", factorRangeBand[ind]/2)
                       .attr("text-anchor", "end")
-                      .text(function(d) {return fixDimNames(d) + " -";})
+                      .text(function(d) {return fixDimNames(d);})
                     break;
             }
 
@@ -398,36 +427,6 @@
 
                 return line(values);
             }
-        }
-// ******************** Axis Function *******************
-        function appendAxis() {
-
-            var xAxis = d3.svg.axis()
-                    .scale(xScale)
-                    .orient("bottom")
-                    .ticks(10)
-                    .tickSize(0);
-            // Append the x-axis
-            var xAxisG = svg.selectAll("g.xAxis").data([{}]);
-            xAxisG.enter()
-                .append("g")
-                .attr("class", "xAxis")
-                .attr("transform", "translate(0, " + height + ")");
-            xAxisG
-              .transition()
-                .duration(10)
-                  .ease("linear")
-              .call(xAxis);
-            var xAxisLabel = xAxisG.selectAll("text.xLabel")
-              .data(["Time (ms)"]);
-            xAxisLabel.enter()
-                .append("text")
-                .attr("class", "xLabel")
-                .attr("dy", 2.5 + "em")
-                .attr("x", width/2)
-                .attr("text-anchor", "middle")
-                .text(function(d) {return d;})
-
         }
 // ******************** Neuron Info Function *******************
             function updateNeuralInfo() {

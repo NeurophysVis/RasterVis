@@ -327,7 +327,8 @@
                       .attr("x", 0)
                       .attr("dx", -0.4 + "em")
                       .attr("transform", "rotate(0)")
-                      .attr("y", factorRangeBand[ind]/2)
+                      .attr("y", 0)
+                      .attr("y", 1 + "em")
                       .attr("text-anchor", "end")
                       .text(function(d) {return fixDimNames(d);})
                     break;

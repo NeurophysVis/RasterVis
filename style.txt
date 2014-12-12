@@ -32,7 +32,6 @@
 .eventLine {
 	fill: none;
 	stroke: #777;
-	stroke-width: 1.50px;
 	stroke-opacity: 0.55;
 }
 .eventLabel {

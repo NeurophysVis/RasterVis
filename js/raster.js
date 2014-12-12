@@ -14,10 +14,13 @@
 			innerHeight = outerHeight - margin.top - margin.bottom;
 		width = innerWidth - padding.left - padding.right;
 		height = innerHeight - padding.top - padding.bottom;
-		chart.selectAll("svg").data([{width: width + margin.left + margin.right, height: height + margin.top + margin.bottom}])
-			.enter()
+		var chart = chart.selectAll("svg")
+      .data([{width: width + margin.left + margin.right, height: height + margin.top + margin.bottom}]);
+    chart.enter()
 			   .append("svg");
-		svg = d3.select("svg").attr({
+    chart.exit()
+         .remove();
+		svg = chart.attr({
 			width: function (d) {return d.width + margin.left + margin.right; },
 			height: function (d) {return d.height + margin.top + margin.bottom; }
 		})
@@ -45,8 +48,9 @@
 			d3.json(curFileName, function (error, json) {
 
         // Downsample if too many trials
+        var numTrials = json[params.curFile].neurons[0].Number_of_Trials;
         var MAX_TRIALS = 700;
-        if (json[params.curFile].neurons[0].Number_of_Trials > MAX_TRIALS ) {
+        if (numTrials > MAX_TRIALS ) {
           json[params.curFile].trials = d3.shuffle(json[params.curFile].trials);
           json[params.curFile].trials = json[params.curFile].trials.slice(0, MAX_TRIALS );
           json[params.curFile].trials = json[params.curFile].trials.sort(function (a, b) {
@@ -394,6 +398,7 @@
                     .append("text")
                       .attr("class", "eventLabel")
                       .attr("id", function(d) {return d.id;})
+                      .attr("stroke-width", data.yScale.rangeBand())
                       .attr("y", 0)
                       .attr("dy", "-0.25em")
                       .attr("text-anchor", "middle")

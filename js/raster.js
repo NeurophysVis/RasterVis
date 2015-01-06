@@ -343,9 +343,11 @@
         function drawEventLines(data, ind) {
             var curPlot = d3.select(this),
                 lines = [
+                    {label: "Fixation Cue", id: "fixation_onset"},
                     {label: "Rule Cue", id: "rule_onset"},
                     {label: "Test Stimulus Cue", id: "stim_onset"},
-                    {label: "Saccade", id: "react_time"}
+                    {label: "Saccade", id: "react_time"},
+                    {label: "Reward", id: "reward_time"}
                 ],
                 eventLine = curPlot.selectAll("path.eventLine")
                     .data(lines, function(d) {return d.id;});

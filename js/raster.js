@@ -148,10 +148,10 @@
 
 		// Set up x-scale, colorScale to be the same for both plots
 		var	minTime = d3.min(ruleRaster.data[params.curFile].trials, function (d) {
-				return d3.min(d[curNeuronName], function (e) { return d3.min(e); })  - d[timeMenuValue];
-			}),
+        return d["start_time"] - d[timeMenuValue];
+      }),
 			maxTime = d3.max(ruleRaster.data[params.curFile].trials, function (d) {
-				return d["react_time"] - d[timeMenuValue];
+				return d["end_time"] - d[timeMenuValue];
 			}),
 			xScale = d3.scale.linear()
 					.domain([minTime-10, maxTime+10])

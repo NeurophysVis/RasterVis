@@ -50,3 +50,18 @@
   opacity: 0.1;
   fill: #aaa;
 }
+
+div.tooltip {
+  position: absolute;
+  text-align: left;
+  width: 115px;
+  height: 45px;
+  padding: 10px 10px 2px 10px;
+  font: 11px sans-serif;
+  background: white;
+  border: 1px;
+  border-style: solid;
+  border-radius: 0px;
+  border-color: #808080;
+  pointer-events: none;
+}

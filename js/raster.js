@@ -95,6 +95,15 @@
 		});
 	};
 	ruleRaster.draw = function (params) {
+
+    // Tool Tip - make a hidden div to appear as a tooltip when mousing over a line
+        toolTip = d3.select("body").selectAll("div.tooltip").data([{}]);
+        toolTip
+            .enter()
+            .append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 1e-6);
+
 		// Extract relevant trial and neuron information
 		var neuronMenu = d3.select("#neuronMenu select"),
 			curNeuronName = neuronMenu.property("value"),
@@ -287,6 +296,26 @@
                 .style("opacity", 0.7)
                 .attr("r", data.yScale.rangeBand() / 2)
                 .attr("cy", data.yScale.rangeBand() / 2);
+            // Append invisible box for mouseover
+            var mouseBox = trialG.selectAll("rect.trialBox")
+                .data(function (d) { return [d]; });
+            mouseBox.exit()
+                    .remove();
+            mouseBox.enter()
+                .append("rect")
+                .attr("class", "trialBox")
+                .attr("height", data.yScale.rangeBand());
+            mouseBox
+                  .attr("x", function(d) {
+                    return xScale(d["start_time"] - d[timeMenuValue]);
+                  })
+                  .attr("y", 0)
+                  .attr("width", function(d) {
+                    return (xScale(d["end_time"] - d[timeMenuValue])) - (xScale(d["start_time"] - d[timeMenuValue]));
+                  })
+                  .attr("opacity", "1e-9")
+                  .on("mouseover", mouseBoxOver)
+                  .on("mouseout", mouseBoxOut);
             // Y axis labels
             var yAxisG = curPlot.selectAll("g.yAxis")
                 .data([data.key]);
@@ -345,6 +374,34 @@
                       .attr("text-anchor", "end")
                       .text(function(d) {return fixDimNames(d);})
                     break;
+            }
+            function mouseBoxOver(d) {
+
+              // Pop up tooltip
+                toolTip
+                    .style("opacity", .9)
+                    .style("left", (d3.event.pageX + 40) + "px")
+                    .style("top", (d3.event.pageY - 80) + "px")
+                    .html(function() {
+                        return "<b>Trial No: " + d.trial_id + "</b><br>" +
+                            "Rule: " + d.Rule + "<br>" +
+                            "Rule Repetition: " + d.Rule_Repetition;
+                    });
+              // var mouseBox = d3.select(this);
+              // mouseBox
+              //   .attr("stroke", "red")
+              //   .attr("fill", "none")
+              //   .attr("opacity", 1);
+            }
+            function mouseBoxOut(d) {
+              // var mouseBox = d3.select(this);
+              // mouseBox
+              //   .attr("stroke", "none")
+              //   .attr("fill", "none")
+              //   .attr("opacity", 1e-9);
+              // Pop up tooltip
+                toolTip
+                    .style("opacity", 1e-9);
             }
 
         }

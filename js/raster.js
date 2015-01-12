@@ -422,6 +422,9 @@
 
                 // Setup helper line function
                  var line = d3.svg.line()
+                    .defined(function(d) {
+                      return d[lineName] != null && d[timeMenuValue] != null;
+                    }) // if null, suppress line drawing
                     .x(function (d) {
                         return xScale(d[lineName] - d[timeMenuValue]);
                     })

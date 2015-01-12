@@ -66,18 +66,26 @@
 						            .attr("name", "neuron-list")
 						            .classed("main", 1);
 				var	neuron = ruleRaster.data[params.curFile].neurons,
-					options = neuronMenu.select("select").selectAll("option")
+					neuronOptions = neuronMenu.select("select").selectAll("option")
 						.data(neuron, function(d) {return d.Name;});
-				options.enter()
+				neuronOptions.enter()
 					.append("option")
 					     .text(function (d) { return d.Name; })
 					     .attr("value", function (d) { return d.Name; });
-				options.exit()
+				neuronOptions.exit()
           .remove();
         var curNeuron = params.curNeuron || ruleRaster.data[params.curFile].neurons[0].Name;
-				options
+				neuronOptions
           .filter(function(d) {
             return d.Name == curNeuron;})
+            .attr("selected", "selected");
+
+        var fileMenu = d3.selectAll("#fileMenu"),
+        fileOptions = fileMenu.select("select").selectAll("option");
+        fileOptions
+          .filter(function(d) {
+              return d3.select(this).property("value") == params.curFile;
+            })
             .attr("selected", "selected");
 
 				// Draw visualization
@@ -99,6 +107,7 @@
                 .filter(function (d) {
                     return d.Name === curNeuronName;
             });
+    window.history.pushState({}, "", "/RasterVis/index.html?curFile=" + params.curFile + "&curNeuron=" + curNeuronName);
 		// Nest and Sort Data
     if (factorSortMenuValue != "Name"){
       var factor = d3.nest()
@@ -343,13 +352,13 @@
         function drawEventLines(data, ind) {
             var curPlot = d3.select(this),
                 lines = [
-                    {label: "Start Trial", id: "start_time"},
+                    {label: "Start", id: "start_time"},
                     {label: "Fixation", id: "fixation_onset"},
                     {label: "Rule", id: "rule_onset"},
                     {label: "Test Stimulus", id: "stim_onset"},
                     {label: "Saccade", id: "react_time"},
                     {label: "Reward", id: "reward_time"},
-                    {label: "End Trial", id: "end_time"}
+                    {label: "End", id: "end_time"}
                 ],
                 eventLine = curPlot.selectAll("path.eventLine")
                     .data(lines, function(d) {return d.id;});

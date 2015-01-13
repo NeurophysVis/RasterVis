@@ -50,13 +50,13 @@
         // Downsample if too many trials
         var numTrials = json[params.curFile].neurons[0].Number_of_Trials;
         var MAX_TRIALS = 700;
-        if (numTrials > MAX_TRIALS ) {
-          json[params.curFile].trials = d3.shuffle(json[params.curFile].trials);
-          json[params.curFile].trials = json[params.curFile].trials.slice(0, MAX_TRIALS );
-          json[params.curFile].trials = json[params.curFile].trials.sort(function (a, b) {
-                 return d3.ascending(+a["trial_id"], +b["trial_id"]);
-               });;
-        };
+        // if (numTrials > MAX_TRIALS ) {
+        //   json[params.curFile].trials = d3.shuffle(json[params.curFile].trials);
+        //   json[params.curFile].trials = json[params.curFile].trials.slice(0, MAX_TRIALS );
+        //   json[params.curFile].trials = json[params.curFile].trials.sort(function (a, b) {
+        //          return d3.ascending(+a["trial_id"], +b["trial_id"]);
+        //        });;
+        // };
 
 				ruleRaster.data = json;
 				// populate drop-down menu with neuron names
@@ -307,11 +307,17 @@
                 .attr("height", data.yScale.rangeBand());
             mouseBox
                   .attr("x", function(d) {
-                    return xScale(d["start_time"] - d[timeMenuValue]);
+                    if (d["start_time"] != null)
+                      {return xScale(d["start_time"] - d[timeMenuValue]);}
+                    else
+                      {return 0;}
                   })
                   .attr("y", 0)
                   .attr("width", function(d) {
-                    return (xScale(d["end_time"] - d[timeMenuValue])) - (xScale(d["start_time"] - d[timeMenuValue]));
+                    if (d["start_time"] != null)
+                      {return (xScale(d["end_time"] - d[timeMenuValue])) - (xScale(d["start_time"] - d[timeMenuValue]));}
+                    else
+                    {return width}
                   })
                   .attr("opacity", "1e-9")
                   .on("mouseover", mouseBoxOver)
@@ -387,21 +393,20 @@
                             "Rule: " + d.Rule + "<br>" +
                             "Rule Repetition: " + d.Rule_Repetition;
                     });
-              // var mouseBox = d3.select(this);
-              // mouseBox
-              //   .attr("stroke", "red")
-              //   .attr("fill", "none")
-              //   .attr("opacity", 1);
+              var curMouseBox = d3.select(this);
+              curMouseBox
+                .attr("stroke", "red")
+                .attr("fill", "red")
+                .attr("opacity", 1)
+                .attr("fill-opacity", 1e-2);
             }
             function mouseBoxOut(d) {
-              // var mouseBox = d3.select(this);
-              // mouseBox
-              //   .attr("stroke", "none")
-              //   .attr("fill", "none")
-              //   .attr("opacity", 1e-9);
               // Pop up tooltip
                 toolTip
                     .style("opacity", 1e-9);
+              var curMouseBox = d3.select(this);
+              curMouseBox
+                .attr("opacity", 1e-9);
             }
 
         }

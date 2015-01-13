@@ -303,8 +303,7 @@
                     .remove();
             mouseBox.enter()
                 .append("rect")
-                .attr("class", "trialBox")
-                .attr("height", data.yScale.rangeBand());
+                .attr("class", "trialBox");
             mouseBox
                   .attr("x", function(d) {
                     if (d["start_time"] != null)
@@ -317,8 +316,9 @@
                     if (d["start_time"] != null)
                       {return (xScale(d["end_time"] - d[timeMenuValue])) - (xScale(d["start_time"] - d[timeMenuValue]));}
                     else
-                    {return width}
+                      {return width;}
                   })
+                  .attr("height", data.yScale.rangeBand())
                   .attr("opacity", "1e-9")
                   .on("mouseover", mouseBoxOver)
                   .on("mouseout", mouseBoxOut);

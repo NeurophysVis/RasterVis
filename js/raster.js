@@ -179,7 +179,7 @@
         .domain(["Color", "Orientation"])
         .range(["#ef8a62","#67a9cf"]);
 
-        // Draw spikes, event lines, axes
+        // Draw spikes, event timePeriods, axes
         updateNeuralInfo();
         plotG.each(drawEventLines);
         plotG.each(drawSpikes);
@@ -293,7 +293,7 @@
                 .attr("cx", function (d) {
                     return xScale(d - (this.parentNode.__data__[timeMenuValue]));
                 })
-                .style("opacity", 0.7)
+                .style("opacity", 1)
                 .attr("r", data.yScale.rangeBand() / 2)
                 .attr("cy", data.yScale.rangeBand() / 2);
             // Append invisible box for mouseover
@@ -413,26 +413,26 @@
 // ******************** Event Line Function *******************
         function drawEventLines(data, ind) {
             var curPlot = d3.select(this),
-                lines = [
-                    {label: "Start", id: "start_time", color: "#2ca02c"},
-                    {label: "Fixation", id: "fixation_onset", color: "#d62728"},
-                    {label: "Rule", id: "rule_onset", color: "#9467bd"},
-                    {label: "Test Stimulus", id: "stim_onset", color:  "#8c564b"},
-                    {label: "Saccade", id: "react_time", color: "#e377c2"},
-                    {label: "Reward", id: "reward_time", color:  "#17becf"},
-                    {label: "End", id: "end_time", color: "#bcbd22"}
+                timePeriods = [
+                    {label: "ITI", id1: "start_time", id2: "fixation_onset", color: "#c5b0d5"},
+                    {label: "Fixation", id1: "fixation_onset", id2: "rule_onset", color: "#f7b6d2"},
+                    {label: "Rule", id1: "rule_onset", id2: "stim_onset", color: "#98df8a"},
+                    {label: "Test Stimulus", id1: "stim_onset", id2: "react_time", color:  "#ff9896"},
+                    {label: "Saccade", id1: "react_time", id2: "reward_time", color: "#9edae5"},
+                    {label: "Reward", id1: "reward_time", id2: "end_time", color:  "#c49c94"},
                 ],
                 eventLine = curPlot.selectAll("path.eventLine")
-                    .data(lines, function(d) {return d.id;});
+                    .data(timePeriods, function(d) {return d.label;});
                 eventLine.exit()
                     .remove();
             // Append mean times for label position
-            lines = lines.map(function(line) {
+            timePeriods = timePeriods.map(function(d) {
                 return {
-                    label: line.label,
-                    id: line.id,
-                    label_position: data.values[0][line.id] - data.values[0][timeMenuValue],
-                    color: line.color
+                    label: d.label,
+                    id1: d.id1,
+                    id2: d.id2,
+                    label_position: data.values[0][d.id1] - data.values[0][timeMenuValue],
+                    color: d.color
                 };
             });
 
@@ -446,37 +446,37 @@
             newValues.sort(function (a, b) {
                    return d3.ascending(a["sortInd"], b["sortInd"]);
                  });
-            // Plot lines corresponding to trial events
+            // Plot timePeriods corresponding to trial events
             eventLine.enter()
                 .append("path")
                   .attr("class", "eventLine")
-                  .attr("id", function(d) {return d.id;})
+                  .attr("id", function(d) {return d.label;})
                   .attr("opacity", 1E-6)
-                  .attr("stroke", function(d) {return d.color;});
+                  .attr("fill", function(d) {return d.color;});
 
             eventLine
                 .transition()
                   .duration(1000)
                   .ease("linear")
                 .attr("opacity", 0.90)
-                .attr("d", function(line) {
-                        return LineFun(newValues, line.id);
+                .attr("d", function(timePeriod) {
+                        return AreaFun(newValues, timePeriod);
                 });
 
             // Add labels corresponding to trial events
             var eventLabel = svg.selectAll(".eventLabel")
-                .data(lines, function(d) {return d.id;});
+                .data(timePeriods, function(d) {return d.label;});
 
             if (ind == 0){
 
                 eventLabel.enter()
                     .append("text")
                       .attr("class", "eventLabel")
-                      .attr("id", function(d) {return d.id;})
+                      .attr("id", function(d) {return d.label;})
                       .attr("stroke-width", data.yScale.rangeBand())
                       .attr("y", 0)
                       .attr("dy", "-0.25em")
-                      .attr("text-anchor", "middle")
+                      .attr("text-anchor", "start")
                       .style("fill", function(d) {return d.color;})
                       .text(function(d) {return d.label; });
 
@@ -490,15 +490,18 @@
                     });
             }
 
-            function LineFun(values, lineName) {
+            function AreaFun(values, timePeriod) {
 
                 // Setup helper line function
-                 var line = d3.svg.line()
+                 var area = d3.svg.area()
                     .defined(function(d) {
-                      return d[lineName] != null && d[timeMenuValue] != null;
+                      return d[timePeriod.id1] != null && d[timePeriod.id2] != null && d[timeMenuValue] != null;
                     }) // if null, suppress line drawing
-                    .x(function (d) {
-                        return xScale(d[lineName] - d[timeMenuValue]);
+                    .x0(function (d) {
+                        return xScale(d[timePeriod.id1] - d[timeMenuValue]);
+                    })
+                    .x1(function (d) {
+                        return xScale(d[timePeriod.id2] - d[timeMenuValue]);
                     })
                     .y(function (d, i) {
                       if (i % 2 == 0) {
@@ -510,7 +513,7 @@
                       })
                     .interpolate("linear");
 
-                return line(values);
+                return area(values);
             }
         }
 // ******************** Neuron Info Function *******************

@@ -30,9 +30,10 @@
   stroke-opacity: 0.7;
 }
 .eventLine {
-	fill: none;
+	/*fill: none;*/
 	/*stroke: #777;*/
-	stroke-opacity: 0.55;
+	stroke-opacity: 0.3;
+  fill-opacity: 0.3;
 }
 .eventLabel {
 	font-family: sans-serif;

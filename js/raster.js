@@ -414,13 +414,13 @@
         function drawEventLines(data, ind) {
             var curPlot = d3.select(this),
                 lines = [
-                    {label: "Start", id: "start_time"},
-                    {label: "Fixation", id: "fixation_onset"},
-                    {label: "Rule", id: "rule_onset"},
-                    {label: "Test Stimulus", id: "stim_onset"},
-                    {label: "Saccade", id: "react_time"},
-                    {label: "Reward", id: "reward_time"},
-                    {label: "End", id: "end_time"}
+                    {label: "Start", id: "start_time", color: "#2ca02c"},
+                    {label: "Fixation", id: "fixation_onset", color: "#d62728"},
+                    {label: "Rule", id: "rule_onset", color: "#9467bd"},
+                    {label: "Test Stimulus", id: "stim_onset", color:  "#8c564b"},
+                    {label: "Saccade", id: "react_time", color: "#e377c2"},
+                    {label: "Reward", id: "reward_time", color:  "#17becf"},
+                    {label: "End", id: "end_time", color: "#bcbd22"}
                 ],
                 eventLine = curPlot.selectAll("path.eventLine")
                     .data(lines, function(d) {return d.id;});
@@ -431,9 +431,8 @@
                 return {
                     label: line.label,
                     id: line.id,
-                    mean_stat: d3.mean(data.values.map(function(d) {
-                        return d[line.id] - d[timeMenuValue];
-                    }))
+                    label_position: data.values[0][line.id] - data.values[0][timeMenuValue],
+                    color: line.color
                 };
             });
 
@@ -452,7 +451,8 @@
                 .append("path")
                   .attr("class", "eventLine")
                   .attr("id", function(d) {return d.id;})
-                  .attr("opacity", 1E-6);
+                  .attr("opacity", 1E-6)
+                  .attr("stroke", function(d) {return d.color;});
 
             eventLine
                 .transition()
@@ -477,6 +477,7 @@
                       .attr("y", 0)
                       .attr("dy", "-0.25em")
                       .attr("text-anchor", "middle")
+                      .style("fill", function(d) {return d.color;})
                       .text(function(d) {return d.label; });
 
 
@@ -485,7 +486,7 @@
                       .duration(1000)
                       .ease("linear")
                     .attr("x", function(d) {
-                            return xScale(d.mean_stat);
+                            return xScale(d.label_position);
                     });
             }
 

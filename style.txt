@@ -31,14 +31,14 @@
 }
 .eventLine {
 	fill: none;
-	stroke: #777;
+	/*stroke: #777;*/
 	stroke-opacity: 0.55;
 }
 .eventLabel {
 	font-family: sans-serif;
 	font-size: 11px;
-	fill: #777;
-	color: #777;
+	/*fill: #777;
+	color: #777;*/
 }
 .plotLabel {
 	font-family: sans-serif;

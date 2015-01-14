@@ -1,3 +1,6 @@
+body {
+  padding-top: 70px;
+}
 .xAxis path,
  .xAxis line {
 	fill: none;
@@ -30,16 +33,12 @@
   stroke-opacity: 0.7;
 }
 .eventLine {
-	/*fill: none;*/
-	/*stroke: #777;*/
 	stroke-opacity: 0.3;
   fill-opacity: 0.3;
 }
 .eventLabel {
 	font-family: sans-serif;
 	font-size: 11px;
-	/*fill: #777;
-	color: #777;*/
 }
 .plotLabel {
 	font-family: sans-serif;
@@ -65,4 +64,12 @@ div.tooltip {
   border-radius: 0px;
   border-color: #808080;
   pointer-events: none;
+}
+#filterNav {
+  position: fixed;
+  top: 0px;
+  width:100%;
+  background: #fff;
+  padding-bottom: 10px;
+  padding-top: 10px;
 }

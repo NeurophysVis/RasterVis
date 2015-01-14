@@ -6,8 +6,8 @@
 	ruleRaster.init = function (params) {
 		if (!params) {params = {}; }
 		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
-		var margin = {top: 40, right: 10, bottom: 40, left: 300};
-		var padding = {top: 60, right: 60, bottom: 60, left: 60};
+		var margin = {top: 40, right: 10, bottom: 40, left: 200};
+		var padding = {top: 50, right: 50, bottom: 50, left: 50};
 		var outerWidth = params.width || 960,
 			outerHeight = params.height || 500,
 			innerWidth = outerWidth - margin.left - margin.right,
@@ -135,7 +135,7 @@
     }
 
     // Compute variables for placing plots (plots maintain constant size for each trial)
-    var PLOT_BUFFER = 4;
+    var PLOT_BUFFER = 0;
     var factorLength = factor.map(function(d) {return d.values.length;});
     var factorRangeBand = factorLength.map(function(d) {return (height + (factorLength.length * -PLOT_BUFFER) ) * (d/d3.sum(factorLength))});
     var factorPoints = [0];
@@ -415,7 +415,7 @@
             var curPlot = d3.select(this),
                 timePeriods = [
                     {label: "ITI", id1: "start_time", id2: "fixation_onset", color: "#c5b0d5"},
-                    {label: "Fixation", id1: "fixation_onset", id2: "rule_onset", color: "#f7b6d2"},
+                    {label: "Fix.", id1: "fixation_onset", id2: "rule_onset", color: "#f7b6d2"},
                     {label: "Rule", id1: "rule_onset", id2: "stim_onset", color: "#98df8a"},
                     {label: "Test Stimulus", id1: "stim_onset", id2: "react_time", color:  "#ff9896"},
                     {label: "Saccade", id1: "react_time", id2: "reward_time", color: "#9edae5"},

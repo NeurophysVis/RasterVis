@@ -1,83 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
     <title>Raster</title>
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-</head>
-<body>
+  </head>
+
+  <body role="document">
+    <nav class="navbar navbar-default navbar-fixed-top" id="filterNav">
+      <div class="container">
+        <div class="navbar-header"> </div>
+        <div id="fileMenu" class="navbar nav">
+          <b>Recording Session:</b><br>
+          <select name="file-list" class="form-control">
+            <option selected="selected" value="cc1">cc1</option>
+            <option value="isa9">isa9</option>
+          </select>
+        </div>
+        <div id="neuronMenu" class="navbar nav">
+          <b>Neuron:</b><br>
+        </div>
+        <div id="factorSortMenu" class="navbar nav">
+          <b>Sort by Experimental Factor:</b><br>
+          <select class="form-control">
+            <option disabled="disabled">Select a factor</option>
+            <option selected="selected" value="Name">Trial ID</option>
+            <option value="Rule">Rule (Color vs. Orientation)</option>
+            <option value="Previous_Error">Error on Previous Trial</option>
+            <option value="Rule_Repetition">Number of Rule Repetitions (# of trials)</option>
+            <option value="Current_Congruency">Current Trial Congruency</option>
+            <option value="Previous_Congruency">Previous Trial Congruency</option>
+            <option value="Preparation_Time">Preparation Time before Stimulus Onset (ms)</option>
+            <option value="Response_Direction">Response Direction (Left vs. Right Saccade)</option>
+            <option value="Test_Stimulus">Test Stimulus Cue</option>
+            <option value="Rule_Cues">Rule Cues</option>
+            <option value="Rule_Cue_Repetition">Rule Cue Repetition</option>
+            <option value="Incorrect">Correct/Incorrect</option>
+          </select>
+        </div>
+        <div id="timeMenu" class="navbar nav">
+          <b>Time relative to:</b><br>
+          <select class="form-control">
+            <option value="fixation_onset">Fixation Cue</option>
+            <option selected="selected" value="rule_onset">Rule Cue</option>
+            <option value="stim_onset">Test Stimulus Cue</option>
+            <option value="react_time">Saccade</option>
+            <option value="reward_time">Start Reward</option>
+          </select>
+        </div>
+        <!-- <div id="atGlance" class="table">
+        </div> -->
+    </nav>
+    <div class="container-fluid">
+      <div id="chart"></div>
+    </div>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script type="text/javascript" src="js/d3/colorbrewer.js"></script>
     <script type="text/javascript" src="js/raster.js"></script>
     <script src="http://code.jquery.com/jquery.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <div class="container-fluid">
-        <h1><a href="”#”">Raster</a></h1>
-        <div class="navbar">
-        </div>
-        <div class="row-fluid">
-            <div id="menus" class="span2">
-                <div id="fileMenu" ><b>Recording Session:</b><br>
-                <select name="file-list">
-                  <option selected="selected" value="cc1">cc1</option>
-                  <option value="isa9">isa9</option></select>
-                </div>
-                <div id="neuronMenu" ><b>Neuron:</b><br></div>
-                <div id="factorSortMenu">
-                    <b>Sort by Experimental Factor:</b><br>
-                    <select>
-                        <option disabled="disabled">Select a factor</option>
-                        <option selected="selected" value="Name">Trial ID</option>
-                        <option value="Rule">Rule (Color vs. Orientation)</option>
-                        <option value="Previous_Error">Error on Previous Trial</option>
-                        <option value="Rule_Repetition">Number of Rule Repetitions (# of trials)</option>
-                        <option value="Current_Congruency">Current Trial Congruency</option>
-                        <option value="Previous_Congruency">Previous Trial Congruency</option>
-                        <option value="Preparation_Time">Preparation Time before Stimulus Onset (ms)</option>
-                        <option value="Response_Direction">Response Direction (Left vs. Right Saccade)</option>
-                        <option value="Test_Stimulus">Test Stimulus Cue</option>
-                        <option value="Rule_Cues">Rule Cues</option>
-                        <option value="Rule_Cue_Repetition">Rule Cue Repetition</option>
-                        <option value="isCorrect">Correct/Incorrect</option>
-                        <option value="isAttempted">NotAttempted/Attempted</option>
-                    </select>
-                </div>
-                <div id="timeMenu">
-                    <b>Time relative to:</b><br>
-                    <select>
-                        <option value="fixation_onset">Fixation Cue</option>
-                        <option selected="selected" value="rule_onset">Rule Cue</option>
-                        <option value="stim_onset">Test Stimulus Cue</option>
-                        <option value="react_time">Saccade Start</option>
-                        <option value="reward_time">Reward Start</option>
-                    </select>
-                </div>
-                <div id="atGlance" class="table">
-                </div>
-            </div>
-
-            <div id="chart" class="span10">
-            </div>
-
-        </div>
-    </div>
     <script>
-        var rasterParams = {
-            curFile: "cc1",
-            width:1800,
-            height:5000
-        };
-        // Extract parameters from the browser
-        var query = window.location.search.substring(1);
-        var vars = query.split("&");
-        vars.forEach(function(v) {
-            var p = v.split("=");
-            rasterParams[p[0]] = p[1]
-        })
-        // Initialized visualization
-        ruleRaster.init(rasterParams);
-    </script>
-</body>
+      var rasterParams = {
+        curFile: "cc1",
+        width:1300,
+        height:5000
+      };
+      // Extract parameters from the browser
+      var query = window.location.search.substring(1);
+      var vars = query.split("&");
+      vars.forEach(function(v) {
+        var p = v.split("=");
+        rasterParams[p[0]] = p[1]
+      })
+      // Initialized visualization
+      ruleRaster.init(rasterParams);
+      </script>
+  </body>
 </html>

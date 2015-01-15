@@ -1,5 +1,5 @@
 body {
-  padding-top: 70px;
+  padding-top: 80px;
 }
 .xAxis path,
  .xAxis line {
@@ -39,6 +39,8 @@ body {
 .eventLabel {
 	font-family: sans-serif;
 	font-size: 11px;
+  text-align: center;
+  line-height: 100%;
 }
 .plotLabel {
 	font-family: sans-serif;

@@ -6,8 +6,8 @@
 	ruleRaster.init = function (params) {
 		if (!params) {params = {}; }
 		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
-		var margin = {top: 40, right: 10, bottom: 40, left: 200};
-		var padding = {top: 50, right: 50, bottom: 50, left: 50};
+		var margin = {top: 50, right: 10, bottom: 40, left: 300};
+		var padding = {top: 40, right: 40, bottom: 40, left: 40};
 		var outerWidth = params.width || 960,
 			outerHeight = params.height || 500,
 			innerWidth = outerWidth - margin.left - margin.right,
@@ -98,8 +98,7 @@
 
     // Tool Tip - make a hidden div to appear as a tooltip when mousing over a line
         toolTip = d3.select("body").selectAll("div.tooltip").data([{}]);
-        toolTip
-            .enter()
+        toolTip.enter()
             .append("div")
             .attr("class", "tooltip")
             .style("opacity", 1e-6);
@@ -210,29 +209,29 @@
 
                   var xAxis = d3.svg.axis()
                           .scale(xScale)
-                          .orient("bottom")
+                          .orient("top")
                           .ticks(10)
-                          .tickSize(0);
+                          .tickSize(0)
+                          .tickFormat(d3.format("4d"));
                   // Append the x-axis
                   var xAxisG = svg.selectAll("g.xAxis").data([{}]);
                   xAxisG.enter()
                       .append("g")
-                      .attr("class", "xAxis")
-                      .attr("transform", "translate(0, " + (height - PLOT_BUFFER) + ")");
+                      .attr("class", "xAxis");
                   xAxisG
                     .transition()
                       .duration(10)
                         .ease("linear")
                     .call(xAxis);
-                  var xAxisLabel = xAxisG.selectAll("text.xLabel")
-                    .data(["Time (ms)"]);
-                  xAxisLabel.enter()
-                      .append("text")
-                      .attr("class", "xLabel")
-                      .attr("dy", 2.5 + "em")
-                      .attr("x", width/2)
-                      .attr("text-anchor", "middle")
-                      .text(function(d) {return d;})
+                  // var xAxisLabel = xAxisG.selectAll("text.xLabel")
+                  //   .data(["Time (ms)"]);
+                  // xAxisLabel.enter()
+                  //     .append("text")
+                  //     .attr("class", "xLabel")
+                  //     .attr("dy", -2.5 + "em")
+                  //     .attr("x", width/2)
+                  //     .attr("text-anchor", "middle")
+                  //     .text(function(d) {return d;})
 
               }
 
@@ -414,12 +413,12 @@
         function drawEventLines(data, ind) {
             var curPlot = d3.select(this),
                 timePeriods = [
-                    {label: "ITI", id1: "start_time", id2: "fixation_onset", color: "#c5b0d5"},
-                    {label: "Fix.", id1: "fixation_onset", id2: "rule_onset", color: "#f7b6d2"},
-                    {label: "Rule", id1: "rule_onset", id2: "stim_onset", color: "#98df8a"},
-                    {label: "Test Stimulus", id1: "stim_onset", id2: "react_time", color:  "#ff9896"},
-                    {label: "Saccade", id1: "react_time", id2: "reward_time", color: "#9edae5"},
-                    {label: "Reward", id1: "reward_time", id2: "end_time", color:  "#c49c94"},
+                    {label: "<br>ITI", id1: "start_time", id2: "fixation_onset", color: "#c5b0d5"},
+                    {label: "<br>Fix.", id1: "fixation_onset", id2: "rule_onset", color: "#f7b6d2"},
+                    {label: "<br>Rule", id1: "rule_onset", id2: "stim_onset", color: "#98df8a"},
+                  {label: "Test<br>Stimulus", id1: "stim_onset", id2: "react_time", color:  "#ff9896"},
+                    {label: "<br>Saccade", id1: "react_time", id2: "reward_time", color: "#9edae5"},
+                    {label: "<br>Reward", id1: "reward_time", id2: "end_time", color:  "#c49c94"},
                 ],
                 eventLine = curPlot.selectAll("path.eventLine")
                     .data(timePeriods, function(d) {return d.label;});
@@ -470,24 +469,23 @@
             if (ind == 0){
 
                 eventLabel.enter()
-                    .append("text")
+                    .append("foreignObject")
                       .attr("class", "eventLabel")
                       .attr("id", function(d) {return d.label;})
-                      .attr("stroke-width", data.yScale.rangeBand())
-                      .attr("y", 0)
-                      .attr("dy", "-0.25em")
-                      .attr("text-anchor", "start")
-                      .style("fill", function(d) {return d.color;})
-                      .text(function(d) {return d.label; });
-
+                      .attr("y", -50)
+                      .attr("width", 45)
+                      .attr("height", 33)
+                      .style("color", function(d) {return d.color;})
+                      .html(function(d) {return "<div>" + d.label + "<br>▼</div>"; });;
 
                 eventLabel
-                    .transition()
-                      .duration(1000)
-                      .ease("linear")
-                    .attr("x", function(d) {
-                            return xScale(d.label_position);
-                    });
+                  // .transition()
+                  //   .duration(1000)
+                  //   .ease("linear")
+                  .attr("x", function(d) {
+                    return (xScale(d.label_position) -22.5) + "px";
+                  });
+
             }
 
             function AreaFun(values, timePeriod) {

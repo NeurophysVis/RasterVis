@@ -6,15 +6,15 @@
 	ruleRaster.init = function (params) {
 		if (!params) {params = {}; }
 		chart = d3.select(params.chart || "#chart"); // placeholder div for svg
-		var margin = {top: 50, right: 10, bottom: 40, left: 300};
-		var padding = {top: 40, right: 40, bottom: 40, left: 40};
+		margin = {top: 50, right: 10, bottom: 40, left: 300};
+		padding = {top: 40, right: 40, bottom: 40, left: 40};
 		var outerWidth = params.width || 960,
 			outerHeight = params.height || 500,
 			innerWidth = outerWidth - margin.left - margin.right,
 			innerHeight = outerHeight - margin.top - margin.bottom;
 		width = innerWidth - padding.left - padding.right;
 		height = innerHeight - padding.top - padding.bottom;
-		var chart = chart.selectAll("svg")
+		chart = chart.selectAll("svg")
       .data([{width: width + margin.left + margin.right, height: height + margin.top + margin.bottom}]);
     chart.enter()
 			   .append("svg");
@@ -42,14 +42,17 @@
 		if (!params) {params = {}; }
 		d3.text(params.style || "style.txt", function (error, txt) {
 			// note that execution won't be stopped if a style file isn't found
-			style.text(txt); // but if found, it can be embedded in the svg.
+
 			// ("#" + Math.random()) makes sure the script loads the file each time instead of using a cached version, remove once live
 			var curFileName = "DATA/" + params.curFile  + ".json" + "#" + Math.random();
 			d3.json(curFileName, function (error, json) {
-
-        // Downsample if too many trials
+        style.text(txt); // but if found, it can be embedded in the svg.
+        // Resize height so that spikes are large enough to see
         var numTrials = json[params.curFile].neurons[0].Number_of_Trials;
-        var MAX_TRIALS = 700;
+          chart.attr("height", 4*numTrials + margin.top + margin.bottom);
+          height = 4*numTrials;
+          // Downsample if too many trials
+        // var MAX_TRIALS = 700;
         // if (numTrials > MAX_TRIALS ) {
         //   json[params.curFile].trials = d3.shuffle(json[params.curFile].trials);
         //   json[params.curFile].trials = json[params.curFile].trials.slice(0, MAX_TRIALS );

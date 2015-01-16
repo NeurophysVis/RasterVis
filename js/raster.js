@@ -180,7 +180,6 @@
 
         // Draw spikes, event timePeriods, axes
         updateNeuralInfo();
-        plotG.each(drawEventLines);
         plotG.each(drawSpikes);
         appendAxis();
 
@@ -240,7 +239,17 @@
 // ******************** Draw Spikes Function ******************
         function drawSpikes(data, ind) {
             var curPlot = d3.select(this);
-            var curPlotRect = curPlot.selectAll("rect.background")
+            var backgroundLayer = curPlot.selectAll("g.backgroundLayer")
+              .data([{}]);
+            backgroundLayer.enter()
+              .append("g")
+                .attr("class", "backgroundLayer");
+            var trialLayer = curPlot.selectAll("g.trialLayer")
+              .data([{}]);
+            trialLayer.enter()
+              .append("g")
+                .attr("class", "trialLayer");
+            var curPlotRect = backgroundLayer.selectAll("rect.background")
                 .data([{}]);
             curPlotRect.enter()
                 .append("rect")
@@ -250,10 +259,10 @@
                   .attr("y", 0)
                   .attr("width", width+10)
                   .attr("height", factorRangeBand[ind]);
-
+            drawEventLines(data, ind)
             // Join the trial data to svg containers ("g")
-            var	trialG = curPlot.selectAll(".trial")
-                  .data(data.values, function(d) {return d.trial_id; });
+            var	trialG = trialLayer.selectAll(".trial")
+                  .data(data.values, function(d) {return d.trial_id + params.curFile; });
             // Remove trials that don't have matched data
             trialG.exit()
                   .remove();
@@ -407,32 +416,29 @@
               curMouseBox
                 .attr("opacity", 1e-9);
             }
-
-        }
-// ******************** Event Line Function *******************
-        function drawEventLines(data, ind) {
-            var curPlot = d3.select(this),
-                timePeriods = [
-                    {label: "<br>ITI", id1: "start_time", id2: "fixation_onset", color: "#c5b0d5"},
-                    {label: "<br>Fix.", id1: "fixation_onset", id2: "rule_onset", color: "#f7b6d2"},
-                    {label: "<br>Rule", id1: "rule_onset", id2: "stim_onset", color: "#98df8a"},
-                  {label: "Test<br>Stimulus", id1: "stim_onset", id2: "react_time", color:  "#ff9896"},
-                    {label: "<br>Saccade", id1: "react_time", id2: "reward_time", color: "#9edae5"},
-                    {label: "<br>Reward", id1: "reward_time", id2: "end_time", color:  "#c49c94"},
-                ],
-                eventLine = curPlot.selectAll("path.eventLine")
+                      // ******************** Event Line Function *******************
+            function drawEventLines(data, ind) {
+              var timePeriods = [
+                      {label: "<br>ITI", id1: "start_time", id2: "fixation_onset", color: "#c5b0d5"},
+                      {label: "<br>Fix.", id1: "fixation_onset", id2: "rule_onset", color: "#f7b6d2"},
+                      {label: "<br>Rule", id1: "rule_onset", id2: "stim_onset", color: "#98df8a"},
+                      {label: "Test<br>Stimulus", id1: "stim_onset", id2: "react_time", color:  "#ff9896"},
+                      {label: "<br>Saccade", id1: "react_time", id2: "reward_time", color: "#9edae5"},
+                      {label: "<br>Reward", id1: "reward_time", id2: "end_time", color:  "#c49c94"},
+                    ],
+                  eventLine = backgroundLayer.selectAll("path.eventLine")
                     .data(timePeriods, function(d) {return d.label;});
-                eventLine.exit()
-                    .remove();
+              eventLine.exit()
+                .remove();
             // Append mean times for label position
             timePeriods = timePeriods.map(function(d) {
-                return {
-                    label: d.label,
-                    id1: d.id1,
-                    id2: d.id2,
-                    label_position: data.values[0][d.id1] - data.values[0][timeMenuValue],
-                    color: d.color
-                };
+              return {
+                label: d.label,
+                id1: d.id1,
+                id2: d.id2,
+                label_position: data.values[0][d.id1] - data.values[0][timeMenuValue],
+                color: d.color
+              };
             });
 
             var valuesInd = d3.range(data.values.length);
@@ -443,77 +449,77 @@
               return d;
             });
             newValues.sort(function (a, b) {
-                   return d3.ascending(a["sortInd"], b["sortInd"]);
-                 });
+              return d3.ascending(a["sortInd"], b["sortInd"]);
+            });
             // Plot timePeriods corresponding to trial events
             eventLine.enter()
-                .append("path")
-                  .attr("class", "eventLine")
-                  .attr("id", function(d) {return d.label;})
-                  .attr("opacity", 1E-6)
-                  .attr("fill", function(d) {return d.color;});
+              .append("path")
+                .attr("class", "eventLine")
+                .attr("id", function(d) {return d.label;})
+                .attr("opacity", 1E-6)
+                .attr("fill", function(d) {return d.color;});
 
             eventLine
-                .transition()
-                  .duration(1000)
-                  .ease("linear")
-                .attr("opacity", 0.90)
-                .attr("d", function(timePeriod) {
-                        return AreaFun(newValues, timePeriod);
-                });
+              .transition()
+                .duration(1000)
+                .ease("linear")
+              .attr("opacity", 0.90)
+              .attr("d", function(timePeriod) {
+                return AreaFun(newValues, timePeriod);
+              });
 
             // Add labels corresponding to trial events
             var eventLabel = svg.selectAll(".eventLabel")
-                .data(timePeriods, function(d) {return d.label;});
+              .data(timePeriods, function(d) {return d.label;});
 
             if (ind == 0){
 
-                eventLabel.enter()
-                    .append("foreignObject")
-                      .attr("class", "eventLabel")
-                      .attr("id", function(d) {return d.label;})
-                      .attr("y", -50)
-                      .attr("width", 45)
-                      .attr("height", 33)
-                      .style("color", function(d) {return d.color;})
-                      .html(function(d) {return "<div>" + d.label + "<br>▼</div>"; });;
+              eventLabel.enter()
+                .append("foreignObject")
+                  .attr("class", "eventLabel")
+                  .attr("id", function(d) {return d.label;})
+                  .attr("y", -50)
+                  .attr("width", 45)
+                  .attr("height", 33)
+                  .style("color", function(d) {return d.color;})
+                  .html(function(d) {return "<div>" + d.label + "<br>▼</div>"; });
 
-                eventLabel
-                  // .transition()
-                  //   .duration(1000)
-                  //   .ease("linear")
+              eventLabel
+              // .transition()
+              //   .duration(1000)
+              //   .ease("linear")
                   .attr("x", function(d) {
                     return (xScale(d.label_position) -22.5) + "px";
                   });
-
             }
 
-            function AreaFun(values, timePeriod) {
+              function AreaFun(values, timePeriod) {
 
                 // Setup helper line function
-                 var area = d3.svg.area()
-                    .defined(function(d) {
-                      return d[timePeriod.id1] != null && d[timePeriod.id2] != null && d[timeMenuValue] != null;
-                    }) // if null, suppress line drawing
-                    .x0(function (d) {
+                var area = d3.svg.area()
+                      .defined(function(d) {
+                        return d[timePeriod.id1] != null && d[timePeriod.id2] != null && d[timeMenuValue] != null;
+                      }) // if null, suppress line drawing
+                      .x0(function (d) {
                         return xScale(d[timePeriod.id1] - d[timeMenuValue]);
-                    })
-                    .x1(function (d) {
-                        return xScale(d[timePeriod.id2] - d[timeMenuValue]);
-                    })
-                    .y(function (d, i) {
-                      if (i % 2 == 0) {
-                        return data.yScale(d.sortInd);
-                      } else {
-                        return data.yScale(d.sortInd) + data.yScale.rangeBand();
-                      }
-
                       })
-                    .interpolate("linear");
+                      .x1(function (d) {
+                        return xScale(d[timePeriod.id2] - d[timeMenuValue]);
+                      })
+                      .y(function (d, i) {
+                        if (i % 2 == 0) {
+                          return data.yScale(d.sortInd);
+                        } else {
+                          return data.yScale(d.sortInd) + data.yScale.rangeBand();
+                        }
+                      })
+                      .interpolate("linear");
 
                 return area(values);
-            }
+              }
+          }
         }
+
 // ******************** Neuron Info Function *******************
             function updateNeuralInfo() {
                 var atGlance = d3.select("#atGlance").selectAll("table")

@@ -400,17 +400,20 @@
                     .style("left", (d3.event.pageX + 40) + "px")
                     .style("top", (d3.event.pageY - 80) + "px")
                     .html(function() {
-                        return "<b>Trial No.: " + d.trial_id + "</b><hr>" +
-                            "Rule: " + d.Rule + "<br>" +
-                            "Rule Repetition: " + d.Rule_Repetition + "<br>" +
-                            "Preparation Time: " + d.Preparation_Time + " ms" + "<br>" +
-                            "Congruency: " + d.Current_Congruency + "<br>" +
-                            "Response Direction: " + d.Response_Direction + "<br>" +
-                            "Reaction Time: " + d.Reaction_Time + " ms" + "<hr>" +
-                            "Correct?: " + d.isCorrect + "<br>" +
-                            "Fixation Break: " + d.Fixation_Break + "<br>" +
-                            "Error on previous trial?: " + d.Previous_Error + "<br>" +
-                            "Included in Analysis?: " + d.isAttempted;
+                        return "<b>Trial Number: " + d.trial_id + "</b><br><br>" +
+                            "<table>" +
+                              "<tr><td>" + "Rule:" + "</td><td>" + d.Rule + "</td></tr>" +
+                                "<tr><td>" + "Rule Repetition:" + "</td><td>" + d.Rule_Repetition + "</td></tr>" +
+                                "<tr><td>" + "Preparation Time:" + "</td><td>" + d.Preparation_Time + " ms" + "</td></tr>" +
+                                "<tr><td>" + "Congruency:" + "</td><td>" + d.Current_Congruency + "</td></tr>" +
+                                "<tr><td>" + "Response Direction:" + "</td><td>" + d.Response_Direction + "</td></tr>" +
+                                "<tr><td>" + "Reaction Time:" + "</td><td>" +d.Reaction_Time + " ms" + "</td></tr>" +
+                                "<hr>" +
+                                "<tr><td>" + "Correct?:" + "</td><td>" + d.isCorrect + "</td></tr>" +
+                                "<tr><td>" + "Fixation Break?:" + "</td><td>" + d.Fixation_Break + "</td></tr>" +
+                                "<tr><td>" + "Error on previous trial?:" + "</td><td>" + d.Previous_Error + "</td></tr>" +
+                                "<tr><td>" + "Included in Analysis?:" + "</td><td>" + d.isAttempted + "</td></tr>" +
+                            "</table>";
                     });
               var curMouseBox = d3.select(this);
               curMouseBox
@@ -498,8 +501,13 @@
               eventLabel
                   .attr("x", function(d) {
                     return (xScale(d.label_position) -22.5) + "px";
-                  });
+                  })
+                  .on("mouseover", eventHighlight);
             }
+
+              function eventHighlight(d) {
+                  console.log(d);
+              }
 
               function AreaFun(values, timePeriod) {
 

@@ -60,12 +60,12 @@ hr{
 div.tooltip {
   position: absolute;
   text-align: left;
-  padding: 5px;
+  padding: 10px;
   left: 200px;
 	top: 200px;
   font: 14px sans-serif;
   background: white;
-  
+
   border-width: 2px;
   border-style: solid;
   border-radius: 5px;

@@ -1,10 +1,7 @@
 body {
   padding-top: 80px;
 }
-hr{
-    padding: 2px;
-    margin: 0px;
-}
+
 .xAxis path,
  .xAxis line {
 	fill: none;
@@ -57,13 +54,14 @@ hr{
   fill: #aaa;
 }
 
-div.tooltip {
+#tooltip {
   position: absolute;
   text-align: left;
+  display: block;
   padding: 10px;
   left: 200px;
 	top: 200px;
-  font: 14px sans-serif;
+  font: 11px sans-serif;
   background: white;
 
   border-width: 2px;
@@ -74,6 +72,11 @@ div.tooltip {
   -moz-box-shadow:    3px 3px 3px #888;
 	-webkit-box-shadow: 3px 3px 3px #888;
 	box-shadow:         3px 3px 3px #888;
+}
+#tooltip hr {
+  margin: 4px;
+  opacity: 0.5;
+  color: #000;
 }
 
 #filterNav {

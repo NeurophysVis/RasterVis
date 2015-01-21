@@ -100,10 +100,10 @@
 	ruleRaster.draw = function (params) {
 
     // Tool Tip - make a hidden div to appear as a tooltip when mousing over a line
-        toolTip = d3.select("body").selectAll("div.tooltip").data([{}]);
+        toolTip = d3.select("body").selectAll("div#tooltip").data([{}]);
         toolTip.enter()
             .append("div")
-            .attr("class", "tooltip")
+            .attr("id", "tooltip")
             .style("opacity", 1e-6);
 
 		// Extract relevant trial and neuron information
@@ -230,9 +230,9 @@
                   // xAxisLabel.enter()
                   //     .append("text")
                   //     .attr("class", "xLabel")
-                  //     .attr("dy", -2.5 + "em")
-                  //     .attr("x", width/2)
-                  //     .attr("text-anchor", "middle")
+                  //     .attr("dy", -1.5 + "em")
+                  //     .attr("x", -1)
+                  //     .attr("text-anchor", "end")
                   //     .text(function(d) {return d;})
 
               }
@@ -396,23 +396,23 @@
 
               // Pop up tooltip
                 toolTip
-                    .style("opacity", .9)
-                    .style("left", (d3.event.pageX + 40) + "px")
-                    .style("top", (d3.event.pageY - 80) + "px")
+                    .style("opacity", 1)
+                    .style("left", (d3.event.pageX + 10) + "px")
+                    .style("top", (d3.event.pageY + 10) + "px")
                     .html(function() {
-                        return "<b>Trial Number: " + d.trial_id + "</b><br><br>" +
+                        return "<b>Trial " + d.trial_id + "</b><br>" +
                             "<table>" +
-                              "<tr><td>" + "Rule:" + "</td><td>" + d.Rule + "</td></tr>" +
-                                "<tr><td>" + "Rule Repetition:" + "</td><td>" + d.Rule_Repetition + "</td></tr>" +
-                                "<tr><td>" + "Preparation Time:" + "</td><td>" + d.Preparation_Time + " ms" + "</td></tr>" +
-                                "<tr><td>" + "Congruency:" + "</td><td>" + d.Current_Congruency + "</td></tr>" +
-                                "<tr><td>" + "Response Direction:" + "</td><td>" + d.Response_Direction + "</td></tr>" +
-                                "<tr><td>" + "Reaction Time:" + "</td><td>" +d.Reaction_Time + " ms" + "</td></tr>" +
+                              "<tr><td>" + "Rule:" + "</td><td><b>" + d.Rule + "</b></td></tr>" +
+                                "<tr><td>" + "Rule Repetition:" + "</td><td><b>" + d.Rule_Repetition + "</b></td></tr>" +
+                                "<tr><td>" + "Preparation Time:" + "</td><td><b>" + d.Preparation_Time + " ms" + "</b></td></tr>" +
+                                "<tr><td>" + "Congruency:" + "</td><td><b>" + d.Current_Congruency + "</b></td></tr>" +
+                                "<tr><td>" + "Response Direction:" + "</td><td><b>" + d.Response_Direction + "</b></td></tr>" +
+                                "<tr><td>" + "Reaction Time:" + "</td><td><b>" +d.Reaction_Time + " ms" + "</b></td></tr>" +
                                 "<hr>" +
-                                "<tr><td>" + "Correct?:" + "</td><td>" + d.isCorrect + "</td></tr>" +
-                                "<tr><td>" + "Fixation Break?:" + "</td><td>" + d.Fixation_Break + "</td></tr>" +
-                                "<tr><td>" + "Error on previous trial?:" + "</td><td>" + d.Previous_Error + "</td></tr>" +
-                                "<tr><td>" + "Included in Analysis?:" + "</td><td>" + d.isAttempted + "</td></tr>" +
+                                "<tr><td>" + "Correct?:" + "</td><td><b>" + d.isCorrect + "</b></td></tr>" +
+                                "<tr><td>" + "Fixation Break?:" + "</td><td><b>" + d.Fixation_Break + "</b></td></tr>" +
+                                "<tr><td>" + "Error on previous trial?:" + "</td><td><b>" + d.Previous_Error + "</b></td></tr>" +
+                                "<tr><td>" + "Included in Analysis?:" + "</td><td><b>" + d.isAttempted + "</b></td></tr>" +
                             "</table>";
                     });
               var curMouseBox = d3.select(this);

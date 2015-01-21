@@ -400,16 +400,24 @@
                     .style("left", (d3.event.pageX + 40) + "px")
                     .style("top", (d3.event.pageY - 80) + "px")
                     .html(function() {
-                        return "<b>Trial No: " + d.trial_id + "</b><br>" +
+                        return "<b>Trial No.: " + d.trial_id + "</b><hr>" +
                             "Rule: " + d.Rule + "<br>" +
-                            "Rule Repetition: " + d.Rule_Repetition;
+                            "Rule Repetition: " + d.Rule_Repetition + "<br>" +
+                            "Preparation Time: " + d.Preparation_Time + " ms" + "<br>" +
+                            "Congruency: " + d.Current_Congruency + "<br>" +
+                            "Response Direction: " + d.Response_Direction + "<br>" +
+                            "Reaction Time: " + d.Reaction_Time + " ms" + "<hr>" +
+                            "Correct?: " + d.isCorrect + "<br>" +
+                            "Fixation Break: " + d.Fixation_Break + "<br>" +
+                            "Error on previous trial?: " + d.Previous_Error + "<br>" +
+                            "Included in Analysis?: " + d.isAttempted;
                     });
               var curMouseBox = d3.select(this);
               curMouseBox
                 .attr("stroke", "red")
                 .attr("fill", "red")
                 .attr("opacity", 1)
-                .attr("fill-opacity", 1e-2);
+                .attr("fill-opacity", 1e-9);
             }
             function mouseBoxOut(d) {
               // Pop up tooltip
@@ -488,9 +496,6 @@
                   .html(function(d) {return "<div>" + d.label + "<br>▼</div>"; });
 
               eventLabel
-              // .transition()
-              //   .duration(1000)
-              //   .ease("linear")
                   .attr("x", function(d) {
                     return (xScale(d.label_position) -22.5) + "px";
                   });

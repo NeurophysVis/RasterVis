@@ -417,8 +417,8 @@
                     });
               var curMouseBox = d3.select(this);
               curMouseBox
-                .attr("stroke", "red")
-                .attr("fill", "red")
+                .attr("stroke", "#777")
+                .attr("fill", "white")
                 .attr("opacity", 1)
                 .attr("fill-opacity", 1e-9);
             }
@@ -501,13 +501,8 @@
               eventLabel
                   .attr("x", function(d) {
                     return (xScale(d.label_position) -22.5) + "px";
-                  })
-                  .on("mouseover", eventHighlight);
+                  });
             }
-
-              function eventHighlight(d) {
-                  console.log(d);
-              }
 
               function AreaFun(values, timePeriod) {
 

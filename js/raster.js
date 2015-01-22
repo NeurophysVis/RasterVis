@@ -314,7 +314,7 @@
                     .remove();
             mouseBox.enter()
                 .append("rect")
-                .attr("class", "trialBox");
+                  .attr("class", "trialBox");
             mouseBox
                   .attr("x", function(d) {
                     if (d["start_time"] != null)
@@ -407,17 +407,17 @@
                                 "<tr><td>" + "Preparation Time:" + "</td><td><b>" + d.Preparation_Time + " ms" + "</b></td></tr>" +
                                 "<tr><td>" + "Congruency:" + "</td><td><b>" + d.Current_Congruency + "</b></td></tr>" +
                                 "<tr><td>" + "Response Direction:" + "</td><td><b>" + d.Response_Direction + "</b></td></tr>" +
-                                "<tr><td>" + "Reaction Time:" + "</td><td><b>" +d.Reaction_Time + " ms" + "</b></td></tr>" +
+                                "<tr><td>" + "Reaction Time:" + "</td><td><b>" + d.Reaction_Time + " ms" + "</b></td></tr>" +
                                 "<hr>" +
                                 "<tr><td>" + "Correct?:" + "</td><td><b>" + d.isCorrect + "</b></td></tr>" +
                                 "<tr><td>" + "Fixation Break?:" + "</td><td><b>" + d.Fixation_Break + "</b></td></tr>" +
                                 "<tr><td>" + "Error on previous trial?:" + "</td><td><b>" + d.Previous_Error + "</b></td></tr>" +
-                                "<tr><td>" + "Included in Analysis?:" + "</td><td><b>" + d.isAttempted + "</b></td></tr>" +
+                                "<tr><td>" + "Included in Analysis?:" + "</td><td><b>" + d.isIncluded + "</b></td></tr>" +
                             "</table>";
                     });
               var curMouseBox = d3.select(this);
               curMouseBox
-                .attr("stroke", "#777")
+                .attr("stroke", "black")
                 .attr("fill", "white")
                 .attr("opacity", 1)
                 .attr("fill-opacity", 1e-9);

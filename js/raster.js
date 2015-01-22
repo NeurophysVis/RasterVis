@@ -90,7 +90,13 @@
               return d3.select(this).property("value") == params.curFile;
             })
             .attr("selected", "selected");
-
+        timeMenu = d3.selectAll("#timeMenu");
+        timeOptions = timeMenu.select("select").selectAll("option");
+        timeOptions
+          .filter(function(d) {
+              return d3.select(this).property("value") == params.curTime;
+            })
+            .attr("selected", "selected");
 				// Draw visualization
 
 				ruleRaster.draw(params);
@@ -118,7 +124,9 @@
                 .filter(function (d) {
                     return d.Name === curNeuronName;
             });
-    window.history.pushState({}, "", "/RasterVis/index.html?curFile=" + params.curFile + "&curNeuron=" + curNeuronName);
+    window.history.pushState({}, "", "/RasterVis/index.html?curFile=" + params.curFile +
+                                                          "&curNeuron=" + curNeuronName +
+                                                          "&curTime=" + timeMenuValue);
 		// Nest and Sort Data
     if (factorSortMenuValue != "Name"){
       var factor = d3.nest()

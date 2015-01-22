@@ -374,7 +374,7 @@
                     .attr("transform", "rotate(-90)")
                     .text("← Trials ")
                   break;
-                case "Preparation_Time":
+                case "Preparation_Time", "Reaction_Time":
                   yAxisLabel
                     .attr("x", 0)
                     .attr("dx", -0.4 + "em")

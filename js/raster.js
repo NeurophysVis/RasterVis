@@ -119,14 +119,15 @@
 			timeMenuValue = timeMenu.property("value"),
       fileMenu = d3.selectAll("#fileMenu"),
 			factorSortMenu = d3.select("#factorSortMenu select"),
-			factorSortMenuValue = factorSortMenu.property("value"),
+			factorSortMenuValue = params.curFactor || factorSortMenu.property("value"),
 			neuron = ruleRaster.data[params.curFile].neurons
                 .filter(function (d) {
                     return d.Name === curNeuronName;
             });
     window.history.pushState({}, "", "/RasterVis/index.html?curFile=" + params.curFile +
                                                           "&curNeuron=" + curNeuronName +
-                                                          "&curTime=" + timeMenuValue);
+                                                          "&curTime=" + timeMenuValue +
+                                                          "&curFactor=" + factorSortMenuValue);
 		// Nest and Sort Data
     if (factorSortMenuValue != "Name"){
       var factor = d3.nest()
@@ -198,6 +199,7 @@
 		factorSortMenu
 			.on("change", function () {
         svg.selectAll(".eventLine").remove();
+        params.curFactor = d3.selectAll("#factorSortMenu select").property("value");
 				ruleRaster.draw(params);
 			});
 		neuronMenu
@@ -206,12 +208,13 @@
 			});
 		timeMenu
 			.on("change", function () {
+        params.curTime = d3.selectAll("#timeMenu select").property("value");
 				ruleRaster.draw(params);
 			});
     fileMenu
 			.on("change", function () {
         svg.selectAll(".eventLine").remove();
-				params.curFile = d3.selectAll("#fileMenu select").property("value"),
+				params.curFile = d3.selectAll("#fileMenu select").property("value");
 				ruleRaster.loadData(params);
 			});
       // ******************** Axis Function *******************

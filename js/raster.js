@@ -249,6 +249,10 @@
 
 // ******************** Draw Spikes Function ******************
         function drawSpikes(data, ind) {
+
+            if (data.key === 'null') {
+              return;
+            }
             var curPlot = d3.select(this);
             var backgroundLayer = curPlot.selectAll("g.backgroundLayer")
               .data([{}]);
@@ -374,7 +378,8 @@
                     .attr("transform", "rotate(-90)")
                     .text("← Trials ")
                   break;
-                case "Preparation_Time", "Reaction_Time":
+                case "Reaction_Time":
+                case "Preparation_Time":
                   yAxisLabel
                     .attr("x", 0)
                     .attr("dx", -0.4 + "em")

@@ -462,11 +462,18 @@
                 .remove();
             // Append mean times for label position
             timePeriods = timePeriods.map(function(d) {
+
+              // if timePeriod value is null, find the next non-null trialß
+              var data_ind = 0;
+              while (data.values[data_ind][d.id1] == null) {
+                data_ind++;
+              }
+
               return {
                 label: d.label,
                 id1: d.id1,
                 id2: d.id2,
-                label_position: data.values[0][d.id1] - data.values[0][timeMenuValue],
+                label_position: data.values[data_ind][d.id1] - data.values[data_ind][timeMenuValue],
                 color: d.color
               };
             });

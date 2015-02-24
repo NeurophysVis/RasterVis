@@ -186,9 +186,17 @@
 					.domain([minTime-10, maxTime+10])
 					.range([0, width]);
 
-		var	colorScale = d3.scale.ordinal()
-        .domain(["Color", "Orientation"])
-        .range(["#ef8a62","#67a9cf"]);
+		var	colorScale;
+    if (params.color != "Neutral"){
+        colorScale = d3.scale.ordinal()
+            .domain(["Color", "Orientation"])
+            .range(["#ef8a62","#67a9cf"]);
+    } else {
+      colorScale = d3.scale.ordinal()
+          .domain(["Color", "Orientation"])
+          .range(["black","black"]);
+    }
+
 
         // Draw spikes, event timePeriods, axes
         updateNeuralInfo();

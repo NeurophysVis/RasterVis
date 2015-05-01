@@ -54,14 +54,9 @@ body {
 }
 #tooltip {
   position: absolute;
-  text-align: left;
-  display: block;
   padding: 10px;
-  left: 200px;
-	top: 200px;
   font: 11px sans-serif;
   background: white;
-
   border-width: 2px;
   border-style: solid;
   border-radius: 5px;

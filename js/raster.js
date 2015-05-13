@@ -9,7 +9,7 @@
     chart = d3.select(params.chart || '#chart'); // placeholder div for svg
     margin = {top: 50, right: 10, bottom: 40, left: 300};
     padding = {top: 40, right: 40, bottom: 40, left: 40};
-    var outerWidth = params.width || 960,
+    var outerWidth = document.getElementById('chart').offsetWidth || 960,
 			outerHeight = params.height || 500,
 			innerWidth = outerWidth - margin.left - margin.right,
 			innerHeight = outerHeight - margin.top - margin.bottom;
@@ -47,57 +47,101 @@
     if (!params) {params = {};}
 
     d3.text(params.style || 'style.txt', function(error, txt) {
-      // note that execution won't be stopped if a style file isn't found
-      // ('#' + Math.random()) makes sure the script loads the file each time instead of using a cached version, remove once live
-      var curFileName = 'DATA/' + params.curFile  + '.json' + '#' + Math.random();
-      d3.json(curFileName, function(error, json) {
+
+      d3.json('DATA/trialInfo.json', function(error, trialInfo) {
         style.text(txt); // but if found, it can be embedded in the svg.
 
-        // Resize height so that spikes are large enough to see
-        var numTrials = json[params.curFile].neurons[0].Number_of_Trials;
-        chart.attr('height', 4 * numTrials + margin.top + margin.bottom);
-        height = 4 * numTrials;
-        ruleRaster.data = json;
-
-        // populate drop-down menu with neuron names
-        var neuronMenu = d3.select('#neuronMenu');
-        neuronMenu.selectAll('select.main').data([{}]).enter()
-          .append('select')
-            .attr('name', 'neuron-list')
-            .classed('main', 1);
-        var	neuron = ruleRaster.data[params.curFile].neurons;
-        var neuronOptions = neuronMenu.select('select').selectAll('option').data(neuron, function(d) {return d.Name;});
-
-        neuronOptions.enter()
-					.append('option')
-            .text(function(d) {return d.Name;})
-            .attr('value', function(d) {return d.Name;});
-
-        neuronOptions.exit()
-          .remove();
-        var curNeuron = params.curNeuron || ruleRaster.data[params.curFile].neurons[0].Name;
-        neuronOptions
-          .filter(function(d) {
-            return d.Name == curNeuron;})
+        // Create the monkey menu
+        var subjectNames = trialInfo.monkey.map(function(m) {return m.name;});
+        var subjectMenu = d3.select('#subjectMenu').select('select');
+        var subjectOptions = subjectMenu.selectAll('option').data(subjectNames, String);
+        subjectOptions.enter()
+          .append('option')
+          .attr('value', String)
+          .text(String);
+        subjectOptions.exit()
+         .remove();
+        params.curSubject = params.curSubject || subjectNames[0];
+        subjectOptions.filter(function(monkeyName) {return monkeyName === params.curSubject;})
           .attr('selected', 'selected');
 
-        var fileMenu = d3.selectAll('#fileMenu');
-        var fileOptions = fileMenu.select('select').selectAll('option');
-        fileOptions
-          .filter(function(d) {
-              return d3.select(this).property('value') == params.curFile;
-            })
-            .attr('selected', 'selected');
-        timeMenu = d3.selectAll('#timeMenu');
-        timeOptions = timeMenu.select('select').selectAll('option');
-        timeOptions
-          .filter(function(d) {
-              return d3.select(this).property('value') == params.curTime;
-            })
-            .attr('selected', 'selected');
+        // Create recording session menu
+        var sessionNames = trialInfo.monkey
+          .filter(function(m) {return m.name === params.curSubject;})
+          .map(function(d) {return d.sessionNames;})[0]
+          .map(function(n) {return n.name;});
+        var sessionMenu = d3.select('#sessionMenu').select('select');
+        var sessionOptions = sessionMenu.selectAll('option').data(sessionNames, String);
+        sessionOptions.enter()
+          .append('option')
+          .attr('value', String)
+          .text(String);
+        sessionOptions.exit()
+         .remove();
+        params.curSession = params.curSession || sessionNames[0];
+        sessionOptions.filter(function(sessionName) {return sessionName === params.curSession;})
+          .attr('selected', 'selected');
 
-        // Draw visualization
-        ruleRaster.draw(params);
+        // Create neuron menu
+        var neuronNames = trialInfo.monkey
+          .filter(function(m) {return m.name === params.curSubject;})
+          .map(function(d) {return d.sessionNames;})[0]
+          .filter(function(s) {return s.name === params.curSession;})[0]
+          .neurons;
+        var neuronMenu = d3.select('#neuronMenu').select('select');
+        var neuronOptions = neuronMenu.selectAll('option').data(neuronNames, String);
+        neuronOptions.enter()
+          .append('option')
+          .attr('value', String)
+          .text(String);
+        neuronOptions.exit()
+          .remove();
+        params.curNeuron = params.curNeuron || neuronNames[0];
+        neuronOptions.filter(function(neuronName) {return neuronName === params.curNeuron;})
+          .attr('selected', 'selected');
+
+        // Create experimental factor menu
+        var factorObjects = trialInfo.experimentalFactor;
+        var factorMenu = d3.select('#factorSortMenu').select('select');
+        var factorOptions = factorMenu.selectAll('option').data(factorObjects, function(f) {return f.name;});
+        factorOptions.enter()
+          .append('option')
+          .attr('value', function(t) {return t.value;})
+          .text(function(t) {return t.name;});
+        factorOptions.exit()
+          .remove();
+        params.curFactor = params.curFactor || factorObjects[0].value;
+        factorOptions.filter(function(factorObject) {return factorObject.value === params.curFactor;})
+          .attr('selected', 'selected');
+
+        // Create time period menu
+        var timeObjects = trialInfo.timePeriods;
+        var timeMenu = d3.select('#timeMenu').select('select');
+        var timeOptions = timeMenu.selectAll('option').data(timeObjects, function(f) {return f.name;});
+        timeOptions.enter()
+          .append('option')
+          .attr('value', function(t) {return t.value;})
+          .text(function(t) {return t.name;});
+        timeOptions.exit()
+          .remove();
+        params.curTime = params.curTime || timeObjects[0].value;
+        timeOptions.filter(function(timeObject) {return timeObject.value === params.curTime;})
+          .attr('selected', 'selected');
+
+        queue()
+          .defer(d3.json, 'DATA/' + params.curSession + '_TrialInfo.json')
+          .defer(d3.json, 'DATA/Neuron_' + params.curNeuron + '.json')
+          .await(function(errorObject, trials, neuron) {
+            // Resize height so that spikes are large enough to see
+            var numTrials = neuron.Number_of_Trials;
+            height = 4 * numTrials;
+            chart.attr('height', height + margin.top + margin.bottom);
+            ruleRaster.data = _.merge(trials, neuron.Spikes);
+
+            // Draw visualization
+            ruleRaster.draw(params);
+          });
+
       });
     });
   };
@@ -111,38 +155,39 @@
         .style('opacity', 1e-6);
 
     // Extract relevant trial and neuron information
-    var neuronMenu = d3.select('#neuronMenu select');
-    var curNeuronName = neuronMenu.property('value');
-    var timeMenu = d3.select('#timeMenu select');
-    var timeMenuValue = timeMenu.property('value');
-    var fileMenu = d3.selectAll('#fileMenu');
-    var factorSortMenu = d3.select('#factorSortMenu select');
-    var factorSortMenuValue = params.curFactor || factorSortMenu.property('value');
-    var neuron = ruleRaster.data[params.curFile].neurons
-        .filter(function(d) {
-          return d.Name === curNeuronName;
-        });
+    // var neuronMenu = d3.select('#neuronMenu select');
+    // var curNeuronName = neuronMenu.property('value');
+    // var timeMenu = d3.select('#timeMenu select');
+    // var timeMenuValue = timeMenu.property('value');
+    // var fileMenu = d3.selectAll('#fileMenu');
+    // var factorSortMenu = d3.select('#factorSortMenu select');
+    // var factorSortMenuValue = params.curFactor || factorSortMenu.property('value');
+    // var neuron = ruleRaster.data[params.curFile].neurons
+    //     .filter(function(d) {
+    //       return d.Name === curNeuronName;
+    //     });
 
-    window.history.pushState({}, '', '/RasterVis/index.html?curFile=' + params.curFile +
-                                                          '&curNeuron=' + curNeuronName +
-                                                          '&curTime=' + timeMenuValue +
-                                                          '&curFactor=' + factorSortMenuValue);
+    window.history.pushState({}, '', '/RasterVis/index.html?curSubject=' + params.curSubject +
+                                                          '&curSession=' + params.curSession +
+                                                          '&curNeuron=' + params.curNeuron +
+                                                          '&curTime=' + params.curTime +
+                                                          '&curFactor=' + params.curFactor);
 
     // Nest and Sort Data
-    if (factorSortMenuValue != 'Name') {
+    if (params.curFactor != 'trial_id') {
       var factor = d3.nest()
-          .key(function(d) {return d[factorSortMenuValue];}) // nests data by selected factor
+          .key(function(d) {return d[params.curFactor];}) // nests data by selected factor
               .sortValues(function(a, b) { // sorts values based on Rule
                 return d3.ascending(a.Rule, b.Rule);
               })
-          .entries(ruleRaster.data[params.curFile].trials);
+          .entries(ruleRaster.data);
     } else {
       var factor = d3.nest()
-          .key(function(d) {return d[factorSortMenuValue];}) // nests data by selected factor
+          .key(function(d) {return d[params.curFactor];}) // nests data by selected factor
             .sortValues(function(a, b) { // sorts values based on trial
               return d3.ascending(a.trial_id, b.trial_id);
             })
-          .entries(ruleRaster.data[params.curFile].trials);
+          .entries(ruleRaster.data);
     }
 
     // Compute variables for placing plots (plots maintain constant size for each trial)
@@ -182,12 +227,12 @@
      });
 
     // Set up x-scale, colorScale to be the same for both plots
-    var	minTime = d3.min(ruleRaster.data[params.curFile].trials, function(d) {
-      return d.start_time - d[timeMenuValue];
+    var	minTime = d3.min(ruleRaster.data, function(d) {
+      return d.start_time - d[params.curTime];
     });
 
-    var maxTime = d3.max(ruleRaster.data[params.curFile].trials, function(d) {
-      return d.end_time - d[timeMenuValue];
+    var maxTime = d3.max(ruleRaster.data, function(d) {
+      return d.end_time - d[params.curTime];
     });
 
     var xScale = d3.scale.linear()
@@ -206,31 +251,31 @@
     }
 
     // Draw spikes, event timePeriods, axes
-    updateNeuralInfo();
+    // updateNeuralInfo();
     plotG.each(drawSpikes);
     appendAxis();
 
-    // Listen for changes on the drop-down menu
-    factorSortMenu.on('change', function() {
-      svg.selectAll('.eventLine').remove();
-      params.curFactor = d3.selectAll('#factorSortMenu select').property('value');
-      ruleRaster.draw(params);
-    });
-
-    neuronMenu.on('change', function() {
-      ruleRaster.draw(params);
-    });
-
-    timeMenu.on('change', function() {
-      params.curTime = d3.selectAll('#timeMenu select').property('value');
-      ruleRaster.draw(params);
-    });
-
-    fileMenu.on('change', function() {
-      svg.selectAll('.eventLine').remove();
-      params.curFile = d3.selectAll('#fileMenu select').property('value');
-      ruleRaster.loadData(params);
-    });
+    // // Listen for changes on the drop-down menu
+    // factorSortMenu.on('change', function() {
+    //   svg.selectAll('.eventLine').remove();
+    //   params.curFactor = d3.selectAll('#factorSortMenu select').property('value');
+    //   ruleRaster.draw(params);
+    // });
+    //
+    // neuronMenu.on('change', function() {
+    //   ruleRaster.draw(params);
+    // });
+    //
+    // timeMenu.on('change', function() {
+    //   params.curTime = d3.selectAll('#timeMenu select').property('value');
+    //   ruleRaster.draw(params);
+    // });
+    //
+    // fileMenu.on('change', function() {
+    //   svg.selectAll('.eventLine').remove();
+    //   params.curFile = d3.selectAll('#fileMenu select').property('value');
+    //   ruleRaster.loadData(params);
+    // });
 
     // ******************** Axis Function *******************
     function appendAxis() {
@@ -282,7 +327,7 @@
       drawEventLines(data, ind);
 
       // Join the trial data to svg containers ('g')
-      var	trialG = trialLayer.selectAll('.trial').data(data.values, function(d) {return d.trial_id + params.curFile;});
+      var	trialG = trialLayer.selectAll('.trial').data(data.values, function(d) {return d.trial_id + '_' + params.curFile;});
 
       // Remove trials that don't have matched data
       trialG.exit()
@@ -308,7 +353,7 @@
       // For each new spike time, append circles that correspond to the spike times
       // Set the x-position of the circles to their spike time and the y-position to the size of the ordinal scale range band
       // that way the translate can move them to their appropriate position relative to the same coordinate system
-      var spikes = trialG.selectAll('circle.spikes').data(function(d) {return d[curNeuronName];});
+      var spikes = trialG.selectAll('circle.spikes').data(function(d) {return d.spikes;});
 
       spikes.exit()
         .transition()
@@ -323,7 +368,7 @@
         .transition()
           .duration(1000)
           .attr('cx', function(d) {
-            return xScale(d - (this.parentNode.__data__[timeMenuValue]));
+            return xScale(d - (this.parentNode.__data__[params.curTime]));
           })
           .style('opacity', 1)
           .attr('r', data.yScale.rangeBand() / 2)
@@ -340,13 +385,13 @@
       mouseBox
         .attr('x', function(d) {
           if (d.start_time != null) {
-            return xScale(d.start_time - d[timeMenuValue]);
+            return xScale(d.start_time - d[params.curTime]);
           } else {return 0;}
         })
         .attr('y', 0)
         .attr('width', function(d) {
           if (d.start_time != null) {
-            return (xScale(d.end_time - d[timeMenuValue])) - (xScale(d.start_time - d[timeMenuValue]));
+            return (xScale(d.end_time - d[params.curTime])) - (xScale(d.start_time - d[params.curTime]));
           } else {return width;}
         })
         .attr('height', data.yScale.rangeBand())
@@ -371,12 +416,12 @@
         .tickSize(-10);
       yAxisG
         .call(yAxis);
-      var yAxisLabel = yAxisG.selectAll('text.yLabel').data([factorSortMenuValue + ': ' + data.key]);
+      var yAxisLabel = yAxisG.selectAll('text.yLabel').data([params.curFactor + ': ' + data.key]);
       yAxisLabel.enter()
         .append('text')
           .attr('class', 'yLabel')
           .attr('text-anchor', 'end');
-      switch (factorSortMenuValue) {
+      switch (params.curFactor) {
         case 'Name':
           yAxisLabel
             .attr('x', 0)
@@ -394,7 +439,7 @@
             .attr('text-anchor', 'end')
             .text(function() {
               if (+data.key % 10 == 0) {
-                return fixDimNames(factorSortMenuValue) + ': ' + data.key + ' ms';
+                return fixDimNames(params.curFactor) + ': ' + data.key + ' ms';
               } else {return '';}
             });
 
@@ -478,7 +523,7 @@
             label: d.label,
             id1: d.id1,
             id2: d.id2,
-            labelPosition: data.values[dataInd][d.id1] - data.values[dataInd][timeMenuValue],
+            labelPosition: data.values[dataInd][d.id1] - data.values[dataInd][params.curTime],
             color: d.color
           };
         });
@@ -536,13 +581,13 @@
           // Setup helper line function
           var area = d3.svg.area()
             .defined(function(d) {
-              return d[timePeriod.id1] != null && d[timePeriod.id2] != null && d[timeMenuValue] != null;
+              return d[timePeriod.id1] != null && d[timePeriod.id2] != null && d[params.curTime] != null;
             }) // if null, suppress line drawing
             .x0(function(d) {
-              return xScale(d[timePeriod.id1] - d[timeMenuValue]);
+              return xScale(d[timePeriod.id1] - d[params.curTime]);
             })
             .x1(function(d) {
-              return xScale(d[timePeriod.id2] - d[timeMenuValue]);
+              return xScale(d[timePeriod.id2] - d[params.curTime]);
             })
             .y(function(d, i) {
               if (i % 2 == 0) {

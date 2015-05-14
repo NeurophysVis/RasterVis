@@ -7,7 +7,7 @@
     if (!params) {params = {};}
 
     chart = d3.select(params.chart || '#chart'); // placeholder div for svg
-    margin = {top: 50, right: 10, bottom: 40, left: 300};
+    margin = {top: 50, right: 10, bottom: 40, left: 250};
     padding = {top: 40, right: 40, bottom: 40, left: 40};
     var outerWidth = document.getElementById('chart').offsetWidth,
 			outerHeight = params.height || 500,
@@ -153,7 +153,7 @@
       .append('div')
         .attr('id', 'tooltip')
         .style('opacity', 1e-6);
-
+    // Display state of application in url
     window.history.pushState({}, '', '/RasterVis/index.html?curSubject=' + params.curSubject +
                                                           '&curSession=' + params.curSession +
                                                           '&curNeuron=' + params.curNeuron +
@@ -299,15 +299,16 @@
 
     // ******************** Draw Spikes Function ******************
     function drawSpikes(data, ind) {
-      if (data.key === 'null') {
-        return;
-      }
 
       var curPlot = d3.select(this);
       var backgroundLayer = curPlot.selectAll('g.backgroundLayer').data([{}]);
       backgroundLayer.enter()
         .append('g')
           .attr('class', 'backgroundLayer');
+      drawEventLines(data, ind);
+      if (data.key === 'null') {
+        return;
+      }
       var trialLayer = curPlot.selectAll('g.trialLayer').data([{}]);
       trialLayer.enter()
         .append('g')
@@ -321,7 +322,7 @@
         .attr('y', 0)
         .attr('width', width + 10)
         .attr('height', factorRangeBand[ind]);
-      drawEventLines(data, ind);
+
 
       // Join the trial data to svg containers ('g')
       var	trialG = trialLayer.selectAll('.trial').data(data.values, function(d) {return d.trial_id + '_' + params.curFile;});
@@ -509,19 +510,19 @@
           .remove();
 
         // Append mean times for label position
-        timePeriods = timePeriods.map(function(d) {
-          // if timePeriod value is null, find the next non-null trialß
+        timePeriods = timePeriods.map(function(period) {
+          // if timePeriod value is null, find the next non-null trial
           var dataInd = 0;
-          while (data.values[dataInd][d.id1] == null) {
+          while (data.values[dataInd][period.id1] == null) {
             dataInd++;
           }
 
           return {
-            label: d.label,
-            id1: d.id1,
-            id2: d.id2,
-            labelPosition: data.values[dataInd][d.id1] - data.values[dataInd][params.curTime],
-            color: d.color
+            label: period.label,
+            id1: period.id1,
+            id2: period.id2,
+            labelPosition: data.values[dataInd][period.id1] - data.values[dataInd][params.curTime],
+            color: period.color
           };
         });
 
@@ -557,7 +558,7 @@
         // Add labels corresponding to trial events
         var eventLabel = svg.selectAll('.eventLabel').data(timePeriods, function(d) {return d.label;});
 
-        if (ind == 0) {
+        if (ind === 0) {
           eventLabel.enter()
             .append('foreignObject')
               .attr('class', 'eventLabel')

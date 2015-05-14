@@ -234,7 +234,7 @@
     } else {
       colorScale = d3.scale.ordinal()
         .domain(['Color', 'Orientation'])
-        .range(['black', 'black']);
+          .range(['#bc80bd']);
     }
 
     // Draw spikes, event timePeriods, axes

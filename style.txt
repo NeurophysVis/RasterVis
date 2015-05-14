@@ -71,7 +71,6 @@
 #filterNav div{
  margin-top: 20px;
  margin-bottom: 20px;
- display: inline-block;
 }
 #filterNav {
   text-align: center;

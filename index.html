@@ -1,121 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
-    <title>Raster</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RasterVis</title>
     <!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
   </head>
-
   <body role="document">
-    <nav class="navbar navbar-default navbar-fixed-top" id="filterNav">
-      <div class="container">
-        <div class="navbar-header"> </div>
-        <div id="fileMenu" class="navbar nav">
-          <b>Recording Session:</b><br>
-          <select name="file-list" class="form-control">
-            <option selected="selected" value="cc1">cc1</option>
-            <option value="cc3">cc3</option>
-            <option value="cc4">cc4</option>
-            <option value="cc5">cc5</option>
-            <option value="cc6">cc6</option>
-            <option value="cc7">cc7</option>
-            <option value="cc8">cc8</option>
-            <option value="cc9">cc9</option>
-            <option value="cc10">cc10</option>
-            <option value="cc11">cc11</option>
-            <option value="cc12">cc12</option>
-            <option value="ch2">ch2</option>
-            <option value="ch3">ch3</option>
-            <option value="ch5">ch5</option>
-            <option value="ch6">ch6</option>
-            <option value="ch7">ch7</option>
-            <option value="ch8">ch8</option>
-            <option value="ch9">ch9</option>
-            <option value="ch10">ch10</option>
-            <option value="ch11">ch11</option>
-            <option value="ch12">ch12</option>
-            <option value="ch13">ch13</option>
-            <option value="ch14">ch14</option>
-            <option value="ch15">ch15</option>
-            <option value="ch16">ch16</option>
-            <option value="ch17">ch17</option>
-            <option value="ch18">ch18</option>
-            <option value="ch19">ch19</option>
-            <option value="ch20">ch20</option>
-            <option value="isa1">isa1</option>
-            <option value="isa2">isa2</option>
-            <option value="isa3">isa3</option>
-            <option value="isa4">isa4</option>
-            <option value="isa5">isa5</option>
-            <option value="isa7">isa7</option>
-            <option value="isa8">isa8</option>
-            <option value="isa9">isa9</option>
-            <option value="isa10">isa10</option>
-            <option value="isa11">isa11</option>
-            <option value="isa12">isa12</option>
-            <option value="isa13">isa13</option>
-            <option value="isa14">isa14</option>
-            <option value="isa15">isa15</option>
-            <option value="isa16">isa16</option>
-            <option value="isa17">isa17</option>
-            <option value="isa18">isa18</option>
-            <option value="isa19">isa19</option>
-            <option value="isa20">isa20</option>
-            <option value="isa21">isa21</option>
-            <option value="isa22">isa22</option>
-            <option value="isa23">isa23</option>
-            <option value="isa24">isa24</option>
-          </select>
+    <div class="container">
+      <div class="row" id="TitlePanel">
+       <h1 class="col-md-3">RasterVis
+        <button type="button" class="btn btn-lg bottom-buffer" id="help-button" aria-label="Help">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </button>
+      </h1>
+      </div>
+      <div class="row" id="filterNav">
+            <div id="subjectMenu" class="col-md-2">
+                <b>Subject:</b><br>
+                <select name="subject-list" class="form-control">
+                </select>
+            </div>
+            <div id="sessionMenu" class="col-md-2">
+                <b>Recording Session:</b><br>
+                <select name="session-list" class="form-control">
+                </select>
+            </div>
+            <div id="neuronMenu" class="col-md-2">
+              <b>Neuron:</b><br>
+              <select name="neuron-list" class="form-control">
+              </select>
+            </div>
+            <div id="factorSortMenu" class="col-md-3">
+              <b>Sort by Experimental Factor:</b><br>
+              <select class="form-control">
+              </select>
+            </div>
+            <div id="timeMenu" class="col-md-3">
+              <b>Time relative to:</b><br>
+              <select class="form-control">
+              </select>
+            </div>
         </div>
-        <div id="neuronMenu" class="navbar nav">
-          <b>Neuron:</b><br>
-        </div>
-        <div id="factorSortMenu" class="navbar nav">
-          <b>Sort by Experimental Factor:</b><br>
-          <select class="form-control">
-            <option disabled="disabled">Select a factor</option>
-            <option selected="selected" value="Name">Trial ID</option>
-            <option value="Rule">Rule (Color vs. Orientation)</option>
-            <option value="Previous_Error">Error on Previous Trial</option>
-            <option value="Rule_Repetition">Number of Rule Repetitions (# of trials)</option>
-            <option value="Current_Congruency">Current Trial Congruency</option>
-            <option value="Previous_Congruency">Previous Trial Congruency</option>
-            <option value="Preparation_Time">Preparation Time before Stimulus Onset (ms)</option>
-            <option value="Response_Direction">Response Direction (Left vs. Right Saccade)</option>
-            <option value="Reaction_Time">Response Time (ms)</option>
-            <option value="Test_Stimulus">Test Stimulus Cue</option>
-            <option value="Rule_Cues">Rule Cues</option>
-            <option value="Rule_Cue_Repetition">Rule Cue Repetition</option>
-            <option value="isCorrect">Correct/Incorrect</option>
-          </select>
-        </div>
-        <div id="timeMenu" class="navbar nav">
-          <b>Time relative to:</b><br>
-          <select class="form-control">
-            <option value="start_time">Intertrial Interval</option>
-            <option value="fixation_onset">Fixation Cue</option>
-            <option selected="selected" value="rule_onset">Rule Cue</option>
-            <option value="stim_onset">Test Stimulus Cue</option>
-            <option value="react_time">Saccade</option>
-            <option value="reward_time">Start Reward</option>
-          </select>
-        </div>
-        <!-- <div id="atGlance" class="table">
-        </div> -->
-    </nav>
-    <div class="container-fluid">
-      <div id="chart"></div>
-    </div>
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    <script type="text/javascript" src="js/d3/colorbrewer.js"></script>
-    <script type="text/javascript" src="js/raster.js"></script>
-    <script src="http://code.jquery.com/jquery.js"></script>
+        <div id="chart" class="row"></div>
+      </div>
+    <script src="js/jquery-2.1.4.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/d3.min.js"></script>
+    <script src="js/queue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+    <script src="http://d3js.org/colorbrewer.v1.min.js"></script>
+    <script src="js/raster.js"></script>
     <script>
       var rasterParams = {
-        curFile: "cc1",
-        width:1200,
         height:5000
       };
       // Extract parameters from the browser
@@ -123,8 +63,10 @@
       var vars = query.split("&");
       vars.forEach(function(v) {
         var p = v.split("=");
+        p[1] = decodeURI(p[1]);
         rasterParams[p[0]] = p[1]
-      })
+      });
+
       // Initialized visualization
       ruleRaster.init(rasterParams);
       </script>

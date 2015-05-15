@@ -238,7 +238,8 @@
     }
 
     // Draw spikes, event timePeriods, axes
-    plotG.each(drawSpikes);
+    // plotG.each(drawSpikes);
+    plotG.each(drawHist);
     appendAxis();
 
     // Listen for changes on the drop-down menu
@@ -600,6 +601,20 @@
       }
     }
 
+    function drawHist(data, ind) {
+      var spikes = data.values.map(function(d) {
+        if (d.spikes[0] != undefined) {
+          return d.spikes.map(function(spike) {
+            return spike - d[params.curTime];
+            });
+        } else {
+          return undefined;
+        }
+      });
+
+      var histData = _.flatten(spikes).map(function(d) {return d;});
+      
+    }
   // Replaces underscores with blanks and 'plus' with '+'
   function fixDimNames(dimName) {
     var pat1 = /plus/;

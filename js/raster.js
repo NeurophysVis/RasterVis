@@ -238,7 +238,7 @@
     }
 
     // Draw spikes, event timePeriods, axes
-    // plotG.each(drawSpikes);
+    plotG.each(drawSpikes);
     plotG.each(drawHist);
     appendAxis();
 
@@ -514,7 +514,7 @@
         timePeriods = timePeriods.map(function(period) {
           // if timePeriod value is null, find the next non-null trial
           var dataInd = 0;
-          while (data.values[dataInd][period.id1] == null) {
+          while (data.values[dataInd][period.id1] == null && (dataInd < data.values.length - 1)) {
             dataInd++;
           }
 
@@ -602,7 +602,7 @@
     }
 
     function drawHist(data, ind) {
-      var spikes = data.values.map(function(d) {
+      var values = data.values.map(function(d) {
         if (d.spikes[0] != undefined) {
           return d.spikes.map(function(spike) {
             return spike - d[params.curTime];
@@ -612,8 +612,47 @@
         }
       });
 
-      var histData = _.flatten(spikes).map(function(d) {return d;});
-      
+      var spikes = _.flatten(values).map(function(d) {return d;});
+      var histData = d3.layout.histogram()
+        .bins(xScale.ticks(100))
+        .frequency(false)
+        (spikes);
+
+      var curPlot = d3.select(this);
+      var backgroundLayer = curPlot.selectAll('g.backgroundLayer').data([{}]);
+      backgroundLayer.enter()
+          .append('g')
+            .attr('class', 'backgroundLayer');
+      if (data.key === 'null') {
+        return;
+      }
+      var trialLayer = curPlot.selectAll('g.trialLayer').data([{}]);
+      trialLayer.enter()
+        .append('g')
+          .attr('class', 'trialLayer');
+
+      var yScale = d3.scale.linear()
+        .domain([0, d3.max(histData, function(d) { return d.y; })])
+        .range([factorRangeBand[ind], 0]);
+      var bar = curPlot.selectAll('.bar').data(histData);
+      bar.enter()
+        .append('g')
+          .attr('class', 'bar');
+      bar
+        .attr('transform', function(d) { return 'translate(' + xScale(d.x) + ',' + yScale(d.y) + ')'; });
+      bar.exit()
+        .remove();
+
+      var rect = bar.selectAll('rect').data(function(d) {return [d];})
+      rect.enter()
+        .append('rect')
+          .attr('opacity', 0.2);
+      rect
+        .attr('width', xScale(histData[1].x) - xScale(histData[0].x))
+        .attr('height', function(d) { return factorRangeBand[ind] - yScale(d.y);});
+      rect.exit()
+       .remove();
+
     }
   // Replaces underscores with blanks and 'plus' with '+'
   function fixDimNames(dimName) {

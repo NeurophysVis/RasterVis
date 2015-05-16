@@ -239,7 +239,7 @@
 
     // Draw spikes, event timePeriods, axes
     plotG.each(drawSpikes);
-    plotG.each(drawHist);
+    plotG.each(drawKDE);
     appendAxis();
 
     // Listen for changes on the drop-down menu
@@ -600,8 +600,8 @@
         }
       }
     }
-
-    function drawHist(data, ind) {
+    // draws kernel density estimate
+    function drawKDE(data, ind) {
       var values = data.values.map(function(d) {
         if (d.spikes[0] != undefined) {
           return d.spikes.map(function(spike) {
@@ -613,10 +613,8 @@
       });
 
       var spikes = _.flatten(values).map(function(d) {return d;});
-      var histData = d3.layout.histogram()
-        .bins(xScale.ticks(100))
-        .frequency(false)
-        (spikes);
+
+      if (spikes.every(function(d) {return d === undefined;})) {return;}
 
       var curPlot = d3.select(this);
       var backgroundLayer = curPlot.selectAll('g.backgroundLayer').data([{}]);
@@ -631,35 +629,16 @@
         .append('g')
           .attr('class', 'trialLayer');
 
-      var yScale = d3.scale.linear()
-        .domain([0, d3.max(histData, function(d) { return d.y; })])
-        .range([factorRangeBand[ind], 0]);
-      var bar = curPlot.selectAll('.bar').data(histData);
-      bar.enter()
-        .append('g')
-          .attr('class', 'bar');
-      bar
-        .attr('transform', function(d) { return 'translate(' + xScale(d.x) + ',' + yScale(d.y) + ')'; });
-      bar.exit()
-        .remove();
-
-      var rect = bar.selectAll('rect').data(function(d) {return [d];})
-      rect.enter()
-        .append('rect')
-          .attr('opacity', 0.2);
-      rect
-        .attr('width', xScale(histData[1].x) - xScale(histData[0].x))
-        .attr('height', function(d) { return factorRangeBand[ind] - yScale(d.y);});
-      rect.exit()
-       .remove();
-
       var line = d3.svg.line()
-        .interpolate("basis")
         .x(function(d) {return xScale(d[0]);})
         .y(function(d) {return yScale(d[1]);});
 
-      var kde = kernelDensityEstimator(gaussianKernel(.1), xScale.ticks(100));
-      var kdeLine = curPlot.selectAll('path.kde').data([kde(spikes)]);
+      var kde = kernelDensityEstimator(gaussianKernel(20), xScale.ticks(200));
+      var kdeData = kde(spikes);
+      var yScale = d3.scale.linear()
+        .domain([0, d3.max(kdeData, function(d) {return d[1];})])
+        .range([factorRangeBand[ind], 0]);
+      var kdeLine = curPlot.selectAll('path.kde').data([kdeData]);
       kdeLine.enter()
         .append("path")
         .attr("class", "kde");
@@ -694,7 +673,7 @@
     }
     function gaussianKernel(scale) {
       return function(u) {
-        return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * u * u) / scale;
+        return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * u * u / (scale * scale)) / scale;
       };
     }
   }

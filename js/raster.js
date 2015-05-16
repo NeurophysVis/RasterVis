@@ -658,7 +658,7 @@
         .x(function(d) {return xScale(d[0]);})
         .y(function(d) {return yScale(d[1]);});
 
-      var kde = kernelDensityEstimator(epanechnikovKernel(7), xScale.ticks(100));
+      var kde = kernelDensityEstimator(gaussianKernel(.1), xScale.ticks(100));
       var kdeLine = curPlot.selectAll('path.kde').data([kde(spikes)]);
       kdeLine.enter()
         .append("path")
@@ -690,6 +690,11 @@
     function epanechnikovKernel(scale) {
       return function(u) {
         return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
+      };
+    }
+    function gaussianKernel(scale) {
+      return function(u) {
+        return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * u * u) / scale;
       };
     }
   }

@@ -653,14 +653,44 @@
       rect.exit()
        .remove();
 
+      var line = d3.svg.line()
+        .interpolate("basis")
+        .x(function(d) {return xScale(d[0]);})
+        .y(function(d) {return yScale(d[1]);});
+
+      var kde = kernelDensityEstimator(epanechnikovKernel(7), xScale.ticks(100));
+      var kdeLine = curPlot.selectAll('path.kde').data([kde(spikes)]);
+      kdeLine.enter()
+        .append("path")
+        .attr("class", "kde");
+      kdeLine
+        .transition()
+          .duration(1000)
+        .attr("d", line);
+      kdeLine.exit()
+        .remove();
+
     }
-  // Replaces underscores with blanks and 'plus' with '+'
-  function fixDimNames(dimName) {
-    var pat1 = /plus/;
-    var pat2 = /_/g;
-    var pat3 = /minus/;
-    var fixedName = dimName.replace(pat1, '+').replace(pat2, ' ').replace(pat3, '-');
-    return fixedName;
-  }
+    // Replaces underscores with blanks and 'plus' with '+'
+    function fixDimNames(dimName) {
+      var pat1 = /plus/;
+      var pat2 = /_/g;
+      var pat3 = /minus/;
+      var fixedName = dimName.replace(pat1, '+').replace(pat2, ' ').replace(pat3, '-');
+      return fixedName;
+    }
+    function kernelDensityEstimator(kernel, x) {
+      return function(sample) {
+        return x.map(function(x) {
+          return [x, d3.mean(sample, function(v) { return kernel(x - v); })];
+        });
+      };
+    }
+
+    function epanechnikovKernel(scale) {
+      return function(u) {
+        return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
+      };
+    }
   }
 })();

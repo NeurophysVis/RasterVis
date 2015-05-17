@@ -306,10 +306,11 @@
       backgroundLayer.enter()
         .append('g')
           .attr('class', 'backgroundLayer');
+
       drawEventLines(data, ind);
-      if (data.key === 'null') {
-        return;
-      }
+
+      if (data.key === 'null') {return;}
+
       var trialLayer = curPlot.selectAll('g.trialLayer').data([{}]);
       trialLayer.enter()
         .append('g')
@@ -510,7 +511,7 @@
         eventLine.exit()
           .remove();
 
-        // Append mean times for label position
+        // Append first non-null time for label position
         timePeriods = timePeriods.map(function(period) {
           // if timePeriod value is null, find the next non-null trial
           var dataInd = 0;
@@ -602,6 +603,9 @@
     }
     // draws kernel density estimate
     function drawKDE(data, ind) {
+
+      if (data.key === 'null') {return;}
+
       var values = data.values.map(function(d) {
         if (d.spikes[0] != undefined) {
           return d.spikes.map(function(spike) {
@@ -613,17 +617,18 @@
       });
 
       var spikes = _.flatten(values).map(function(d) {return d;});
-
-      if (spikes.every(function(d) {return d === undefined;})) {return;}
-
       var curPlot = d3.select(this);
+
+      if (spikes.every(function(d) {return d === undefined;})) {
+        curPlot.selectAll('path.kde').remove();
+        return;
+      }
+
       var backgroundLayer = curPlot.selectAll('g.backgroundLayer').data([{}]);
       backgroundLayer.enter()
           .append('g')
             .attr('class', 'backgroundLayer');
-      if (data.key === 'null') {
-        return;
-      }
+
       var trialLayer = curPlot.selectAll('g.trialLayer').data([{}]);
       trialLayer.enter()
         .append('g')
@@ -645,11 +650,11 @@
       kdeLine
         .transition()
           .duration(1000)
-        .attr("d", line);
+        .attr('d', line);
       kdeLine.exit()
         .remove();
-
     }
+
     // Replaces underscores with blanks and 'plus' with '+'
     function fixDimNames(dimName) {
       var pat1 = /plus/;
@@ -658,6 +663,7 @@
       var fixedName = dimName.replace(pat1, '+').replace(pat2, ' ').replace(pat3, '-');
       return fixedName;
     }
+
     function kernelDensityEstimator(kernel, x) {
       return function(sample) {
         return x.map(function(x) {
@@ -671,10 +677,18 @@
         return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
       };
     }
+
     function gaussianKernel(scale) {
       return function(u) {
         return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * u * u / (scale * scale)) / scale;
       };
     }
+
+    function boxcarKernel(scale) {
+      return function(u) {
+        return Math.abs(u /= scale) <= 0.5 ? 1 / scale : 0;
+      };
+    }
+
   }
 })();

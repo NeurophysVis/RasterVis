@@ -680,7 +680,7 @@
 
     function gaussianKernel(scale) {
       return function(u) {
-        return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * u * u / (scale * scale)) / scale;
+        return Math.exp((-0.5 * u * u) / (scale * scale)) / (scale * Math.sqrt(2 * Math.PI)) ;
       };
     }
 

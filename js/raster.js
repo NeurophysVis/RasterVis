@@ -101,31 +101,32 @@
           .attr('selected', 'selected');
 
         // Create experimental factor menu
-        var factorObjects = trialInfo.experimentalFactor;
+        var experimentalFactor = trialInfo.experimentalFactor;
         var factorMenu = d3.select('#factorSortMenu').select('select');
-        var factorOptions = factorMenu.selectAll('option').data(factorObjects, function(f) {return f.name;});
+        var factorOptions = factorMenu.selectAll('option').data(experimentalFactor, function(f) {return f.name;});
         factorOptions.enter()
           .append('option')
           .attr('value', function(t) {return t.value;})
           .text(function(t) {return t.name;});
         factorOptions.exit()
           .remove();
-        params.curFactor = params.curFactor || factorObjects[0].value;
-        factorOptions.filter(function(factorObject) {return factorObject.value === params.curFactor;})
+        params.curFactor = params.curFactor || experimentalFactor[0].value;
+        factorOptions.filter(function(factorObject) {return experimentalFactor.value === params.curFactor;})
           .attr('selected', 'selected');
 
         // Create time period menu
-        var timeObjects = trialInfo.timePeriods;
+        var timePeriods = trialInfo.timePeriods;
+        params.timePeriods = timePeriods;
         var timeMenu = d3.select('#timeMenu').select('select');
-        var timeOptions = timeMenu.selectAll('option').data(timeObjects, function(f) {return f.name;});
+        var timeOptions = timeMenu.selectAll('option').data(timePeriods, function(f) {return f.name;});
         timeOptions.enter()
           .append('option')
-          .attr('value', function(t) {return t.value;})
+          .attr('value', function(t) {return t.startID;})
           .text(function(t) {return t.name;});
         timeOptions.exit()
           .remove();
-        params.curTime = params.curTime || timeObjects[0].value;
-        timeOptions.filter(function(timeObject) {return timeObject.value === params.curTime;})
+        params.curTime = params.curTime || timePeriods[0].startID;
+        timeOptions.filter(function(period) {return period.startID === params.curTime;})
           .attr('selected', 'selected');
 
         queue()
@@ -498,42 +499,27 @@
 
       // ******************** Event Line Function *******************
       function drawEventLines(data, ind) {
-        var timePeriods = [
-          {label: '<br>ITI', id1: 'start_time', id2: 'fixation_onset', color: '#c5b0d5'},
-          {label: '<br>Fix.', id1: 'fixation_onset', id2: 'rule_onset', color: '#f7b6d2'},
-          {label: '<br>Rule', id1: 'rule_onset', id2: 'stim_onset', color: '#98df8a'},
-          {label: 'Test<br>Stimulus', id1: 'stim_onset', id2: 'react_time', color:  '#ff9896'},
-          {label: '<br>Saccade', id1: 'react_time', id2: 'reward_time', color: '#9edae5'},
-          {label: '<br>Reward', id1: 'reward_time', id2: 'end_time', color:  '#c49c94'}
-        ];
+        var timePeriods = params.timePeriods;
         var eventLine = backgroundLayer.selectAll('path.eventLine').data(timePeriods, function(d) {return d.label;});
 
         eventLine.exit()
           .remove();
+        // if timePeriod value is null, find the next non-null trial
+        var dataStartInd = 0;
+        while (data.values[dataStartInd][timePeriods[0].startID] && (dataStartInd < data.values.length - 1)) {
+          dataStartInd++;
+        }
 
         // Append first non-null time for label position
-        timePeriods = timePeriods.map(function(period) {
-          // if timePeriod value is null, find the next non-null trial
-          var dataInd = 0;
-          while (data.values[dataInd][period.id1] == null && (dataInd < data.values.length - 1)) {
-            dataInd++;
-          }
-
-          return {
-            label: period.label,
-            id1: period.id1,
-            id2: period.id2,
-            labelPosition: data.values[dataInd][period.id1] - data.values[dataInd][params.curTime],
-            color: period.color
-          };
+        timePeriods.forEach(function(period, ind) {
+            period.labelPosition = data.values[dataStartInd][period.startID] - data.values[dataStartInd][params.curTime];
         });
 
         var valuesInd = d3.range(data.values.length);
         var newValues = data.values.concat(data.values);
         valuesInd = valuesInd.concat(valuesInd);
-        newValues = newValues.map(function(d, i) {
+        newValues.forEach(function(d, i) {
           d.sortInd = valuesInd[i];
-          return d;
         });
 
         newValues.sort(function(a, b) {
@@ -581,13 +567,13 @@
           // Setup helper line function
           var area = d3.svg.area()
             .defined(function(d) {
-              return d[timePeriod.id1] != null && d[timePeriod.id2] != null && d[params.curTime] != null;
+              return d[timePeriod.startID] != null && d[timePeriod.endID] != null && d[params.curTime] != null;
             }) // if null, suppress line drawing
             .x0(function(d) {
-              return xScale(d[timePeriod.id1] - d[params.curTime]);
+              return xScale(d[timePeriod.startID] - d[params.curTime]);
             })
             .x1(function(d) {
-              return xScale(d[timePeriod.id2] - d[params.curTime]);
+              return xScale(d[timePeriod.endID] - d[params.curTime]);
             })
             .y(function(d, i) {
               if (i % 2 == 0) {

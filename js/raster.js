@@ -82,6 +82,8 @@
         sessionOptions.filter(function(sessionName) {return sessionName === params.curSession;})
           .attr('selected', 'selected');
 
+        params.color = params.color || undefined;
+
         // Create neuron menu
         var neuronNames = trialInfo.monkey
           .filter(function(m) {return m.name === params.curSubject;})
@@ -111,7 +113,7 @@
         factorOptions.exit()
           .remove();
         params.curFactor = params.curFactor || experimentalFactor[0].value;
-        factorOptions.filter(function(factorObject) {return experimentalFactor.value === params.curFactor;})
+        factorOptions.filter(function(factor) {return factor.value === params.curFactor;})
           .attr('selected', 'selected');
 
         // Create time period menu
@@ -159,7 +161,8 @@
                                                           '&curSession=' + params.curSession +
                                                           '&curNeuron=' + params.curNeuron +
                                                           '&curTime=' + params.curTime +
-                                                          '&curFactor=' + params.curFactor);
+                                                          '&curFactor=' + params.curFactor +
+                                                          '&color=' + params.color);
 
     // Nest and Sort Data
     if (params.curFactor != 'trial_id') {
@@ -177,6 +180,7 @@
             })
           .entries(ruleRaster.data);
     }
+    factor = factor.filter(function(f) {return f.key != 'null'});
 
     // Compute variables for placing plots (plots maintain constant size for each trial)
     var PLOT_BUFFER = 0;
@@ -227,15 +231,23 @@
       .domain([minTime - 10, maxTime + 10])
 			.range([0, width]);
 
-    var	colorScale;
-    if (params.color != 'Neutral') {
-      colorScale = d3.scale.ordinal()
-        .domain(['Color', 'Orientation'])
-        .range(['#ef8a62', '#67a9cf']);
-    } else {
-      colorScale = d3.scale.ordinal()
-        .domain(['Color', 'Orientation'])
+
+    var colorKeys = d3.nest().key(function(d) {return d[params.color];}).entries(ruleRaster.data).map(function(k) {return k.key;});
+    var	colorScale = d3.scale.ordinal()
+        .domain(colorKeys);
+
+    switch (params.color) {
+      case 'Rule':
+        colorScale
+          .range(['#ef8a62', '#67a9cf']);
+      break;
+      case undefined:
+        colorScale = d3.scale.ordinal()
           .range(['#bc80bd']);
+      break;
+      default:
+        colorScale = d3.scale.ordinal()
+          .range(colorbrewer.Set3[12]);
     }
 
     // Draw spikes, event timePeriods, axes
@@ -310,8 +322,6 @@
 
       drawEventLines(data, ind);
 
-      if (data.key === 'null') {return;}
-
       var trialLayer = curPlot.selectAll('g.trialLayer').data([{}]);
       trialLayer.enter()
         .append('g')
@@ -345,7 +355,7 @@
 
       trialG
         .style('fill', function(d) {
-          return colorScale(d.Rule);
+          return colorScale(d[params.color]);
         })
         .attr('transform', function(d, i) {
           return 'translate(0,' + data.yScale(i) + ')';
@@ -589,54 +599,57 @@
     }
     // draws kernel density estimate
     function drawKDE(data, ind) {
-
-      if (data.key === 'null') {return;}
-
-      var values = data.values.map(function(d) {
-        if (d.spikes[0] != undefined) {
-          return d.spikes.map(function(spike) {
-            return spike - d[params.curTime];
-            });
-        } else {
-          return undefined;
-        }
-      });
-
-      var spikes = _.flatten(values).map(function(d) {return d;});
       var curPlot = d3.select(this);
 
-      if (spikes.every(function(d) {return d === undefined;})) {
-        curPlot.selectAll('path.kde').remove();
-        return;
-      }
+      var spikes = d3.nest().key(function(d) {return d[params.color];}).entries(data.values);
+      var kde = kernelDensityEstimator(gaussianKernel(20), xScale.ticks(200));
 
-      var backgroundLayer = curPlot.selectAll('g.backgroundLayer').data([{}]);
-      backgroundLayer.enter()
-          .append('g')
-            .attr('class', 'backgroundLayer');
+      spikes.forEach(function(e) {
+        e.values = kde( // Take the kernel density estimate of spikes
+          _.flatten( // flatten the spikes into one array
+            e.values.map(function(d) { // adjust spike times to be relative to cue
+              if (d.spikes[0] != undefined) {
+                return d.spikes.map(function(spike) {
+                  return spike - d[params.curTime];
+                });
+              } else {return undefined;}
+            })
+          )
+        );
+      });
 
-      var trialLayer = curPlot.selectAll('g.trialLayer').data([{}]);
-      trialLayer.enter()
+      // if (spikes.every(function(d) {return d === undefined;})) {
+      //   curPlot.selectAll('path.kde').remove();
+      //   return;
+      // }
+
+      var maxKDE = d3.max(spikes.map(function(d) {return d3.max(d.values, function(e) {return e[1];})}));
+
+      var yScale = d3.scale.linear()
+          .domain([0, maxKDE])
+          .range([factorRangeBand[ind], 0]);
+
+      var kdeG = curPlot.selectAll('g.kde').data(spikes, function(d) {return d.key;});
+      kdeG.enter()
         .append('g')
-          .attr('class', 'trialLayer');
+          .attr('class', 'kde')
+      kdeG.exit()
+        .remove();
 
       var line = d3.svg.line()
         .x(function(d) {return xScale(d[0]);})
         .y(function(d) {return yScale(d[1]);});
 
-      var kde = kernelDensityEstimator(gaussianKernel(20), xScale.ticks(200));
-      var kdeData = kde(spikes);
-      var yScale = d3.scale.linear()
-        .domain([0, d3.max(kdeData, function(d) {return d[1];})])
-        .range([factorRangeBand[ind], 0]);
-      var kdeLine = curPlot.selectAll('path.kde').data([kdeData]);
+      var kdeLine = kdeG.selectAll('path.kdeLine').data(function(d) {return [d];});
       kdeLine.enter()
         .append("path")
-        .attr("class", "kde");
+          .attr("class", "kdeLine");
       kdeLine
         .transition()
           .duration(1000)
-        .attr('d', line);
+        .attr('d', function(d) {return line(d.values)})
+        .attr('stroke', function(d) {
+          return colorScale(d.key);})
       kdeLine.exit()
         .remove();
     }

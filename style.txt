@@ -78,8 +78,7 @@
 #help-button {
   background: white;
 }
-.kde {
+.kdeLine {
   fill: none;
-  stroke: #000;
   stroke-width: 1.5px;
 }

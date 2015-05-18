@@ -39,6 +39,9 @@
     defs = svg.selectAll('defs').data([{}]).enter()
 			.append('defs');
 
+    params.isShowLines = true;
+    params.isShowRaster = true;
+
     // Load Data
     ruleRaster.loadData(params);
   };
@@ -184,16 +187,23 @@
 
     // Compute variables for placing plots (plots maintain constant size for each trial)
     var PLOT_BUFFER = 0;
-    var factorLength = factor.map(function(d) {return d.values.length;});
-
-    var factorRangeBand = factorLength.map(function(d) {return (height + (factorLength.length * -PLOT_BUFFER)) * (d / d3.sum(factorLength))});
-
     var factorPoints = [0];
-    factorRangeBand.forEach(function(d, i) {
-      factorPoints[i + 1] = factorPoints[i] + d + PLOT_BUFFER;
-    });
+    var factorRangeBand;
 
-    factorPoints = factorPoints.slice(0, factorPoints.length - 1);
+    if (params.isShowRaster) {
+      var factorLength = factor.map(function(d) {return d.values.length;});
+
+      factorRangeBand = factorLength.map(function(d) {return (height + (factorLength.length * -PLOT_BUFFER)) * (d / d3.sum(factorLength))});
+
+      factorRangeBand.forEach(function(d, i) {
+        factorPoints[i + 1] = factorPoints[i] + d + PLOT_BUFFER;
+      });
+
+      factorPoints = factorPoints.slice(0, factorPoints.length - 1);
+    } else {
+      factorRangeBand = Array.apply(null, new Array(factor.length)).map(function(){return 500/factor.length});
+      factorPoints = d3.range(0, 500, 500/factor.length);
+    }
 
     // Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
     var plotG = svg.selectAll('g.plotG')
@@ -251,8 +261,8 @@
     }
 
     // Draw spikes, event timePeriods, axes
-    plotG.each(drawSpikes);
-    plotG.each(drawKDE);
+    if (params.isShowRaster) {plotG.each(drawSpikes)};
+    if (params.isShowLines) {plotG.each(drawKDE)};
     appendAxis();
 
     // Listen for changes on the drop-down menu
@@ -286,6 +296,26 @@
     timeMenu.on('change', function() {
       params.curTime = d3.selectAll('#timeMenu select').property('value');
       ruleRaster.draw(params);
+    });
+    var showLines = d3.select('#showLines input');
+    showLines.on('change', function(d) {
+      params.isShowLines = this.checked ? true : false;
+      if (this.checked) {
+        ruleRaster.draw(params)
+      } else {
+        d3.selectAll('g.kde').remove();
+        ruleRaster.draw(params);
+      }
+    });
+    var showRaster = d3.select('#showRaster input');
+    showRaster.on('change', function(d) {
+      params.isShowRaster = this.checked ? true : false;
+      if (this.checked) {
+        ruleRaster.draw(params)
+      } else {
+        d3.selectAll('g.plotG').remove();
+        ruleRaster.draw(params);
+      }
     });
 
     // ******************** Axis Function *******************

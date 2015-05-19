@@ -77,6 +77,8 @@
 }
 #help-button {
   background: white;
+  margin-top: 15px;
+  margin-left: -60px;
 }
 .kdeLine {
   fill: none;

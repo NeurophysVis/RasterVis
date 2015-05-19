@@ -145,6 +145,8 @@
             chart.attr('height', height + margin.top + margin.bottom);
             ruleRaster.data = _.merge(trials, neuron.Spikes);
 
+            d3.select('#title').html('<h2>RasterVis</h2><h5>' + neuron.Brain_Area + ' Neuron: ' + neuron.Name + '</h5>');
+
             // Draw visualization
             ruleRaster.draw(params);
           });

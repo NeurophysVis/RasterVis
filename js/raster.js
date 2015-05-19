@@ -39,9 +39,11 @@
     defs = svg.selectAll('defs').data([{}]).enter()
 			.append('defs');
 
-    params.isShowLines = true;
-    params.isShowRaster = true;
-    params.lineSmoothness = 20;
+    // Set some default parameters
+    params.isShowLines = params.isShowLines || true;
+    params.isShowRaster = params.isShowRaster || true;
+    params.lineSmoothness = params.lineSmoothnes || 20;
+    params.color = params.color || undefined;
 
     // Load Data
     ruleRaster.loadData(params);
@@ -85,8 +87,6 @@
         params.curSession = params.curSession || sessionNames[0];
         sessionOptions.filter(function(sessionName) {return sessionName === params.curSession;})
           .attr('selected', 'selected');
-
-        params.color = params.color || undefined;
 
         // Create neuron menu
         var neuronNames = trialInfo.monkey
@@ -258,7 +258,8 @@
       break;
       default:
         colorScale = d3.scale.ordinal()
-          .range(colorbrewer.Set3[12]);
+          .range(['#3E9450','#CD52D9','#CC5125','#4689AE','#D24B80','#7070D5',
+          '#B1782A','#886AA0','#A84D51','#BC52A6','#738E2B','#DC474D']);
     }
 
     // Draw spikes, event timePeriods, axes
@@ -305,12 +306,12 @@
       params.isShowLines = this.checked ? true : false;
       if (this.checked) {
         d3.select('#lineSmooth')
-          .style("display", "");
+          .style('display', '');
         ruleRaster.draw(params)
       } else {
         d3.selectAll('g.kde').remove();
         d3.select('#lineSmooth')
-          .style("display", "none");
+          .style('display', 'none');
         ruleRaster.draw(params);
       }
     });
@@ -537,8 +538,8 @@
 
       var kdeLine = kdeG.selectAll('path.kdeLine').data(function(d) {return [d];});
       kdeLine.enter()
-        .append("path")
-          .attr("class", "kdeLine");
+        .append('path')
+          .attr('class', 'kdeLine');
       kdeLine
         .transition()
           .duration(1000)

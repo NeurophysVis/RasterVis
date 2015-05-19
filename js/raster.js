@@ -269,6 +269,7 @@
     if (params.isShowLines) {plotG.each(drawKDE)};
 
     appendAxis();
+    appendLegend();
 
     // Listen for changes on the drop-down menu
     var subjectMenu = d3.select('#subjectMenu select');
@@ -349,6 +350,37 @@
           .duration(10)
           .ease('linear')
           .call(xAxis);
+    }
+
+    function appendLegend() {
+      var CIRCLE_RADIUS = 7;
+      var legendG = svg.selectAll('g.legend').data(colorScale.domain());
+      legendG.enter()
+        .append('g')
+          .attr('class', 'legend');
+      legendG.exit()
+        .remove();
+      legendG
+        .attr('transform', function(d, i) {
+            return 'translate(' + (width + (CIRCLE_RADIUS * 4)) + ',' + ((i + 1) * ((CIRCLE_RADIUS * 2) + 3))  + ')';
+          });
+
+      var legendCircle = legendG.selectAll('circle').data(function(d) {return [d];});
+      legendCircle.enter()
+        .append('circle')
+          .attr('r', CIRCLE_RADIUS)
+          .attr('fill', function(d) {return colorScale(d);});
+
+      legendText = legendG.selectAll('text').data(function(d) {return [d];});
+
+      legendText.enter()
+        .append('text')
+          .attr('x', (CIRCLE_RADIUS * 2) + 5)
+          .attr('font-size', (CIRCLE_RADIUS * 2))
+          .attr('alignment-baseline', 'middle')
+          .text(function(d) {
+            return (d === undefined) ? 'Spike' : params.color + ': ' + d;
+          });
     }
 
     // ******************** Helper Functions **********************
@@ -512,11 +544,6 @@
           )
         );
       });
-
-      // if (spikes.every(function(d) {return d === undefined;})) {
-      //   curPlot.selectAll('path.kde').remove();
-      //   return;
-      // }
 
       var maxKDE = d3.max(spikes.map(function(d) {return d3.max(d.values, function(e) {return e[1];})}));
 

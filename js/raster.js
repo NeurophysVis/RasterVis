@@ -173,7 +173,7 @@
       var factor = d3.nest()
           .key(function(d) {return d[params.curFactor];}) // nests data by selected factor
               .sortValues(function(a, b) { // sorts values based on Rule
-                return d3.ascending(a.Rule, b.Rule);
+                return d3.ascending(a[params.color], b[params.color]);
               })
           .entries(ruleRaster.data);
     } else {

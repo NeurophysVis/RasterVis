@@ -379,7 +379,7 @@
           .attr('font-size', (CIRCLE_RADIUS * 2))
           .attr('alignment-baseline', 'middle')
           .text(function(d) {
-            return (d === undefined) ? 'Spike' : params.color + ': ' + d;
+            return (d === undefined) ? 'Spike' : fixDimNames(params.color) + ': ' + d;
           });
     }
 

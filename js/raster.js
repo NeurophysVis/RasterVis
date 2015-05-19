@@ -41,6 +41,7 @@
 
     params.isShowLines = true;
     params.isShowRaster = true;
+    params.lineSmoothness = 20;
 
     // Load Data
     ruleRaster.loadData(params);
@@ -303,9 +304,13 @@
     showLines.on('change', function(d) {
       params.isShowLines = this.checked ? true : false;
       if (this.checked) {
+        d3.select('#lineSmooth')
+          .style("display", "");
         ruleRaster.draw(params)
       } else {
         d3.selectAll('g.kde').remove();
+        d3.select('#lineSmooth')
+          .style("display", "none");
         ruleRaster.draw(params);
       }
     });
@@ -318,6 +323,12 @@
         d3.selectAll('g.plotG').remove();
         ruleRaster.draw(params);
       }
+    });
+    var lineSmooth = d3.select('#lineSmooth input');
+    lineSmooth.on('change', function(d) {
+      params.lineSmoothness = this.value;
+      d3.select('#lineSmooth-value').text('Smoothing: ' + this.value + ' ms');
+      if (params.isShowLines) {plotG.each(drawKDE)};
     });
 
     // ******************** Axis Function *******************
@@ -486,7 +497,7 @@
       var curPlot = d3.select(this);
 
       var spikes = d3.nest().key(function(d) {return d[params.color];}).entries(data.values);
-      var kde = kernelDensityEstimator(gaussianKernel(20), xScale.ticks(200));
+      var kde = kernelDensityEstimator(gaussianKernel(params.lineSmoothness), xScale.ticks(200));
 
       spikes.forEach(function(e) {
         e.values = kde( // Take the kernel density estimate of spikes
@@ -537,7 +548,6 @@
       kdeLine.exit()
         .remove();
     }
-
     // ******************** Event Line Function *******************
     function drawEventLines(data, ind) {
 

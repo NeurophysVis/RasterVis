@@ -720,21 +720,9 @@
       };
     }
 
-    function epanechnikovKernel(scale) {
-      return function(u) {
-        return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
-      };
-    }
-
     function gaussianKernel(scale) {
       return function(u) {
         return Math.exp((-0.5 * u * u) / (scale * scale)) / (scale * Math.sqrt(2 * Math.PI)) ;
-      };
-    }
-
-    function boxcarKernel(scale) {
-      return function(u) {
-        return Math.abs(u /= scale) <= 0.5 ? 1 / scale : 0;
       };
     }
 

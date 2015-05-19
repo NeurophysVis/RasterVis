@@ -497,7 +497,7 @@
       var curPlot = d3.select(this);
 
       var spikes = d3.nest().key(function(d) {return d[params.color];}).entries(data.values);
-      var kde = kernelDensityEstimator(gaussianKernel(params.lineSmoothness), xScale.ticks(200));
+      var kde = kernelDensityEstimator(gaussianKernel(params.lineSmoothness), xScale.ticks(400));
 
       spikes.forEach(function(e) {
         e.values = kde( // Take the kernel density estimate of spikes

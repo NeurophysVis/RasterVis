@@ -20,50 +20,48 @@
           </button>
         </div>
       </div>
-      <div class="row" id="filterNav">
-            <div id="subjectMenu" class="col-md-2">
-                <b>Subject:</b><br>
-                <select name="subject-list" class="form-control">
-                </select>
-            </div>
-            <div id="sessionMenu" class="col-md-2">
-                <b>Recording Session:</b><br>
-                <select name="session-list" class="form-control">
-                </select>
-            </div>
-            <div id="neuronMenu" class="col-md-2">
-              <b>Neuron:</b><br>
-              <select name="neuron-list" class="form-control">
-              </select>
-            </div>
-            <div id="factorSortMenu" class="col-md-3">
-              <b>Sort by Experimental Factor:</b><br>
-              <select class="form-control">
-              </select>
-            </div>
-            <div id="timeMenu" class="col-md-3">
-              <b>Time relative to:</b><br>
-              <select class="form-control">
-              </select>
-            </div>
+      <div class="row bottom-buffer" id="filterNav">
+        <div id="subjectMenu" class="col-md-2">
+            <b>Subject:</b><br>
+            <select name="subject-list" class="form-control">
+            </select>
         </div>
-        <div class="row bottom-buffer">
-          <div id="showLines" class="col-md-2">
-            <label>
-              <input type="checkbox" checked="checked"> Show lines
-            </label>
-          </div>
-          <div id="showRaster" class="col-md-2">
-            <label>
-              <input type="checkbox" checked="checked"> Show raster
-            </label>
-          </div>
-          <div id="lineSmooth" class="col-md-2 text-center">
-            <label>
-              <input type="range" min=5 value=20 max=1000 step=5></input>
-              <output id="lineSmooth-value">Smoothing: 20 ms</output>
-            </label>
-          </div>
+        <div id="sessionMenu" class="col-md-2">
+            <b>Recording Session:</b><br>
+            <select name="session-list" class="form-control">
+            </select>
+        </div>
+        <div id="neuronMenu" class="col-md-2">
+          <b>Neuron:</b><br>
+          <select name="neuron-list" class="form-control">
+          </select>
+        </div>
+        <div id="factorSortMenu" class="col-md-3">
+          <b>Sort by Experimental Factor:</b><br>
+          <select class="form-control">
+          </select>
+        </div>
+        <div id="timeMenu" class="col-md-3">
+          <b>Time relative to:</b><br>
+          <select class="form-control">
+          </select>
+        </div>
+        <div id="showLines" class="col-md-2">
+          <label>
+            <input type="checkbox" checked="checked"> Show lines
+          </label>
+        </div>
+        <div id="showRaster" class="col-md-2">
+          <label>
+            <input type="checkbox" checked="checked"> Show raster
+          </label>
+        </div>
+        <div id="lineSmooth" class="col-md-2 text-center">
+          <label>
+            <input type="range" min=5 value=20 max=1000 step=5></input>
+            <output id="lineSmooth-value">Smoothing: 20 ms</output>
+          </label>
+        </div>
         </div>
         <div id="chart" class="row"></div>
       </div>

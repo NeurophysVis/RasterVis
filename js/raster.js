@@ -202,8 +202,9 @@
 
       factorPoints = factorPoints.slice(0, factorPoints.length - 1);
     } else {
-      factorRangeBand = Array.apply(null, new Array(factor.length)).map(function(){return 500/factor.length});
-      factorPoints = d3.range(0, 500, 500/factor.length);
+      var plotSize = (factor.length < 12) ? 500 : 1000;
+      factorRangeBand = Array.apply(null, new Array(factor.length)).map(function(){return plotSize/factor.length});
+      factorPoints = d3.range(0, plotSize, plotSize/factor.length);
     }
 
     // Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
@@ -258,8 +259,8 @@
       break;
       default:
         colorScale = d3.scale.ordinal()
-          .range(['#3E9450','#CD52D9','#CC5125','#4689AE','#D24B80','#7070D5',
-          '#B1782A','#886AA0','#A84D51','#BC52A6','#738E2B','#DC474D']);
+          .range(['#3E9450', '#CD52D9', '#CC5125', '#4689AE', '#D24B80', '#7070D5',
+          '#B1782A', '#886AA0', '#A84D51', '#BC52A6', '#738E2B', '#DC474D'].slice(0, colorKeys.length));
     }
 
     // Draw spikes, event timePeriods, axes
@@ -272,7 +273,6 @@
     // Listen for changes on the drop-down menu
     var subjectMenu = d3.select('#subjectMenu select');
     subjectMenu.on('change', function() {
-      svg.selectAll('.eventLine').remove();
       params.curSubject = d3.selectAll('#subjectMenu select').property('value');
       params.curSession = undefined;
       params.curNeuron = undefined;
@@ -280,7 +280,6 @@
     });
     var sessionMenu = d3.select('#sessionMenu select');
     sessionMenu.on('change', function() {
-      svg.selectAll('.eventLine').remove();
       params.curSession = d3.selectAll('#sessionMenu select').property('value');
       params.curNeuron = undefined;
       ruleRaster.loadData(params);
@@ -292,7 +291,6 @@
     });
     var factorMenu = d3.select('#factorSortMenu select');
     factorMenu.on('change', function() {
-      svg.selectAll('.eventLine').remove();
       params.curFactor = d3.selectAll('#factorSortMenu select').property('value');
       ruleRaster.draw(params);
     });
@@ -498,6 +496,7 @@
       var curPlot = d3.select(this);
 
       var spikes = d3.nest().key(function(d) {return d[params.color];}).entries(data.values);
+
       var kde = kernelDensityEstimator(gaussianKernel(params.lineSmoothness), xScale.ticks(400));
 
       spikes.forEach(function(e) {
@@ -565,7 +564,7 @@
         .remove();
       // if timePeriod value is null, find the next non-null trial
       var dataStartInd = 0;
-      while (data.values[dataStartInd][timePeriods[0].startID] && (dataStartInd < data.values.length - 1)) {
+      while (data.values[dataStartInd][timePeriods[0].startID] === null && (dataStartInd < data.values.length - 1)) {
         dataStartInd++;
       }
 

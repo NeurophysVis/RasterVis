@@ -78,3 +78,10 @@
 #help-button {
   background: white;
 }
+.kdeLine {
+  fill: none;
+  stroke-width: 1.5px;
+}
+.bottom-buffer {
+  margin-bottom: 20px;
+}

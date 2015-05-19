@@ -39,6 +39,12 @@
     defs = svg.selectAll('defs').data([{}]).enter()
 			.append('defs');
 
+    // Set some default parameters
+    params.isShowLines = params.isShowLines || true;
+    params.isShowRaster = params.isShowRaster || true;
+    params.lineSmoothness = params.lineSmoothnes || 20;
+    params.color = params.color || undefined;
+
     // Load Data
     ruleRaster.loadData(params);
   };
@@ -101,31 +107,32 @@
           .attr('selected', 'selected');
 
         // Create experimental factor menu
-        var factorObjects = trialInfo.experimentalFactor;
+        var experimentalFactor = trialInfo.experimentalFactor;
         var factorMenu = d3.select('#factorSortMenu').select('select');
-        var factorOptions = factorMenu.selectAll('option').data(factorObjects, function(f) {return f.name;});
+        var factorOptions = factorMenu.selectAll('option').data(experimentalFactor, function(f) {return f.name;});
         factorOptions.enter()
           .append('option')
           .attr('value', function(t) {return t.value;})
           .text(function(t) {return t.name;});
         factorOptions.exit()
           .remove();
-        params.curFactor = params.curFactor || factorObjects[0].value;
-        factorOptions.filter(function(factorObject) {return factorObject.value === params.curFactor;})
+        params.curFactor = params.curFactor || experimentalFactor[0].value;
+        factorOptions.filter(function(factor) {return factor.value === params.curFactor;})
           .attr('selected', 'selected');
 
         // Create time period menu
-        var timeObjects = trialInfo.timePeriods;
+        var timePeriods = trialInfo.timePeriods;
+        params.timePeriods = timePeriods;
         var timeMenu = d3.select('#timeMenu').select('select');
-        var timeOptions = timeMenu.selectAll('option').data(timeObjects, function(f) {return f.name;});
+        var timeOptions = timeMenu.selectAll('option').data(timePeriods, function(f) {return f.name;});
         timeOptions.enter()
           .append('option')
-          .attr('value', function(t) {return t.value;})
+          .attr('value', function(t) {return t.startID;})
           .text(function(t) {return t.name;});
         timeOptions.exit()
           .remove();
-        params.curTime = params.curTime || timeObjects[0].value;
-        timeOptions.filter(function(timeObject) {return timeObject.value === params.curTime;})
+        params.curTime = params.curTime || timePeriods[0].startID;
+        timeOptions.filter(function(period) {return period.startID === params.curTime;})
           .attr('selected', 'selected');
 
         queue()
@@ -158,14 +165,15 @@
                                                           '&curSession=' + params.curSession +
                                                           '&curNeuron=' + params.curNeuron +
                                                           '&curTime=' + params.curTime +
-                                                          '&curFactor=' + params.curFactor);
+                                                          '&curFactor=' + params.curFactor +
+                                                          '&color=' + params.color);
 
     // Nest and Sort Data
     if (params.curFactor != 'trial_id') {
       var factor = d3.nest()
           .key(function(d) {return d[params.curFactor];}) // nests data by selected factor
               .sortValues(function(a, b) { // sorts values based on Rule
-                return d3.ascending(a.Rule, b.Rule);
+                return d3.ascending(a[params.color], b[params.color]);
               })
           .entries(ruleRaster.data);
     } else {
@@ -176,19 +184,28 @@
             })
           .entries(ruleRaster.data);
     }
+    factor = factor.filter(function(f) {return f.key != 'null'});
 
     // Compute variables for placing plots (plots maintain constant size for each trial)
     var PLOT_BUFFER = 0;
-    var factorLength = factor.map(function(d) {return d.values.length;});
-
-    var factorRangeBand = factorLength.map(function(d) {return (height + (factorLength.length * -PLOT_BUFFER)) * (d / d3.sum(factorLength))});
-
     var factorPoints = [0];
-    factorRangeBand.forEach(function(d, i) {
-      factorPoints[i + 1] = factorPoints[i] + d + PLOT_BUFFER;
-    });
+    var factorRangeBand;
 
-    factorPoints = factorPoints.slice(0, factorPoints.length - 1);
+    if (params.isShowRaster) {
+      var factorLength = factor.map(function(d) {return d.values.length;});
+
+      factorRangeBand = factorLength.map(function(d) {return (height + (factorLength.length * -PLOT_BUFFER)) * (d / d3.sum(factorLength))});
+
+      factorRangeBand.forEach(function(d, i) {
+        factorPoints[i + 1] = factorPoints[i] + d + PLOT_BUFFER;
+      });
+
+      factorPoints = factorPoints.slice(0, factorPoints.length - 1);
+    } else {
+      var plotSize = (factor.length < 12) ? 500 : 1000;
+      factorRangeBand = Array.apply(null, new Array(factor.length)).map(function(){return plotSize/factor.length});
+      factorPoints = d3.range(0, plotSize, plotSize/factor.length);
+    }
 
     // Create a group element for each rule so that we can have two plots, translate plots so that they don't overlap
     var plotG = svg.selectAll('g.plotG')
@@ -226,25 +243,37 @@
       .domain([minTime - 10, maxTime + 10])
 			.range([0, width]);
 
-    var	colorScale;
-    if (params.color != 'Neutral') {
-      colorScale = d3.scale.ordinal()
-        .domain(['Color', 'Orientation'])
-        .range(['#ef8a62', '#67a9cf']);
-    } else {
-      colorScale = d3.scale.ordinal()
-        .domain(['Color', 'Orientation'])
+
+    var colorKeys = d3.nest().key(function(d) {return d[params.color];}).entries(ruleRaster.data).map(function(k) {return k.key;});
+    var	colorScale = d3.scale.ordinal()
+        .domain(colorKeys);
+
+    switch (params.color) {
+      case 'Rule':
+        colorScale
+          .range(['#ef8a62', '#67a9cf']);
+      break;
+      case undefined:
+        colorScale = d3.scale.ordinal()
           .range(['#bc80bd']);
+      break;
+      default:
+        colorScale = d3.scale.ordinal()
+          .range(['#3E9450', '#CD52D9', '#CC5125', '#4689AE', '#D24B80', '#7070D5',
+          '#B1782A', '#886AA0', '#A84D51', '#BC52A6', '#738E2B', '#DC474D'].slice(0, colorKeys.length));
     }
 
     // Draw spikes, event timePeriods, axes
-    plotG.each(drawSpikes);
+    plotG.each(drawEventLines);
+    if (params.isShowRaster) {plotG.each(drawSpikes)};
+    if (params.isShowLines) {plotG.each(drawKDE)};
+
     appendAxis();
+    appendLegend();
 
     // Listen for changes on the drop-down menu
     var subjectMenu = d3.select('#subjectMenu select');
     subjectMenu.on('change', function() {
-      svg.selectAll('.eventLine').remove();
       params.curSubject = d3.selectAll('#subjectMenu select').property('value');
       params.curSession = undefined;
       params.curNeuron = undefined;
@@ -252,7 +281,6 @@
     });
     var sessionMenu = d3.select('#sessionMenu select');
     sessionMenu.on('change', function() {
-      svg.selectAll('.eventLine').remove();
       params.curSession = d3.selectAll('#sessionMenu select').property('value');
       params.curNeuron = undefined;
       ruleRaster.loadData(params);
@@ -264,7 +292,6 @@
     });
     var factorMenu = d3.select('#factorSortMenu select');
     factorMenu.on('change', function() {
-      svg.selectAll('.eventLine').remove();
       params.curFactor = d3.selectAll('#factorSortMenu select').property('value');
       ruleRaster.draw(params);
     });
@@ -272,6 +299,36 @@
     timeMenu.on('change', function() {
       params.curTime = d3.selectAll('#timeMenu select').property('value');
       ruleRaster.draw(params);
+    });
+    var showLines = d3.select('#showLines input');
+    showLines.on('change', function(d) {
+      params.isShowLines = this.checked ? true : false;
+      if (this.checked) {
+        d3.select('#lineSmooth')
+          .style('display', '');
+        ruleRaster.draw(params)
+      } else {
+        d3.selectAll('g.kde').remove();
+        d3.select('#lineSmooth')
+          .style('display', 'none');
+        ruleRaster.draw(params);
+      }
+    });
+    var showRaster = d3.select('#showRaster input');
+    showRaster.on('change', function(d) {
+      params.isShowRaster = this.checked ? true : false;
+      if (this.checked) {
+        ruleRaster.draw(params)
+      } else {
+        d3.selectAll('g.plotG').remove();
+        ruleRaster.draw(params);
+      }
+    });
+    var lineSmooth = d3.select('#lineSmooth input');
+    lineSmooth.on('change', function(d) {
+      params.lineSmoothness = this.value;
+      d3.select('#lineSmooth-value').text('Smoothing: ' + this.value + ' ms');
+      if (params.isShowLines) {plotG.each(drawKDE)};
     });
 
     // ******************** Axis Function *******************
@@ -295,6 +352,37 @@
           .call(xAxis);
     }
 
+    function appendLegend() {
+      var CIRCLE_RADIUS = 7;
+      var legendG = svg.selectAll('g.legend').data(colorScale.domain());
+      legendG.enter()
+        .append('g')
+          .attr('class', 'legend');
+      legendG.exit()
+        .remove();
+      legendG
+        .attr('transform', function(d, i) {
+            return 'translate(' + (width + (CIRCLE_RADIUS * 4)) + ',' + ((i + 1) * ((CIRCLE_RADIUS * 2) + 3))  + ')';
+          });
+
+      var legendCircle = legendG.selectAll('circle').data(function(d) {return [d];});
+      legendCircle.enter()
+        .append('circle')
+          .attr('r', CIRCLE_RADIUS)
+          .attr('fill', function(d) {return colorScale(d);});
+
+      legendText = legendG.selectAll('text').data(function(d) {return [d];});
+
+      legendText.enter()
+        .append('text')
+          .attr('x', (CIRCLE_RADIUS * 2) + 5)
+          .attr('font-size', (CIRCLE_RADIUS * 2))
+          .attr('alignment-baseline', 'middle')
+          .text(function(d) {
+            return (d === undefined) ? 'Spike' : fixDimNames(params.color) + ': ' + d;
+          });
+    }
+
     // ******************** Helper Functions **********************
 
     // ******************** Draw Spikes Function ******************
@@ -305,10 +393,7 @@
       backgroundLayer.enter()
         .append('g')
           .attr('class', 'backgroundLayer');
-      drawEventLines(data, ind);
-      if (data.key === 'null') {
-        return;
-      }
+
       var trialLayer = curPlot.selectAll('g.trialLayer').data([{}]);
       trialLayer.enter()
         .append('g')
@@ -342,7 +427,7 @@
 
       trialG
         .style('fill', function(d) {
-          return colorScale(d.Rule);
+          return colorScale(d[params.color]);
         })
         .attr('transform', function(d, i) {
           return 'translate(0,' + data.yScale(i) + ')';
@@ -396,6 +481,172 @@
         .attr('opacity', '1e-9')
         .on('mouseover', mouseBoxOver)
         .on('mouseout', mouseBoxOut);
+
+      function mouseBoxOver(d) {
+        // Pop up tooltip
+        toolTip
+          .style('opacity', 1)
+          .style('left', (d3.event.pageX + 10) + 'px')
+          .style('top', (d3.event.pageY + 10) + 'px')
+          .html(function() {
+            return '<b>Trial ' + d.trial_id + '</b><br>' +
+                   '<table>' +
+                   '<tr><td>' + 'Rule:' + '</td><td><b>' + d.Rule + '</b></td></tr>' +
+                   '<tr><td>' + 'Rule Repetition:' + '</td><td><b>' + d.Rule_Repetition + '</b></td></tr>' +
+                   '<tr><td>' + 'Preparation Time:' + '</td><td><b>' + d.Preparation_Time + ' ms' + '</b></td></tr>' +
+                   '<tr><td>' + 'Congruency:' + '</td><td><b>' + d.Current_Congruency + '</b></td></tr>' +
+                   '<tr><td>' + 'Response Direction:' + '</td><td><b>' + d.Response_Direction + '</b></td></tr>' +
+                   '<tr><td>' + 'Reaction Time:' + '</td><td><b>' + d.Reaction_Time + ' ms' + '</b></td></tr>' +
+                   '<hr>' +
+                   '<tr><td>' + 'Correct?:' + '</td><td><b>' + d.isCorrect + '</b></td></tr>' +
+                   '<tr><td>' + 'Fixation Break?:' + '</td><td><b>' + d.Fixation_Break + '</b></td></tr>' +
+                   '<tr><td>' + 'Error on previous trial?:' + '</td><td><b>' + d.Previous_Error + '</b></td></tr>' +
+                   '<tr><td>' + 'Included in Analysis?:' + '</td><td><b>' + d.isIncluded + '</b></td></tr>' +
+                   '</table>';
+          });
+
+        var curMouseBox = d3.select(this);
+        curMouseBox
+          .attr('stroke', 'black')
+          .attr('fill', 'white')
+          .attr('opacity', 1)
+          .attr('fill-opacity', 1e-9);
+      }
+
+      function mouseBoxOut(d) {
+        // Hide tooltip
+        toolTip
+          .style('opacity', 1e-9);
+        var curMouseBox = d3.select(this);
+        curMouseBox
+          .attr('opacity', 1e-9);
+      }
+
+    }
+    // draws kernel density estimate
+    function drawKDE(data, ind) {
+      var curPlot = d3.select(this);
+
+      var spikes = d3.nest().key(function(d) {return d[params.color];}).entries(data.values);
+
+      var kde = kernelDensityEstimator(gaussianKernel(params.lineSmoothness), xScale.ticks(400));
+
+      spikes.forEach(function(e) {
+        e.values = kde( // Take the kernel density estimate of spikes
+          _.flatten( // flatten the spikes into one array
+            e.values.map(function(d) { // adjust spike times to be relative to cue
+              if (d.spikes[0] != undefined) {
+                return d.spikes.map(function(spike) {
+                  return spike - d[params.curTime];
+                });
+              } else {return undefined;}
+            })
+          )
+        );
+      });
+
+      var maxKDE = d3.max(spikes.map(function(d) {return d3.max(d.values, function(e) {return e[1];})}));
+
+      var yScale = d3.scale.linear()
+          .domain([0, maxKDE])
+          .range([factorRangeBand[ind], 0]);
+
+      var kdeG = curPlot.selectAll('g.kde').data(spikes, function(d) {return d.key;});
+      kdeG.enter()
+        .append('g')
+          .attr('class', 'kde')
+      kdeG.exit()
+        .remove();
+
+      var line = d3.svg.line()
+        .x(function(d) {return xScale(d[0]);})
+        .y(function(d) {return yScale(d[1]);});
+
+      var kdeLine = kdeG.selectAll('path.kdeLine').data(function(d) {return [d];});
+      kdeLine.enter()
+        .append('path')
+          .attr('class', 'kdeLine');
+      kdeLine
+        .transition()
+          .duration(1000)
+        .attr('d', function(d) {return line(d.values)})
+        .attr('stroke', function(d) {
+          return colorScale(d.key);})
+      kdeLine.exit()
+        .remove();
+    }
+    // ******************** Event Line Function *******************
+    function drawEventLines(data, ind) {
+
+      var curPlot = d3.select(this);
+      var backgroundLayer = curPlot.selectAll('g.backgroundLayer').data([{}]);
+      backgroundLayer.enter()
+        .append('g')
+          .attr('class', 'backgroundLayer');
+
+      var timePeriods = params.timePeriods;
+      var eventLine = backgroundLayer.selectAll('path.eventLine').data(timePeriods, function(d) {return d.label;});
+
+      eventLine.exit()
+        .remove();
+      // if timePeriod value is null, find the next non-null trial
+      var dataStartInd = 0;
+      while (data.values[dataStartInd][timePeriods[0].startID] === null && (dataStartInd < data.values.length - 1)) {
+        dataStartInd++;
+      }
+
+      // Append first non-null time for label position
+      timePeriods.forEach(function(period, ind) {
+          period.labelPosition = data.values[dataStartInd][period.startID] - data.values[dataStartInd][params.curTime];
+      });
+
+      var valuesInd = d3.range(data.values.length);
+      var newValues = data.values.concat(data.values);
+      valuesInd = valuesInd.concat(valuesInd);
+      newValues.forEach(function(d, i) {
+        d.sortInd = valuesInd[i];
+      });
+
+      newValues.sort(function(a, b) {
+        return d3.ascending(a.sortInd, b.sortInd);
+      });
+
+      // Plot timePeriods corresponding to trial events
+      eventLine.enter()
+        .append('path')
+          .attr('class', 'eventLine')
+          .attr('id', function(d) {return d.label;})
+          .attr('opacity', 1E-6)
+          .attr('fill', function(d) {return d.color;});
+
+      eventLine
+        .transition()
+          .duration(1000)
+          .ease('linear')
+          .attr('opacity', 0.90)
+          .attr('d', function(timePeriod) {
+            return AreaFun(newValues, timePeriod);
+          });
+
+      // Add labels corresponding to trial events
+      var eventLabel = svg.selectAll('.eventLabel').data(timePeriods, function(d) {return d.label;});
+
+      if (ind === 0) {
+        eventLabel.enter()
+          .append('foreignObject')
+            .attr('class', 'eventLabel')
+            .attr('id', function(d) {return d.label;})
+            .attr('y', -50)
+            .attr('width', 45)
+            .attr('height', 33)
+            .style('color', function(d) {return d.color;})
+            .html(function(d) {return '<div>' + d.label + '<br>▼</div>'; });
+
+        eventLabel
+          .attr('x', function(d) {
+            return (xScale(d.labelPosition) - 22.5) + 'px';
+          });
+      }
 
       // Y axis labels
       var yAxisG = curPlot.selectAll('g.yAxis').data([data.key]);
@@ -454,159 +705,53 @@
 
           break;
       }
-      function mouseBoxOver(d) {
-        // Pop up tooltip
-        toolTip
-          .style('opacity', 1)
-          .style('left', (d3.event.pageX + 10) + 'px')
-          .style('top', (d3.event.pageY + 10) + 'px')
-          .html(function() {
-            return '<b>Trial ' + d.trial_id + '</b><br>' +
-                   '<table>' +
-                   '<tr><td>' + 'Rule:' + '</td><td><b>' + d.Rule + '</b></td></tr>' +
-                   '<tr><td>' + 'Rule Repetition:' + '</td><td><b>' + d.Rule_Repetition + '</b></td></tr>' +
-                   '<tr><td>' + 'Preparation Time:' + '</td><td><b>' + d.Preparation_Time + ' ms' + '</b></td></tr>' +
-                   '<tr><td>' + 'Congruency:' + '</td><td><b>' + d.Current_Congruency + '</b></td></tr>' +
-                   '<tr><td>' + 'Response Direction:' + '</td><td><b>' + d.Response_Direction + '</b></td></tr>' +
-                   '<tr><td>' + 'Reaction Time:' + '</td><td><b>' + d.Reaction_Time + ' ms' + '</b></td></tr>' +
-                   '<hr>' +
-                   '<tr><td>' + 'Correct?:' + '</td><td><b>' + d.isCorrect + '</b></td></tr>' +
-                   '<tr><td>' + 'Fixation Break?:' + '</td><td><b>' + d.Fixation_Break + '</b></td></tr>' +
-                   '<tr><td>' + 'Error on previous trial?:' + '</td><td><b>' + d.Previous_Error + '</b></td></tr>' +
-                   '<tr><td>' + 'Included in Analysis?:' + '</td><td><b>' + d.isIncluded + '</b></td></tr>' +
-                   '</table>';
-          });
 
-        var curMouseBox = d3.select(this);
-        curMouseBox
-          .attr('stroke', 'black')
-          .attr('fill', 'white')
-          .attr('opacity', 1)
-          .attr('fill-opacity', 1e-9);
-      }
-
-      function mouseBoxOut(d) {
-        // Hide tooltip
-        toolTip
-          .style('opacity', 1e-9);
-        var curMouseBox = d3.select(this);
-        curMouseBox
-          .attr('opacity', 1e-9);
-      }
-
-      // ******************** Event Line Function *******************
-      function drawEventLines(data, ind) {
-        var timePeriods = [
-          {label: '<br>ITI', id1: 'start_time', id2: 'fixation_onset', color: '#c5b0d5'},
-          {label: '<br>Fix.', id1: 'fixation_onset', id2: 'rule_onset', color: '#f7b6d2'},
-          {label: '<br>Rule', id1: 'rule_onset', id2: 'stim_onset', color: '#98df8a'},
-          {label: 'Test<br>Stimulus', id1: 'stim_onset', id2: 'react_time', color:  '#ff9896'},
-          {label: '<br>Saccade', id1: 'react_time', id2: 'reward_time', color: '#9edae5'},
-          {label: '<br>Reward', id1: 'reward_time', id2: 'end_time', color:  '#c49c94'}
-        ];
-        var eventLine = backgroundLayer.selectAll('path.eventLine').data(timePeriods, function(d) {return d.label;});
-
-        eventLine.exit()
-          .remove();
-
-        // Append mean times for label position
-        timePeriods = timePeriods.map(function(period) {
-          // if timePeriod value is null, find the next non-null trial
-          var dataInd = 0;
-          while (data.values[dataInd][period.id1] == null) {
-            dataInd++;
-          }
-
-          return {
-            label: period.label,
-            id1: period.id1,
-            id2: period.id2,
-            labelPosition: data.values[dataInd][period.id1] - data.values[dataInd][params.curTime],
-            color: period.color
-          };
-        });
-
-        var valuesInd = d3.range(data.values.length);
-        var newValues = data.values.concat(data.values);
-        valuesInd = valuesInd.concat(valuesInd);
-        newValues = newValues.map(function(d, i) {
-          d.sortInd = valuesInd[i];
-          return d;
-        });
-
-        newValues.sort(function(a, b) {
-          return d3.ascending(a.sortInd, b.sortInd);
-        });
-
-        // Plot timePeriods corresponding to trial events
-        eventLine.enter()
-          .append('path')
-            .attr('class', 'eventLine')
-            .attr('id', function(d) {return d.label;})
-            .attr('opacity', 1E-6)
-            .attr('fill', function(d) {return d.color;});
-
-        eventLine
-          .transition()
-            .duration(1000)
-            .ease('linear')
-            .attr('opacity', 0.90)
-            .attr('d', function(timePeriod) {
-              return AreaFun(newValues, timePeriod);
-            });
-
-        // Add labels corresponding to trial events
-        var eventLabel = svg.selectAll('.eventLabel').data(timePeriods, function(d) {return d.label;});
-
-        if (ind === 0) {
-          eventLabel.enter()
-            .append('foreignObject')
-              .attr('class', 'eventLabel')
-              .attr('id', function(d) {return d.label;})
-              .attr('y', -50)
-              .attr('width', 45)
-              .attr('height', 33)
-              .style('color', function(d) {return d.color;})
-              .html(function(d) {return '<div>' + d.label + '<br>▼</div>'; });
-
-          eventLabel
-            .attr('x', function(d) {
-              return (xScale(d.labelPosition) - 22.5) + 'px';
-            });
-        }
-
-        function AreaFun(values, timePeriod) {
-          // Setup helper line function
-          var area = d3.svg.area()
-            .defined(function(d) {
-              return d[timePeriod.id1] != null && d[timePeriod.id2] != null && d[params.curTime] != null;
-            }) // if null, suppress line drawing
-            .x0(function(d) {
-              return xScale(d[timePeriod.id1] - d[params.curTime]);
-            })
-            .x1(function(d) {
-              return xScale(d[timePeriod.id2] - d[params.curTime]);
-            })
-            .y(function(d, i) {
-              if (i % 2 == 0) {
-                return data.yScale(d.sortInd);
-              } else {
-                return data.yScale(d.sortInd) + data.yScale.rangeBand();
-              }
-            })
-            .interpolate('linear');
-          return area(values);
-        }
+      function AreaFun(values, timePeriod) {
+        // Setup helper line function
+        var area = d3.svg.area()
+          .defined(function(d) {
+            return d[timePeriod.startID] != null && d[timePeriod.endID] != null && d[params.curTime] != null;
+          }) // if null, suppress line drawing
+          .x0(function(d) {
+            return xScale(d[timePeriod.startID] - d[params.curTime]);
+          })
+          .x1(function(d) {
+            return xScale(d[timePeriod.endID] - d[params.curTime]);
+          })
+          .y(function(d, i) {
+            if (i % 2 == 0) {
+              return data.yScale(d.sortInd);
+            } else {
+              return data.yScale(d.sortInd) + data.yScale.rangeBand();
+            }
+          })
+          .interpolate('linear');
+        return area(values);
       }
     }
 
-  // Replaces underscores with blanks and 'plus' with '+'
-  function fixDimNames(dimName) {
-    var pat1 = /plus/;
-    var pat2 = /_/g;
-    var pat3 = /minus/;
-    var fixedName = dimName.replace(pat1, '+').replace(pat2, ' ').replace(pat3, '-');
-    return fixedName;
-  }
+    // Replaces underscores with blanks and 'plus' with '+'
+    function fixDimNames(dimName) {
+      var pat1 = /plus/;
+      var pat2 = /_/g;
+      var pat3 = /minus/;
+      var fixedName = dimName.replace(pat1, '+').replace(pat2, ' ').replace(pat3, '-');
+      return fixedName;
+    }
+
+    function kernelDensityEstimator(kernel, x) {
+      return function(sample) {
+        return x.map(function(x) {
+          return [x, d3.mean(sample, function(v) { return kernel(x - v); })];
+        });
+      };
+    }
+
+    function gaussianKernel(scale) {
+      return function(u) {
+        return Math.exp((-0.5 * u * u) / (scale * scale)) / (scale * Math.sqrt(2 * Math.PI)) ;
+      };
+    }
+
   }
 })();

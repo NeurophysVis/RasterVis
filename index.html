@@ -45,6 +45,24 @@
               </select>
             </div>
         </div>
+        <div class="row bottom-buffer">
+          <div id="showLines" class="col-md-2">
+            <label>
+              <input type="checkbox" checked="checked"> Show lines
+            </label>
+          </div>
+          <div id="showRaster" class="col-md-2">
+            <label>
+              <input type="checkbox" checked="checked"> Show raster
+            </label>
+          </div>
+          <div id="lineSmooth" class="col-md-2 text-center">
+            <label>
+              <input type="range" min=5 value=20 max=1000 step=5></input>
+              <output id="lineSmooth-value">Smoothing: 20 ms</output>
+            </label>
+          </div>
+        </div>
         <div id="chart" class="row"></div>
       </div>
     <script src="js/jquery-2.1.4.min.js"></script>

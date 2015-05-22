@@ -40,7 +40,7 @@
 			.append('defs');
 
     // Set some default parameters
-    params.isShowLines = params.isShowLines || true;
+    params.isShowLines = params.isShowLines || false;
     params.isShowRaster = params.isShowRaster || true;
     params.lineSmoothness = params.lineSmoothness || 20;
     params.color = params.color || undefined;

@@ -40,18 +40,10 @@
 			.append('defs');
 
     // Set some default parameters
-    params.isShowLines = params.isShowLines || false;
+    params.isShowLines = params.isShowLines || true;
     params.isShowRaster = params.isShowRaster || true;
-    params.lineSmoothness = params.lineSmoothness || 20;
+    params.lineSmoothness = params.lineSmoothnes || 20;
     params.color = params.color || undefined;
-
-    if (params.curNeuron) {
-      var splitArray = (params.curNeuron).split('_');
-      params.curSession = splitArray[0];
-      params.curSubject = splitArray[0].toUpperCase().match(/\D+/)[0];
-    } else if (params.curSession) {
-      params.curSubject = (params.curSession).toUpperCase().match(/\D+/)[0];
-    }
 
     // Load Data
     ruleRaster.loadData(params);
@@ -152,7 +144,13 @@
             height = 4 * numTrials;
             chart.attr('height', height + margin.top + margin.bottom);
             ruleRaster.data = _.merge(trials, neuron.Spikes);
-
+            // Add neuron name as subtitle
+            var spanTitle = d3.select('#title').selectAll('span').data([neuron.Name])
+            spanTitle.enter()
+              .append('span');
+            spanTitle
+              .html('<h5>' + neuron.Brain_Area + ' Neuron: ' + neuron.Name + '</h5>');
+            d3.select('head').select('title').html('RasterVis - ' + neuron.Brain_Area + ' neuron ' + neuron.Name);
             // Draw visualization
             ruleRaster.draw(params);
           });

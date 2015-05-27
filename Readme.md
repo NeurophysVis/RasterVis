@@ -52,28 +52,17 @@ The trialInfo.json contains an array of three objects structured as follows:
 
 The (sessionName)_TrialInfo.json is an array of objects corresponding to each trial. Each trial object contains the properties corresponding to trial events and experimental factors. For example:
 ```
-"trial_id": 1,
+"trial_id": 129,
 "start_time": 0,
-"fixation_onset": 148,
-"rule_onset": 489,
-"stim_onset": 935,
+"fixation_onset": 143,
+"rule_onset": 491,
+"stim_onset": 934,
 "react_time": 1065,
-"reward_time": 1214,
-"end_time": 1262,
-"Rule": "Color",
-"Rule_Repetition": "1",
-"Response_Direction": "Left",
-"Current_Congruency": "Incongruent",
-"Previous_Congruency": null,
-"Preparation_Time": 446,
-"Previous_Error": null,
-"Test_Stimulus": "Vertical Red",
-"Rule_Cues": "Color Cue1",
-"Rule_Cue_Repetition": "Repetition",
+"reward_time": 1204,
+"end_time": 1232,
 "isCorrect": "Incorrect",
 "isIncluded": "Included",
 "Fixation_Break": "No Fixation Break",
-"Reaction_Time": 130
  ```
 
  The Neuron_(neuronName).json contains an object structured as follows:

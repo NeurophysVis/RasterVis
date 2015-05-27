@@ -45,6 +45,14 @@
     params.lineSmoothness = params.lineSmoothnes || 20;
     params.color = params.color || undefined;
 
+    if (params.curNeuron) {
+      var splitArray = (params.curNeuron).split('_');
+      params.curSession = splitArray[0];
+      params.curSubject = splitArray[0].toUpperCase().match(/\D+/)[0];
+    } else if (params.curSession) {
+      params.curSubject = (params.curSession).toUpperCase().match(/\D+/)[0];
+    }
+
     // Load Data
     ruleRaster.loadData(params);
   };
@@ -59,6 +67,7 @@
 
         // Create the monkey menu
         var subjectNames = trialInfo.monkey.map(function(m) {return m.name;});
+
         var subjectMenu = d3.select('#subjectMenu').select('select');
         var subjectOptions = subjectMenu.selectAll('option').data(subjectNames, String);
         subjectOptions.enter()

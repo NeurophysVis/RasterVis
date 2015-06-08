@@ -72,7 +72,7 @@ The (sessionName)_TrialInfo.json is an array of objects corresponding to each tr
 |--Name
 |--Brain_Area
 |--Subject
-  |--File_Name
+|--File_Name
 |--Number_of_Trials
 |--Spikes: an array of spike objects corresponding to each trial
     |--trial_id

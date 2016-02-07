@@ -2,6 +2,8 @@
 .json
 .mat
 DATA/
+node_modules
+bower_components
 
 # Windows image file caches
 Thumbs.db

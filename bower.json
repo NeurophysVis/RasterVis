@@ -1,0 +1,25 @@
+{
+  "name": "rastervis",
+  "description": "Interactive visualization of spike rasters and peri-event time histograms",
+  "main": "index.js",
+  "authors": [
+    "Eric Denovellis <edenovellis@msn.com> (http://ericdeno.com)"
+  ],
+  "license": "GPL-2.0",
+  "keywords": [
+    "Raster",
+    "Histogram",
+    "Neuroscience",
+    "Spikes",
+    "Electrophysiology"
+  ],
+  "homepage": "https://github.com/NeurophysVis/RasterVis",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

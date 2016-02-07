@@ -1,0 +1,46 @@
+{
+  "name": "rastervis",
+  "version": "0.0.1",
+  "description": "Interactive visualization of spike rasters and peri-event time histograms",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NeurophysVis/RasterVis.git"
+  },
+  "keywords": [
+    "Raster",
+    "Histogram",
+    "Neuroscience",
+    "Spikes",
+    "Electrophysiology"
+  ],
+  "author": "Eric Denovellis <edenovellis@msn.com> (http://ericdeno.com)",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/NeurophysVis/RasterVis/issues"
+  },
+  "homepage": "https://github.com/NeurophysVis/RasterVis#readme",
+  "devDependencies": {
+    "bower": "^1.7.7",
+    "gulp": "^3.9.0",
+    "gulp-autoprefixer": "^3.1.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-connect": "^2.3.1",
+    "gulp-cssmin": "^0.1.7",
+    "gulp-jsonminify": "^1.0.0",
+    "gulp-plumber": "^1.0.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-rollup": "^1.7.0",
+    "gulp-streamify": "^1.0.2",
+    "gulp-uglify": "^1.5.1",
+    "gulp-util": "^3.0.7",
+    "gulp-watch": "^4.3.5",
+    "gulp-zip": "^3.1.0"
+  },
+  "dependencies": {
+    "d3-save-svg": "0.0.2"
+  }
+}

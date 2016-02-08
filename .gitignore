@@ -2,5 +2,7 @@
 /DATA
 /public/DATA
 /node_modules
-bower_components
+/bower_components
 *.DS_Store
+/app/DATA
+/app/components

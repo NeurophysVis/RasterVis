@@ -2515,13 +2515,15 @@
     var neuronName = '';
     var sessionName = '';
     var rasterData = {};
-    var sortedRasterData = {};
+    var spikeInfo = {};
+    var sessionInfo = {};
     var showSpikes = true;
     var showSmoothingLines = true;
     var lineSmoothness = 20;
     var curFactor = 'trial_id';
-    var curEvent = '';
+    var curEvent = 'start_time';
     var interactionFactor = '';
+    var timeDomain = [];
     var dispatch = d3.dispatch('dataReady');
     var dataManager = {};
 
@@ -2531,25 +2533,48 @@
       queue()
         .defer(d3.json, 'DATA/' + sessionName + '_TrialInfo.json')
         .defer(d3.json, 'DATA/Neuron_' + neuronName + '.json')
-        .await(function (error, sessionInfo, neuron) {
-          rasterData = merge(sessionInfo, neuron.Spikes);
+        .await(function (error, sI, neuron) {
+          spikeInfo = neuron.Spikes;
+          sessionInfo = sI;
+          var minTime = d3.min(sessionInfo, function (s) { return s.start_time; });
+
+          var maxTime = d3.max(sessionInfo, function (s) { return s.end_time; });
+
+          timeDomain = [minTime, maxTime];
           dataManager.sortRasterData();
           dispatch.dataReady();
         });
     };
 
     dataManager.sortRasterData = function () {
+      var relativeSpikes = spikeInfo.map(function (trial, ind) {
+        if (Array.isArray(trial.spikes))
+        {
+          return {
+            trial_id: trial.trial_id,
+            spikes: trial.spikes.map(function (s) { return s - sessionInfo[ind][curEvent]; }),
+          };
+        } else {
+          return {
+            trial_id: trial.trial_id,
+            spikes: [],
+          };
+        }
+      });
+
+      rasterData = merge(sessionInfo, relativeSpikes);
+
       // Nest and Sort Data
       if (curFactor != 'trial_id') {
-        sortedRasterData = d3.nest()
-            .key(function (d) { return d[curFactor];}) // nests data by selected factor
+        rasterData = d3.nest()
+            .key(function (d) { return d[curFactor] + '_' + sessionName;}) // nests data by selected factor
                 .sortValues(function (a, b) { // sorts values based on Rule
                   return d3.ascending(a[interactionFactor], b[interactionFactor]);
                 })
             .entries(rasterData);
       } else {
-        sortedRasterData = d3.nest()
-            .key(function (d) {return d[''];}) // nests data by selected factor
+        rasterData = d3.nest()
+            .key(function (d) {return d[''] + '_' + sessionName;}) // nests data by selected factor
               .sortValues(function (a, b) { // sorts values based on trial
                 return d3.ascending(a.trial_id, b.trial_id);
               })
@@ -2605,9 +2630,9 @@
       return dataManager;
     };
 
-    dataManager.sortedRasterData = function (value) {
-      if (!arguments.length) return sortedRasterData;
-      sortedRasterData = value;
+    dataManager.timeDomain = function (value) {
+      if (!arguments.length) return timeDomain;
+      timeDomain = value;
       return dataManager;
     };
 
@@ -2617,9 +2642,114 @@
 
   }
 
+  const CIRCLE_RADIUS = 0.5;
+
+  function drawSpikes (selection, data, timeScale) {
+
+    // Reshape to spike time, trial position
+    data = data.map(function (trial, ind) {
+      return trial.map(function (spike) {
+        return [spike, ind];
+      });
+    });
+
+    // Flattern
+    data = [].concat.apply([], data);
+
+    var circles = selection.selectAll('circle').data(data);
+    circles.enter()
+      .append('circle');
+    circles.exit().remove();
+
+    circles
+      .attr('cx', function (d) {
+        return timeScale(d[0]);
+      })
+      .style('opacity', 1)
+      .attr('r', CIRCLE_RADIUS)
+      .attr('cy', function (d) { return d[1] + CIRCLE_RADIUS; });
+  }
+
+  function rasterChart () {
+    // Defaults
+    var margin = { top: 0, right: 0, bottom: 0, left: 0 };
+    var outerWidth = 960;
+    var outerHeight = 500;
+    var timeDomain = [];
+    var timeScale = d3.scale.linear();
+
+    function chart(selection) {
+
+      var innerWidth = outerWidth - margin.left - margin.right;
+
+      selection.each(function (data) {
+        var numTrials = data.values.length;
+        outerHeight = numTrials + margin.top + margin.bottom;
+        var innerHeight = outerHeight - margin.top - margin.bottom;
+        var svg = d3.select(this).selectAll('svg').data([data], function (d) { return d.key; });
+
+        // Initialize the chart
+        var enterG = svg.enter()
+          .append('svg')
+            .append('g');
+        enterG
+          .append('g')
+            .attr('class', 'trialEvents');
+        enterG
+          .append('g')
+            .attr('class', 'spikes');
+        enterG
+          .append('g')
+            .attr('class', 'smoothLine');
+
+        // Update svg size, drawing area, and scales
+        svg
+          .attr('width', innerWidth + margin.left + margin.right)
+          .attr('height', innerHeight + margin.top + margin.bottom);
+        svg.select('g')
+          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+        timeScale
+          .domain(timeDomain)
+          .range([0, innerWidth]);
+
+        drawSpikes(svg.select('g.spikes'), data.values.map(function (d) { return d.spikes; }), timeScale);
+
+      });
+
+    };
+
+    chart.width = function (value) {
+      if (!arguments.length) return outerWidth;
+      outerWidth = value;
+      return chart;
+    };
+
+    chart.timeDomain = function (value) {
+      if (!arguments.length) return timeDomain;
+      timeDomain = value;
+      return chart;
+    };
+
+    return chart;
+
+  }
+
+  var rasterView = rasterChart();
+
   var rasterData = rasterDataManger();
   rasterData.on('dataReady', function () {
-    console.log(rasterData.sortedRasterData());
+    var chartWidth = document.getElementById('chart').offsetWidth;
+    rasterView
+      .width(chartWidth)
+      .timeDomain(rasterData.timeDomain());
+
+    var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData());
+    multiples.enter()
+      .append('div')
+        .attr('class', 'row');
+    multiples.exit().remove();
+    multiples.call(rasterView);
   });
 
   function trialInfoDataManager() {

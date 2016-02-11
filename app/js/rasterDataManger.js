@@ -5,13 +5,15 @@ export default function() {
   var neuronName = '';
   var sessionName = '';
   var rasterData = {};
-  var sortedRasterData = {};
+  var spikeInfo = {};
+  var sessionInfo = {};
   var showSpikes = true;
   var showSmoothingLines = true;
   var lineSmoothness = 20;
   var curFactor = 'trial_id';
-  var curEvent = '';
+  var curEvent = 'start_time';
   var interactionFactor = '';
+  var timeDomain = [];
   var dispatch = d3.dispatch('dataReady');
   var dataManager = {};
 
@@ -21,25 +23,48 @@ export default function() {
     queue()
       .defer(d3.json, 'DATA/' + sessionName + '_TrialInfo.json')
       .defer(d3.json, 'DATA/Neuron_' + neuronName + '.json')
-      .await(function (error, sessionInfo, neuron) {
-        rasterData = merge(sessionInfo, neuron.Spikes);
+      .await(function (error, sI, neuron) {
+        spikeInfo = neuron.Spikes;
+        sessionInfo = sI;
+        var minTime = d3.min(sessionInfo, function (s) { return s.start_time; });
+
+        var maxTime = d3.max(sessionInfo, function (s) { return s.end_time; });
+
+        timeDomain = [minTime, maxTime];
         dataManager.sortRasterData();
         dispatch.dataReady();
       });
   };
 
   dataManager.sortRasterData = function () {
+    var relativeSpikes = spikeInfo.map(function (trial, ind) {
+      if (Array.isArray(trial.spikes))
+      {
+        return {
+          trial_id: trial.trial_id,
+          spikes: trial.spikes.map(function (s) { return s - sessionInfo[ind][curEvent]; }),
+        };
+      } else {
+        return {
+          trial_id: trial.trial_id,
+          spikes: [],
+        };
+      }
+    });
+
+    rasterData = merge(sessionInfo, relativeSpikes);
+
     // Nest and Sort Data
     if (curFactor != 'trial_id') {
-      sortedRasterData = d3.nest()
-          .key(function (d) { return d[curFactor];}) // nests data by selected factor
+      rasterData = d3.nest()
+          .key(function (d) { return d[curFactor] + '_' + sessionName;}) // nests data by selected factor
               .sortValues(function (a, b) { // sorts values based on Rule
                 return d3.ascending(a[interactionFactor], b[interactionFactor]);
               })
           .entries(rasterData);
     } else {
-      sortedRasterData = d3.nest()
-          .key(function (d) {return d[''];}) // nests data by selected factor
+      rasterData = d3.nest()
+          .key(function (d) {return d[''] + '_' + sessionName;}) // nests data by selected factor
             .sortValues(function (a, b) { // sorts values based on trial
               return d3.ascending(a.trial_id, b.trial_id);
             })
@@ -95,9 +120,9 @@ export default function() {
     return dataManager;
   };
 
-  dataManager.sortedRasterData = function (value) {
-    if (!arguments.length) return sortedRasterData;
-    sortedRasterData = value;
+  dataManager.timeDomain = function (value) {
+    if (!arguments.length) return timeDomain;
+    timeDomain = value;
     return dataManager;
   };
 

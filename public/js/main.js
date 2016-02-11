@@ -2642,9 +2642,9 @@
 
   }
 
-  const CIRCLE_RADIUS = 0.5;
+  function drawSpikes (selection, data, timeScale, yScale) {
 
-  function drawSpikes (selection, data, timeScale) {
+    var circleRadius = yScale.rangeBand() / 2;
 
     // Reshape to spike time, trial position
     data = data.map(function (trial, ind) {
@@ -2666,8 +2666,8 @@
         return timeScale(d[0]);
       })
       .style('opacity', 1)
-      .attr('r', CIRCLE_RADIUS)
-      .attr('cy', function (d) { return d[1] + CIRCLE_RADIUS; });
+      .attr('r', circleRadius)
+      .attr('cy', function (d) { return yScale(d[1]) + circleRadius; });
   }
 
   function rasterChart () {
@@ -2677,6 +2677,7 @@
     var outerHeight = 500;
     var timeDomain = [];
     var timeScale = d3.scale.linear();
+    var yScale = d3.scale.ordinal();
 
     function chart(selection) {
 
@@ -2684,7 +2685,7 @@
 
       selection.each(function (data) {
         var numTrials = data.values.length;
-        outerHeight = numTrials + margin.top + margin.bottom;
+        outerHeight = (numTrials * 4) + margin.top + margin.bottom;
         var innerHeight = outerHeight - margin.top - margin.bottom;
         var svg = d3.select(this).selectAll('svg').data([data], function (d) { return d.key; });
 
@@ -2712,8 +2713,11 @@
         timeScale
           .domain(timeDomain)
           .range([0, innerWidth]);
+        yScale
+          .domain(d3.range(0, numTrials))
+          .rangeBands([innerHeight, 0]);
 
-        drawSpikes(svg.select('g.spikes'), data.values.map(function (d) { return d.spikes; }), timeScale);
+        drawSpikes(svg.select('g.spikes'), data.values.map(function (d) { return d.spikes; }), timeScale, yScale);
 
       });
 

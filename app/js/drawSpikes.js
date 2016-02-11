@@ -1,6 +1,7 @@
-const CIRCLE_RADIUS = 0.5;
 
-export default function (selection, data, timeScale) {
+export default function (selection, data, timeScale, yScale) {
+
+  var circleRadius = yScale.rangeBand() / 2;
 
   // Reshape to spike time, trial position
   data = data.map(function (trial, ind) {
@@ -9,7 +10,7 @@ export default function (selection, data, timeScale) {
     });
   });
 
-  // Flattern
+  // Flatten
   data = [].concat.apply([], data);
 
   var circles = selection.selectAll('circle').data(data);
@@ -22,6 +23,6 @@ export default function (selection, data, timeScale) {
       return timeScale(d[0]);
     })
     .style('opacity', 1)
-    .attr('r', CIRCLE_RADIUS)
-    .attr('cy', function (d) { return d[1] + CIRCLE_RADIUS; });
+    .attr('r', circleRadius)
+    .attr('cy', function (d) { return yScale(d[1]) + circleRadius; });
 }

@@ -2551,7 +2551,7 @@
     };
 
     dataManager.changeEvent = function () {
-      var minTime = d3.min(sessionInfo, function (s) { return s[curEvent] - s.start_time; });
+      var minTime = d3.min(sessionInfo, function (s) { return s.start_time - s[curEvent]; });
 
       var maxTime = d3.max(sessionInfo, function (s) { return s.end_time - s[curEvent]; });
 
@@ -2569,18 +2569,18 @@
           .key(function (d) { return d[curFactor] + '_' + sessionName;}) // nests data by selected factor
           .sortKeys(function (a, b) {
             // Sort ordinal keys
-            if (factorType === 'ORDINAL') return d3.ascending(+a[curFactor], +b[curFactor]);
+            if (factorType === 'ORDINAL') return d3.descending(+a[curFactor], +b[curFactor]);
           })
           .sortValues(function (a, b) {
             // If interaction factor is specified, then sort by that as well
-            if (interactionFactor !== '') return d3.ascending(+a[interactionFactor], +b[interactionFactor]);
+            if (interactionFactor !== '') return d3.descending(+a[interactionFactor], +b[interactionFactor]);
           })
           .entries(rasterData);
       } else {
         rasterData = d3.nest()
           .key(function (d) {return d[''] + '_' + sessionName;}) // nests data by selected factor
             .sortValues(function (a, b) { // sorts values on factor if continuous
-              return d3.ascending(+a[curFactor], +b[curFactor]);
+              return d3.descending(+a[curFactor], +b[curFactor]);
             })
           .entries(rasterData);
       }
@@ -2769,6 +2769,81 @@
     return newValues;
   }
 
+  var toolTip = d3.select('body').selectAll('div#tooltip').data([{}]);
+  toolTip.enter()
+    .append('div')
+      .attr('id', 'tooltip')
+      .style('opacity', 1e-6);
+
+  function drawMouseBox (selection, data, timeScale, yScale, curEvent, width) {
+    // Append invisible box for mouseover
+    var mouseBox = selection.selectAll('rect.trialBox').data(data);
+
+    mouseBox.exit()
+      .remove();
+    mouseBox.enter()
+      .append('rect')
+        .attr('class', 'trialBox');
+    mouseBox
+      .attr('x', function (d) {
+        if (d.start_time !== null) {
+          return timeScale(d.start_time - d[curEvent]);
+        } else {
+          return 0;
+        }
+      })
+      .attr('y', function (d, i) { return yScale(i); })
+      .attr('width', function (d) {
+        if (d.start_time !== null) {
+          return (timeScale(d.end_time - d[curEvent])) - (timeScale(d.start_time - d[curEvent]));
+        } else {
+          return width;
+        }
+      })
+      .attr('height', yScale.rangeBand())
+      .attr('opacity', '1e-9')
+      .on('mouseover', mouseBoxOver)
+      .on('mouseout', mouseBoxOut);
+  }
+
+  function mouseBoxOver(d) {
+    // Pop up tooltip
+    toolTip
+      .style('opacity', 1)
+      .style('left', (d3.event.pageX + 10) + 'px')
+      .style('top', (d3.event.pageY + 10) + 'px')
+      .html(function () {
+        return '<b>Trial ' + d.trial_id + '</b><br>' +
+               '<table>' +
+               '<tr><td>' + 'Rule:' + '</td><td><b>' + d.Rule + '</b></td></tr>' +
+               '<tr><td>' + 'Rule Repetition:' + '</td><td><b>' + d.Rule_Repetition + '</b></td></tr>' +
+               '<tr><td>' + 'Preparation Time:' + '</td><td><b>' + d.Preparation_Time + ' ms' + '</b></td></tr>' +
+               '<tr><td>' + 'Congruency:' + '</td><td><b>' + d.Current_Congruency + '</b></td></tr>' +
+               '<tr><td>' + 'Response Direction:' + '</td><td><b>' + d.Response_Direction + '</b></td></tr>' +
+               '<tr><td>' + 'Reaction Time:' + '</td><td><b>' + d.Reaction_Time + ' ms' + '</b></td></tr>' +
+               '<hr>' +
+               '<tr><td>' + 'Correct?:' + '</td><td><b>' + d.isCorrect + '</b></td></tr>' +
+               '<tr><td>' + 'Fixation Break?:' + '</td><td><b>' + d.Fixation_Break + '</b></td></tr>' +
+               '<tr><td>' + 'Error on previous trial?:' + '</td><td><b>' + d.Previous_Error + '</b></td></tr>' +
+               '<tr><td>' + 'Included in Analysis?:' + '</td><td><b>' + d.isIncluded + '</b></td></tr>' +
+               '</table>';
+      });
+
+    d3.select(this)
+      .attr('stroke', 'black')
+      .attr('fill', 'white')
+      .attr('opacity', 1)
+      .attr('fill-opacity', 1e-9);
+  }
+
+  function mouseBoxOut(d) {
+    // Hide tooltip
+    toolTip
+      .style('opacity', 1e-9);
+    d3.select(this)
+      .attr('opacity', 1e-9);
+  }
+
   function rasterChart () {
     // Defaults
     var margin = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -2803,6 +2878,9 @@
         enterG
           .append('g')
             .attr('class', 'smoothLine');
+        enterG
+          .append('g')
+            .attr('class', 'invisibleBox');
 
         // Update svg size, drawing area, and scales
         svg
@@ -2820,6 +2898,7 @@
 
         drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent);
         drawTrialEvents(svg.select('g.trialEvents'), data.values, trialEvents, curEvent, timeScale, yScale);
+        drawMouseBox(svg.select('g.invisibleBox'), data.values, timeScale, yScale, curEvent, innerWidth);
 
       });
 

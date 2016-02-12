@@ -1,5 +1,6 @@
 import drawSpikes from './drawSpikes';
 import drawTrialEvents from './drawTrialEvents';
+import drawMouseBox from './drawMouseBox';
 
 export default function () {
   // Defaults
@@ -35,6 +36,9 @@ export default function () {
       enterG
         .append('g')
           .attr('class', 'smoothLine');
+      enterG
+        .append('g')
+          .attr('class', 'invisibleBox');
 
       // Update svg size, drawing area, and scales
       svg
@@ -52,6 +56,7 @@ export default function () {
 
       drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent);
       drawTrialEvents(svg.select('g.trialEvents'), data.values, trialEvents, curEvent, timeScale, yScale);
+      drawMouseBox(svg.select('g.invisibleBox'), data.values, timeScale, yScale, curEvent, innerWidth);
 
     });
 

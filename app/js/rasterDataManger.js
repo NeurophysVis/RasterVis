@@ -41,7 +41,7 @@ export default function() {
   };
 
   dataManager.changeEvent = function () {
-    var minTime = d3.min(sessionInfo, function (s) { return s[curEvent] - s.start_time; });
+    var minTime = d3.min(sessionInfo, function (s) { return s.start_time - s[curEvent]; });
 
     var maxTime = d3.max(sessionInfo, function (s) { return s.end_time - s[curEvent]; });
 

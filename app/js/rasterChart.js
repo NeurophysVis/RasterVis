@@ -1,4 +1,5 @@
 import drawSpikes from './drawSpikes';
+import drawTrialEvents from './drawTrialEvents';
 
 export default function () {
   // Defaults
@@ -8,6 +9,8 @@ export default function () {
   var timeDomain = [];
   var timeScale = d3.scale.linear();
   var yScale = d3.scale.ordinal();
+  var curEvent = '';
+  var trialEvents = [];
 
   function chart(selection) {
 
@@ -47,7 +50,8 @@ export default function () {
         .domain(d3.range(0, numTrials))
         .rangeBands([innerHeight, 0]);
 
-      drawSpikes(svg.select('g.spikes'), data.values.map(function (d) { return d.spikes; }), timeScale, yScale);
+      drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent);
+      drawTrialEvents(svg.select('g.trialEvents'), data.values, trialEvents, curEvent, timeScale, yScale);
 
     });
 
@@ -62,6 +66,24 @@ export default function () {
   chart.timeDomain = function (value) {
     if (!arguments.length) return timeDomain;
     timeDomain = value;
+    return chart;
+  };
+
+  chart.curEvent = function (value) {
+    if (!arguments.length) return curEvent;
+    curEvent = value;
+    return chart;
+  };
+
+  chart.curEvent = function (value) {
+    if (!arguments.length) return curEvent;
+    curEvent = value;
+    return chart;
+  };
+
+  chart.trialEvents = function (value) {
+    if (!arguments.length) return trialEvents;
+    trialEvents = value;
     return chart;
   };
 

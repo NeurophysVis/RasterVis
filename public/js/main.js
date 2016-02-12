@@ -2536,33 +2536,23 @@
         .await(function (error, sI, neuron) {
           spikeInfo = neuron.Spikes;
           sessionInfo = sI;
-          var minTime = d3.min(sessionInfo, function (s) { return s.start_time; });
 
-          var maxTime = d3.max(sessionInfo, function (s) { return s.end_time; });
-
-          timeDomain = [minTime, maxTime];
           dataManager.sortRasterData();
+          dataManager.changeEvent();
           dispatch.dataReady();
         });
     };
 
-    dataManager.sortRasterData = function () {
-      var relativeSpikes = spikeInfo.map(function (trial, ind) {
-        if (Array.isArray(trial.spikes))
-        {
-          return {
-            trial_id: trial.trial_id,
-            spikes: trial.spikes.map(function (s) { return s - sessionInfo[ind][curEvent]; }),
-          };
-        } else {
-          return {
-            trial_id: trial.trial_id,
-            spikes: [],
-          };
-        }
-      });
+    dataManager.changeEvent = function () {
+      var minTime = d3.min(sessionInfo, function (s) { return s[curEvent] - s.start_time; });
 
-      rasterData = merge(sessionInfo, relativeSpikes);
+      var maxTime = d3.max(sessionInfo, function (s) { return s.end_time - s[curEvent]; });
+
+      timeDomain = [minTime, maxTime];
+    };
+
+    dataManager.sortRasterData = function () {
+      rasterData = merge(sessionInfo, spikeInfo);
 
       // Nest and Sort Data
       if (curFactor != 'trial_id') {
@@ -2621,12 +2611,14 @@
     dataManager.curFactor = function (value) {
       if (!arguments.length) return curFactor;
       curFactor = value;
+      if (sessionInfo !== {}) dataManager.sortRasterData(); dispatch.dataReady();
       return dataManager;
     };
 
     dataManager.curEvent = function (value) {
       if (!arguments.length) return curEvent;
       curEvent = value;
+      if (sessionInfo !== {}) dataManager.changeEvent(); dispatch.dataReady();
       return dataManager;
     };
 
@@ -2642,18 +2634,22 @@
 
   }
 
-  function drawSpikes (selection, data, timeScale, yScale) {
+  // Draws spikes as circles
+  function drawSpikes (selection, sessionInfo, timeScale, yScale, curEvent) {
 
     var circleRadius = yScale.rangeBand() / 2;
 
-    // Reshape to spike time, trial position
-    data = data.map(function (trial, ind) {
-      return trial.map(function (spike) {
-        return [spike, ind];
+    // Reshape to spike time, trial position.
+    // Adjust spike time relative to current trial event
+    var data = sessionInfo.map(function (trial, ind) {
+      if (!Array.isArray(trial.spikes)) { return []; };
+
+      return trial.spikes.map(function (spike) {
+        return [spike - trial[curEvent], ind];
       });
     });
 
-    // Flattern
+    // Flatten
     data = [].concat.apply([], data);
 
     var circles = selection.selectAll('circle').data(data);
@@ -2670,6 +2666,77 @@
       .attr('cy', function (d) { return yScale(d[1]) + circleRadius; });
   }
 
+  /* Draws each trial event (e.g. saccade, cue period, reward) from the beginning to
+    end (e.g. saccade start, saccade finish) as an area. */
+
+  function drawTrialEvents (selection, sessionInfo, trialEvents, curEvent, timeScale, yScale) {
+
+    var eventArea = selection.selectAll('path.eventArea').data(trialEvents, function (d) {return d.label;});
+
+    /* Reformat data for area chart. Duplicate data twice in order to draw
+    straight vertical edges at the beginning and end of trials */
+    var dupData = duplicateData(sessionInfo);
+
+    // Plot area corresponding to trial events
+    eventArea.enter()
+      .append('path')
+        .attr('class', 'eventArea')
+        .attr('id', function (d) {return d.label;})
+        .attr('opacity', 1E-6)
+        .attr('fill', function (d) {return d.color;});
+
+    eventArea.exit().remove();
+
+    eventArea
+      .transition()
+        .duration(1000)
+        .ease('linear')
+        .attr('opacity', 0.90)
+        .attr('d', function (t) {
+          return AreaFun(dupData, t, timeScale, yScale, curEvent);
+        });
+  }
+
+  function AreaFun(values, trialEvents, timeScale, yScale, curEvent) {
+    // Setup helper line function
+    var area = d3.svg.area()
+      .defined(function (d) {
+        return d[trialEvents.startID] != null && d[trialEvents.endID] != null && d[curEvent] != null;
+      }) // if null, suppress line drawing
+      .x0(function (d) {
+        return timeScale(d[trialEvents.startID] - d[curEvent]);
+      })
+      .x1(function (d) {
+        return timeScale(d[trialEvents.endID] - d[curEvent]);
+      })
+      .y(function (d, i) {
+        // Draws straight line down for each trial on the corners.
+        if (i % 2 == 0) { // Alternate top and bottom
+          return yScale(d.sortInd); // Top of the trial
+        } else {
+          return yScale(d.sortInd) + yScale.rangeBand(); // bottom of the trial
+        }
+      })
+      .interpolate('step');
+    return area(values);
+  }
+
+  function duplicateData(data) {
+    // Duplicate data so that it appears twice aka 11223344
+    var valuesInd = d3.range(data.length);
+    var newValues = data.concat(data);
+    valuesInd = valuesInd.concat(valuesInd);
+    newValues.forEach(function (d, i) {
+      d.sortInd = valuesInd[i];
+    });
+
+    newValues.sort(function (a, b) {
+      return d3.ascending(a.sortInd, b.sortInd);
+    });
+
+    return newValues;
+  }
+
   function rasterChart () {
     // Defaults
     var margin = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -2678,6 +2745,8 @@
     var timeDomain = [];
     var timeScale = d3.scale.linear();
     var yScale = d3.scale.ordinal();
+    var curEvent = '';
+    var trialEvents = [];
 
     function chart(selection) {
 
@@ -2717,7 +2786,8 @@
           .domain(d3.range(0, numTrials))
           .rangeBands([innerHeight, 0]);
 
-        drawSpikes(svg.select('g.spikes'), data.values.map(function (d) { return d.spikes; }), timeScale, yScale);
+        drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent);
+        drawTrialEvents(svg.select('g.trialEvents'), data.values, trialEvents, curEvent, timeScale, yScale);
 
       });
 
@@ -2735,26 +2805,29 @@
       return chart;
     };
 
+    chart.curEvent = function (value) {
+      if (!arguments.length) return curEvent;
+      curEvent = value;
+      return chart;
+    };
+
+    chart.curEvent = function (value) {
+      if (!arguments.length) return curEvent;
+      curEvent = value;
+      return chart;
+    };
+
+    chart.trialEvents = function (value) {
+      if (!arguments.length) return trialEvents;
+      trialEvents = value;
+      return chart;
+    };
+
     return chart;
 
   }
 
   var rasterView = rasterChart();
-
-  var rasterData = rasterDataManger();
-  rasterData.on('dataReady', function () {
-    var chartWidth = document.getElementById('chart').offsetWidth;
-    rasterView
-      .width(chartWidth)
-      .timeDomain(rasterData.timeDomain());
-
-    var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData());
-    multiples.enter()
-      .append('div')
-        .attr('class', 'row');
-    multiples.exit().remove();
-    multiples.call(rasterView);
-  });
 
   function trialInfoDataManager() {
     var factorList = [];
@@ -2798,6 +2871,23 @@
   var trialInfo = trialInfoDataManager();
   trialInfo.on('dataReady', function () {
     rasterData.loadRasterData();
+  });
+
+  var rasterData = rasterDataManger();
+  rasterData.on('dataReady', function () {
+    var chartWidth = document.getElementById('chart').offsetWidth;
+    rasterView
+      .width(chartWidth)
+      .timeDomain(rasterData.timeDomain())
+      .trialEvents(trialInfo.trialEvents())
+      .curEvent(rasterData.curEvent());
+
+    var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData());
+    multiples.enter()
+      .append('div')
+        .attr('class', 'row');
+    multiples.exit().remove();
+    multiples.call(rasterView);
   });
 
   rasterData.neuronName('cc1_9_1');

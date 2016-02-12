@@ -1,12 +1,15 @@
-
-export default function (selection, data, timeScale, yScale) {
+// Draws spikes as circles
+export default function (selection, sessionInfo, timeScale, yScale, curEvent) {
 
   var circleRadius = yScale.rangeBand() / 2;
 
-  // Reshape to spike time, trial position
-  data = data.map(function (trial, ind) {
-    return trial.map(function (spike) {
-      return [spike, ind];
+  // Reshape to spike time, trial position.
+  // Adjust spike time relative to current trial event
+  var data = sessionInfo.map(function (trial, ind) {
+    if (!Array.isArray(trial.spikes)) { return []; };
+
+    return trial.spikes.map(function (spike) {
+      return [spike - trial[curEvent], ind];
     });
   });
 

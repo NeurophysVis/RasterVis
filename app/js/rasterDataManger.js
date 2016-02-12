@@ -26,33 +26,23 @@ export default function() {
       .await(function (error, sI, neuron) {
         spikeInfo = neuron.Spikes;
         sessionInfo = sI;
-        var minTime = d3.min(sessionInfo, function (s) { return s.start_time; });
 
-        var maxTime = d3.max(sessionInfo, function (s) { return s.end_time; });
-
-        timeDomain = [minTime, maxTime];
         dataManager.sortRasterData();
+        dataManager.changeEvent();
         dispatch.dataReady();
       });
   };
 
-  dataManager.sortRasterData = function () {
-    var relativeSpikes = spikeInfo.map(function (trial, ind) {
-      if (Array.isArray(trial.spikes))
-      {
-        return {
-          trial_id: trial.trial_id,
-          spikes: trial.spikes.map(function (s) { return s - sessionInfo[ind][curEvent]; }),
-        };
-      } else {
-        return {
-          trial_id: trial.trial_id,
-          spikes: [],
-        };
-      }
-    });
+  dataManager.changeEvent = function () {
+    var minTime = d3.min(sessionInfo, function (s) { return s[curEvent] - s.start_time; });
 
-    rasterData = merge(sessionInfo, relativeSpikes);
+    var maxTime = d3.max(sessionInfo, function (s) { return s.end_time - s[curEvent]; });
+
+    timeDomain = [minTime, maxTime];
+  };
+
+  dataManager.sortRasterData = function () {
+    rasterData = merge(sessionInfo, spikeInfo);
 
     // Nest and Sort Data
     if (curFactor != 'trial_id') {
@@ -111,12 +101,14 @@ export default function() {
   dataManager.curFactor = function (value) {
     if (!arguments.length) return curFactor;
     curFactor = value;
+    if (sessionInfo !== {}) dataManager.sortRasterData(); dispatch.dataReady();
     return dataManager;
   };
 
   dataManager.curEvent = function (value) {
     if (!arguments.length) return curEvent;
     curEvent = value;
+    if (sessionInfo !== {}) dataManager.changeEvent(); dispatch.dataReady();
     return dataManager;
   };
 

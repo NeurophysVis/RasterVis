@@ -59,18 +59,18 @@ export default function() {
         .key(function (d) { return d[curFactor] + '_' + sessionName;}) // nests data by selected factor
         .sortKeys(function (a, b) {
           // Sort ordinal keys
-          if (factorType === 'ORDINAL') return d3.ascending(+a[curFactor], +b[curFactor]);
+          if (factorType === 'ORDINAL') return d3.descending(+a[curFactor], +b[curFactor]);
         })
         .sortValues(function (a, b) {
           // If interaction factor is specified, then sort by that as well
-          if (interactionFactor !== '') return d3.ascending(+a[interactionFactor], +b[interactionFactor]);
+          if (interactionFactor !== '') return d3.descending(+a[interactionFactor], +b[interactionFactor]);
         })
         .entries(rasterData);
     } else {
       rasterData = d3.nest()
         .key(function (d) {return d[''] + '_' + sessionName;}) // nests data by selected factor
           .sortValues(function (a, b) { // sorts values on factor if continuous
-            return d3.ascending(+a[curFactor], +b[curFactor]);
+            return d3.descending(+a[curFactor], +b[curFactor]);
           })
         .entries(rasterData);
     }

@@ -14,6 +14,9 @@ export default function() {
   var curEvent = 'start_time';
   var interactionFactor = '';
   var timeDomain = [];
+  var factorList = [];
+  var trialEvents = [];
+  var neuronList = [];
   var dispatch = d3.dispatch('dataReady');
   var dataManager = {};
 
@@ -21,9 +24,13 @@ export default function() {
     var s = neuronName.split('_');
     sessionName = s[0];
     queue()
+      .defer(d3.json, 'DATA/' + 'trialInfo.json')
       .defer(d3.json, 'DATA/' + sessionName + '_TrialInfo.json')
       .defer(d3.json, 'DATA/Neuron_' + neuronName + '.json')
-      .await(function (error, sI, neuron) {
+      .await(function (error, trialInfo, sI, neuron) {
+        factorList = trialInfo.experimentalFactor;
+        trialEvents = trialInfo.timePeriods;
+        neuronList = trialInfo.monkey;
         spikeInfo = neuron.Spikes;
         sessionInfo = sI;
 
@@ -43,22 +50,29 @@ export default function() {
 
   dataManager.sortRasterData = function () {
     rasterData = merge(sessionInfo, spikeInfo);
+    var factorType = factorList.filter(function (d) {return d.value === curFactor;})
+                               .map(function (d) {return d.factorType;})[0].toUpperCase();
 
     // Nest and Sort Data
-    if (curFactor !== 'trial_id') {
+    if (factorType !== 'CONTINUOUS') {
       rasterData = d3.nest()
-          .key(function (d) { return d[curFactor] + '_' + sessionName;}) // nests data by selected factor
-              .sortValues(function (a, b) {
-                if (interactionFactor !== '') return d3.ascending(a[interactionFactor], b[interactionFactor]);
-              })
-          .entries(rasterData);
+        .key(function (d) { return d[curFactor] + '_' + sessionName;}) // nests data by selected factor
+        .sortKeys(function (a, b) {
+          // Sort ordinal keys
+          if (factorType === 'ORDINAL') return d3.ascending(+a[curFactor], +b[curFactor]);
+        })
+        .sortValues(function (a, b) {
+          // If interaction factor is specified, then sort by that as well
+          if (interactionFactor !== '') return d3.ascending(+a[interactionFactor], +b[interactionFactor]);
+        })
+        .entries(rasterData);
     } else {
       rasterData = d3.nest()
-          .key(function (d) {return d[''] + '_' + sessionName;}) // nests data by selected factor
-            .sortValues(function (a, b) { // sorts values based on trial
-              return d3.ascending(a.trial_id, b.trial_id);
-            })
-          .entries(rasterData);
+        .key(function (d) {return d[''] + '_' + sessionName;}) // nests data by selected factor
+          .sortValues(function (a, b) { // sorts values on factor if continuous
+            return d3.ascending(+a[curFactor], +b[curFactor]);
+          })
+        .entries(rasterData);
     }
   };
 
@@ -115,6 +129,24 @@ export default function() {
   dataManager.timeDomain = function (value) {
     if (!arguments.length) return timeDomain;
     timeDomain = value;
+    return dataManager;
+  };
+
+  dataManager.factorList = function (value) {
+    if (!arguments.length) return factorList;
+    factorList = value;
+    return dataManager;
+  };
+
+  dataManager.trialEvents = function (value) {
+    if (!arguments.length) return trialEvents;
+    trialEvents = value;
+    return dataManager;
+  };
+
+  dataManager.neuronList = function (value) {
+    if (!arguments.length) return neuronList;
+    neuronList = value;
     return dataManager;
   };
 

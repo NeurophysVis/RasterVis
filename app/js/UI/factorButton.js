@@ -1,5 +1,4 @@
 import createDropdown from './createDropdown';
-import trialInfo from '../trialInfo';
 import rasterData from '../rasterData';
 
 var factorDropdown = createDropdown()

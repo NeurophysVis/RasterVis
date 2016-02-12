@@ -1,6 +1,5 @@
 import rasterDataManger from './rasterDataManger';
 import rasterView from './rasterView';
-import trialInfo from './trialInfo';
 import factorButton from './UI/factorButton';
 import eventButton from './UI/eventButton';
 
@@ -10,7 +9,7 @@ rasterData.on('dataReady', function () {
   rasterView
     .width(chartWidth)
     .timeDomain(rasterData.timeDomain())
-    .trialEvents(trialInfo.trialEvents())
+    .trialEvents(rasterData.trialEvents())
     .curEvent(rasterData.curEvent());
 
   var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
@@ -23,6 +22,8 @@ rasterData.on('dataReady', function () {
   multiples.exit().remove();
   multiples.call(rasterView);
 
+  factorButton.options(rasterData.factorList());
+  eventButton.options(rasterData.trialEvents());
   d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorButton);
   d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventButton);
 });

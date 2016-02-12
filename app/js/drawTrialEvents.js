@@ -49,7 +49,7 @@ function AreaFun(values, trialEvents, timeScale, yScale, curEvent) {
         return yScale(d.sortInd) + yScale.rangeBand(); // bottom of the trial
       }
     })
-    .interpolate('step');
+    .interpolate('linear');
   return area(values);
 }
 

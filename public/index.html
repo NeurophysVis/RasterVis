@@ -16,7 +16,6 @@
         <button type="button" class="btn btn-lg bottom-buffer" id="help-button" aria-label="Help">
           <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
         </button>
-      </h1>
       </div>
       <div class="row" id="filterNav">
             <div id="subjectMenu" class="col-md-2">
@@ -34,15 +33,23 @@
               <select name="neuron-list" class="form-control">
               </select>
             </div>
-            <div id="factorSortMenu" class="col-md-3">
-              <b>Sort by Experimental Factor:</b><br>
-              <select class="form-control">
-              </select>
+            <div id="FactorSortMenu" class="col-md-3">
+              <label class="col-md-6">Sort by Experimental Factor:</label>
+              <div class="dropdown col-md-6" id="FactorSortDropdown">
+                <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="FactorSortButton" data-toggle="dropdown">
+                </button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="FactorSortDropdown">
+                </ul>
+              </div>
             </div>
-            <div id="timeMenu" class="col-md-3">
-              <b>Time relative to:</b><br>
-              <select class="form-control">
-              </select>
+            <div id="EventMenu" class="col-md-3">
+              <label class="col-md-6">Time relative to:</label>
+              <div class="dropdown col-md-6" id="EventDropdown">
+                <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="EventButton" data-toggle="dropdown">
+                </button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="EventDropdown">
+                </ul>
+              </div>
             </div>
         </div>
         <div class="row">
@@ -58,7 +65,7 @@
           </div>
           <div id="lineSmooth" class="col-md-2 text-center">
             <label>
-              <input type="range" min=5 value=20 max=1000 step=5></input>
+              <input type="range" min="5" value="20" max="1000" step="5">
               <output id="lineSmooth-value">Smoothing: 20 ms</output>
             </label>
           </div>

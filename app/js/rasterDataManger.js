@@ -45,11 +45,11 @@ export default function() {
     rasterData = merge(sessionInfo, spikeInfo);
 
     // Nest and Sort Data
-    if (curFactor != 'trial_id') {
+    if (curFactor !== 'trial_id') {
       rasterData = d3.nest()
           .key(function (d) { return d[curFactor] + '_' + sessionName;}) // nests data by selected factor
-              .sortValues(function (a, b) { // sorts values based on Rule
-                return d3.ascending(a[interactionFactor], b[interactionFactor]);
+              .sortValues(function (a, b) {
+                if (interactionFactor !== '') return d3.ascending(a[interactionFactor], b[interactionFactor]);
               })
           .entries(rasterData);
     } else {

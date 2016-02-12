@@ -2763,7 +2763,7 @@
     });
 
     newValues.sort(function (a, b) {
-      return d3.ascending(a.sortInd, b.sortInd);
+      return d3.descending(a.sortInd, b.sortInd);
     });
 
     return newValues;

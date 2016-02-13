@@ -2514,6 +2514,12 @@
   function rasterDataManger() {
     var neuronName = '';
     var sessionName = '';
+    var brainArea = '';
+    var Subject = '';
+    var timeDomain = [];
+    var factorList = [];
+    var trialEvents = [];
+    var neuronList = [];
     var rasterData = {};
     var spikeInfo = {};
     var sessionInfo = {};
@@ -2523,31 +2529,34 @@
     var curFactor = 'trial_id';
     var curEvent = 'start_time';
     var interactionFactor = '';
-    var timeDomain = [];
-    var factorList = [];
-    var trialEvents = [];
-    var neuronList = [];
     var dispatch = d3.dispatch('dataReady');
     var dataManager = {};
 
     dataManager.loadRasterData = function () {
-      var s = neuronName.split('_');
-      sessionName = s[0];
-      queue()
-        .defer(d3.json, 'DATA/' + 'trialInfo.json')
-        .defer(d3.json, 'DATA/' + sessionName + '_TrialInfo.json')
-        .defer(d3.json, 'DATA/Neuron_' + neuronName + '.json')
-        .await(function (error, trialInfo, sI, neuron) {
-          factorList = trialInfo.experimentalFactor;
-          trialEvents = trialInfo.timePeriods;
-          neuronList = trialInfo.monkey;
-          spikeInfo = neuron.Spikes;
-          sessionInfo = sI;
 
-          dataManager.sortRasterData();
-          dataManager.changeEvent();
-          dispatch.dataReady();
-        });
+      d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
+        factorList = trialInfo.experimentalFactor;
+        trialEvents = trialInfo.timePeriods;
+        neuronList = Object.getOwnPropertyNames(trialInfo.neurons);
+
+        if (neuronName === '') {neuronName = neuronList[0];};
+
+        var s = neuronName.split('_');
+        sessionName = s[0];
+
+        queue()
+          .defer(d3.json, 'DATA/' + sessionName + '_TrialInfo.json')
+          .defer(d3.json, 'DATA/Neuron_' + neuronName + '.json')
+          .await(function (error, sI, neuron) {
+            spikeInfo = neuron.Spikes;
+            sessionInfo = sI;
+
+            dataManager.sortRasterData();
+            dataManager.changeEvent();
+            dispatch.dataReady();
+          });
+      });
+
     };
 
     dataManager.changeEvent = function () {
@@ -2666,6 +2675,76 @@
 
   }
 
+  /**
+   * Appends the elements of `values` to `array`.
+   *
+   * @private
+   * @param {Array} array The array to modify.
+   * @param {Array} values The values to append.
+   * @returns {Array} Returns `array`.
+   */
+  function arrayPush(array, values) {
+    var index = -1,
+        length = values.length,
+        offset = array.length;
+
+    while (++index < length) {
+      array[offset + index] = values[index];
+    }
+    return array;
+  }
+
+  /**
+   * The base implementation of `_.flatten` with support for restricting flattening.
+   *
+   * @private
+   * @param {Array} array The array to flatten.
+   * @param {boolean} [isDeep] Specify a deep flatten.
+   * @param {boolean} [isStrict] Restrict flattening to arrays-like objects.
+   * @param {Array} [result=[]] The initial result value.
+   * @returns {Array} Returns the new flattened array.
+   */
+  function baseFlatten(array, isDeep, isStrict, result) {
+    result || (result = []);
+
+    var index = -1,
+        length = array.length;
+
+    while (++index < length) {
+      var value = array[index];
+      if (isArrayLikeObject(value) &&
+          (isStrict || isArray(value) || isArguments(value))) {
+        if (isDeep) {
+          // Recursively flatten arrays (susceptible to call stack limits).
+          baseFlatten(value, isDeep, isStrict, result);
+        } else {
+          arrayPush(result, value);
+        }
+      } else if (!isStrict) {
+        result[result.length] = value;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Flattens `array` a single level.
+   *
+   * @static
+   * @memberOf _
+   * @category Array
+   * @param {Array} array The array to flatten.
+   * @returns {Array} Returns the new flattened array.
+   * @example
+   *
+   * _.flatten([1, [2, 3, [4]]]);
+   * // => [1, 2, 3, [4]]
+   */
+  function flatten(array) {
+    var length = array ? array.length : 0;
+    return length ? baseFlatten(array) : [];
+  }
+
   // Draws spikes as circles
   function drawSpikes (selection, sessionInfo, timeScale, yScale, curEvent) {
 
@@ -2682,14 +2761,20 @@
     });
 
     // Flatten
-    data = [].concat.apply([], data);
+    data = flatten(data);
 
     var circles = selection.selectAll('circle').data(data);
     circles.enter()
-      .append('circle');
-    circles.exit().remove();
+      .append('circle')
+      .style('opacity', 1E-5);
+    circles.exit()
+      .transition()
+        .duration(1000)
+        .style('opacity', 1E-5).remove();
 
     circles
+    .transition()
+      .duration(1000)
       .attr('cx', function (d) {
         return timeScale(d[0]);
       })
@@ -2767,6 +2852,86 @@
     });
 
     return newValues;
+  }
+
+  function kernelDensityEstimator (kernel, x) {
+    return function (sample) {
+      return x.map(function (x) {
+        return [x, d3.mean(sample, function (v) { return kernel(x - v); })];
+      });
+    };
+  }
+
+  function gaussianKernel (scale) {
+    return function (u) {
+      return Math.exp((-0.5 * u * u) / (scale * scale)) / (scale * Math.sqrt(2 * Math.PI));
+    };
+  }
+
+  function drawSmoothingLine (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) {
+    // Nest by interaction factor
+    var spikes = d3.nest().key(function (d) {return d[interactionFactor];}).entries(data);
+    var kde = kernelDensityEstimator(gaussianKernel(lineSmoothness), timeScale.ticks(400));
+
+    spikes.forEach(function (e) {
+
+      // Reshape the data into the kernel density estimate of spikes
+      e.values = kde(
+
+        // flatten the spikes into one array
+        flatten(
+          e.values.map(function (d) { // adjust spike times to be relative to cue
+            if (d.spikes[0] != undefined) {
+              return d.spikes.map(function (spike) {
+                return spike - d[curEvent];
+              });
+            } else {
+              return undefined;
+            }
+          })
+        )
+
+      );
+    });
+
+    // max value of density estimate
+    var maxKDE = d3.max(spikes.map(function (d) {
+      return d3.max(d.values, function (e) {
+        return e[1];
+      });
+    }));
+
+    var kdeScale = d3.scale.linear()
+        .domain([0, maxKDE])
+        .range([d3.max(yScale.range()), 0]);
+
+    var kdeG = selection.selectAll('g.kde').data(spikes, function (d) {return d.key;});
+
+    kdeG.enter()
+      .append('g')
+        .attr('class', 'kde');
+    kdeG.exit()
+      .remove();
+
+    var line = d3.svg.line()
+      .x(function (d) {return timeScale(d[0]);})
+      .y(function (d) {return kdeScale(d[1]);});
+
+    var kdeLine = kdeG.selectAll('path.kdeLine').data(function (d) {return [d];});
+
+    kdeLine.enter()
+      .append('path')
+        .attr('class', 'kdeLine');
+    kdeLine
+      .transition()
+        .duration(1000)
+      .attr('d', function (d) {return line(d.values);})
+      .attr('stroke', function (d) {
+        return 'black';});
+
+    kdeLine.exit()
+      .remove();
+
   }
 
   var toolTip = d3.select('body').selectAll('div#tooltip').data([{}]);
@@ -2854,6 +3019,8 @@
     var yScale = d3.scale.ordinal();
     var curEvent = '';
     var trialEvents = [];
+    var lineSmoothness = 20;
+    var interactionFactor = '';
 
     function chart(selection) {
 
@@ -2899,6 +3066,7 @@
         drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent);
         drawTrialEvents(svg.select('g.trialEvents'), data.values, trialEvents, curEvent, timeScale, yScale);
         drawMouseBox(svg.select('g.invisibleBox'), data.values, timeScale, yScale, curEvent, innerWidth);
+        drawSmoothingLine(svg.select('g.smoothLine'), data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor);
 
       });
 

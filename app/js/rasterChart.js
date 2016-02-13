@@ -1,5 +1,6 @@
 import drawSpikes from './drawSpikes';
 import drawTrialEvents from './drawTrialEvents';
+import drawSmoothingLine from './drawSmoothingLine';
 import drawMouseBox from './drawMouseBox';
 
 export default function () {
@@ -12,6 +13,8 @@ export default function () {
   var yScale = d3.scale.ordinal();
   var curEvent = '';
   var trialEvents = [];
+  var lineSmoothness = 20;
+  var interactionFactor = '';
 
   function chart(selection) {
 
@@ -57,6 +60,7 @@ export default function () {
       drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent);
       drawTrialEvents(svg.select('g.trialEvents'), data.values, trialEvents, curEvent, timeScale, yScale);
       drawMouseBox(svg.select('g.invisibleBox'), data.values, timeScale, yScale, curEvent, innerWidth);
+      drawSmoothingLine(svg.select('g.smoothLine'), data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor);
 
     });
 

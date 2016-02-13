@@ -4,6 +4,12 @@ import queue from '../../node_modules/d3-queue/src/queue';
 export default function() {
   var neuronName = '';
   var sessionName = '';
+  var brainArea = '';
+  var Subject = '';
+  var timeDomain = [];
+  var factorList = [];
+  var trialEvents = [];
+  var neuronList = [];
   var rasterData = {};
   var spikeInfo = {};
   var sessionInfo = {};
@@ -13,31 +19,34 @@ export default function() {
   var curFactor = 'trial_id';
   var curEvent = 'start_time';
   var interactionFactor = '';
-  var timeDomain = [];
-  var factorList = [];
-  var trialEvents = [];
-  var neuronList = [];
   var dispatch = d3.dispatch('dataReady');
   var dataManager = {};
 
   dataManager.loadRasterData = function () {
-    var s = neuronName.split('_');
-    sessionName = s[0];
-    queue()
-      .defer(d3.json, 'DATA/' + 'trialInfo.json')
-      .defer(d3.json, 'DATA/' + sessionName + '_TrialInfo.json')
-      .defer(d3.json, 'DATA/Neuron_' + neuronName + '.json')
-      .await(function (error, trialInfo, sI, neuron) {
-        factorList = trialInfo.experimentalFactor;
-        trialEvents = trialInfo.timePeriods;
-        neuronList = trialInfo.monkey;
-        spikeInfo = neuron.Spikes;
-        sessionInfo = sI;
 
-        dataManager.sortRasterData();
-        dataManager.changeEvent();
-        dispatch.dataReady();
-      });
+    d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
+      factorList = trialInfo.experimentalFactor;
+      trialEvents = trialInfo.timePeriods;
+      neuronList = Object.getOwnPropertyNames(trialInfo.neurons);
+
+      if (neuronName === '') {neuronName = neuronList[0];};
+
+      var s = neuronName.split('_');
+      sessionName = s[0];
+
+      queue()
+        .defer(d3.json, 'DATA/' + sessionName + '_TrialInfo.json')
+        .defer(d3.json, 'DATA/Neuron_' + neuronName + '.json')
+        .await(function (error, sI, neuron) {
+          spikeInfo = neuron.Spikes;
+          sessionInfo = sI;
+
+          dataManager.sortRasterData();
+          dataManager.changeEvent();
+          dispatch.dataReady();
+        });
+    });
+
   };
 
   dataManager.changeEvent = function () {

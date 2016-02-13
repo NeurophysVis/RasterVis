@@ -1,3 +1,5 @@
+import flatten from '../../node_modules/lodash-es/flatten';
+
 // Draws spikes as circles
 export default function (selection, sessionInfo, timeScale, yScale, curEvent) {
 
@@ -14,14 +16,20 @@ export default function (selection, sessionInfo, timeScale, yScale, curEvent) {
   });
 
   // Flatten
-  data = [].concat.apply([], data);
+  data = flatten(data);
 
   var circles = selection.selectAll('circle').data(data);
   circles.enter()
-    .append('circle');
-  circles.exit().remove();
+    .append('circle')
+    .style('opacity', 1E-5);
+  circles.exit()
+    .transition()
+      .duration(1000)
+      .style('opacity', 1E-5).remove();
 
   circles
+  .transition()
+    .duration(1000)
     .attr('cx', function (d) {
       return timeScale(d[0]);
     })

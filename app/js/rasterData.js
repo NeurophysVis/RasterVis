@@ -2,6 +2,7 @@ import rasterDataManger from './rasterDataManger';
 import rasterView from './rasterView';
 import factorButton from './UI/factorButton';
 import eventButton from './UI/eventButton';
+import smoothingSlider from './UI/smoothingSlider';
 
 var rasterData = rasterDataManger();
 rasterData.on('dataReady', function () {
@@ -10,6 +11,7 @@ rasterData.on('dataReady', function () {
     .width(chartWidth)
     .timeDomain(rasterData.timeDomain())
     .trialEvents(rasterData.trialEvents())
+    .lineSmoothness(rasterData.lineSmoothness())
     .curEvent(rasterData.curEvent());
 
   var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
@@ -26,6 +28,7 @@ rasterData.on('dataReady', function () {
   eventButton.options(rasterData.trialEvents());
   d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorButton);
   d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventButton);
+  d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);
 });
 
 export default rasterData;

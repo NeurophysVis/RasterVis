@@ -1,4 +1,4 @@
-export default function() {
+export default function () {
 
   var stepSize;
   var domain;
@@ -12,10 +12,10 @@ export default function() {
   var dispatch = d3.dispatch('sliderChange', 'start', 'stop');
 
   function slider(selection) {
-    selection.each(function(value) {
+    selection.each(function (value) {
       var input = d3.select(this).selectAll('input');
       var output = d3.select(this).selectAll('output');
-      stepSize = d3.round(domain[1] - domain[0], 4);
+      stepSize = stepSize || d3.round(domain[1] - domain[0], 4);
       maxStepInd = domain.length - 1;
       curValue = value;
       minValue = d3.min(domain);
@@ -25,7 +25,7 @@ export default function() {
       input.property('max', maxValue);
       input.property('step', stepSize);
       input.property('value', value);
-      input.on('input', function() {
+      input.on('input', function () {
         dispatch.sliderChange(+this.value);
       });
 
@@ -33,49 +33,49 @@ export default function() {
     });
   };
 
-  slider.stepSize = function(value) {
+  slider.stepSize = function (value) {
     if (!arguments.length) return stepSize;
     stepSize = value;
     return slider;
   };
 
-  slider.running = function(value) {
+  slider.running = function (value) {
     if (!arguments.length) return running;
     running = value;
     return slider;
   };
 
-  slider.delay = function(value) {
+  slider.delay = function (value) {
     if (!arguments.length) return delay;
     delay = value;
     return slider;
   };
 
-  slider.domain = function(value) {
+  slider.domain = function (value) {
     if (!arguments.length) return domain;
     domain = value;
     return slider;
   };
 
-  slider.units = function(value) {
+  slider.units = function (value) {
     if (!arguments.length) return units;
     units = value;
     return slider;
   };
 
-  slider.maxStepInd = function(value) {
+  slider.maxStepInd = function (value) {
     if (!arguments.length) return maxStepInd;
     maxStepInd = value;
     return slider;
   };
 
-  slider.curValue = function(value) {
+  slider.curValue = function (value) {
     if (!arguments.length) return curValue;
     curValue = value;
     return slider;
   };
 
-  slider.play = function() {
+  slider.play = function () {
     running = true;
     dispatch.start();
 
@@ -93,12 +93,12 @@ export default function() {
     }
   };
 
-  slider.stop = function() {
+  slider.stop = function () {
     running = false;
     dispatch.stop();
   };
 
-  slider.reset = function() {
+  slider.reset = function () {
     running = false;
     dispatch.sliderChange(minValue);
     dispatch.stop();

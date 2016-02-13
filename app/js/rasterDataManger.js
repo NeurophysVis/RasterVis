@@ -19,10 +19,12 @@ export default function() {
   var curFactor = 'trial_id';
   var curEvent = 'start_time';
   var interactionFactor = '';
+  var isLoaded = false;
   var dispatch = d3.dispatch('dataReady');
   var dataManager = {};
 
   dataManager.loadRasterData = function () {
+    isLoaded = false;
 
     d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
       factorList = trialInfo.experimentalFactor;
@@ -40,6 +42,7 @@ export default function() {
         .await(function (error, sI, neuron) {
           spikeInfo = neuron.Spikes;
           sessionInfo = sI;
+          isLoaded = true;
 
           dataManager.sortRasterData();
           dataManager.changeEvent();
@@ -118,20 +121,21 @@ export default function() {
   dataManager.lineSmoothness = function (value) {
     if (!arguments.length) return lineSmoothness;
     lineSmoothness = value;
+    if (isLoaded) dispatch.dataReady();
     return dataManager;
   };
 
   dataManager.curFactor = function (value) {
     if (!arguments.length) return curFactor;
     curFactor = value;
-    if (sessionInfo !== {}) dataManager.sortRasterData(); dispatch.dataReady();
+    if (isLoaded) dataManager.sortRasterData(); dispatch.dataReady();
     return dataManager;
   };
 
   dataManager.curEvent = function (value) {
     if (!arguments.length) return curEvent;
     curEvent = value;
-    if (sessionInfo !== {}) dataManager.changeEvent(); dispatch.dataReady();
+    if (isLoaded) dataManager.changeEvent(); dispatch.dataReady();
     return dataManager;
   };
 

@@ -2529,10 +2529,12 @@
     var curFactor = 'trial_id';
     var curEvent = 'start_time';
     var interactionFactor = '';
+    var isLoaded = false;
     var dispatch = d3.dispatch('dataReady');
     var dataManager = {};
 
     dataManager.loadRasterData = function () {
+      isLoaded = false;
 
       d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
         factorList = trialInfo.experimentalFactor;
@@ -2550,6 +2552,7 @@
           .await(function (error, sI, neuron) {
             spikeInfo = neuron.Spikes;
             sessionInfo = sI;
+            isLoaded = true;
 
             dataManager.sortRasterData();
             dataManager.changeEvent();
@@ -2628,20 +2631,21 @@
     dataManager.lineSmoothness = function (value) {
       if (!arguments.length) return lineSmoothness;
       lineSmoothness = value;
+      if (isLoaded) dispatch.dataReady();
       return dataManager;
     };
 
     dataManager.curFactor = function (value) {
       if (!arguments.length) return curFactor;
       curFactor = value;
-      if (sessionInfo !== {}) dataManager.sortRasterData(); dispatch.dataReady();
+      if (isLoaded) dataManager.sortRasterData(); dispatch.dataReady();
       return dataManager;
     };
 
     dataManager.curEvent = function (value) {
       if (!arguments.length) return curEvent;
       curEvent = value;
-      if (sessionInfo !== {}) dataManager.changeEvent(); dispatch.dataReady();
+      if (isLoaded) dataManager.changeEvent(); dispatch.dataReady();
       return dataManager;
     };
 
@@ -3102,6 +3106,12 @@
       return chart;
     };
 
+    chart.lineSmoothness = function (value) {
+      if (!arguments.length) return lineSmoothness;
+      lineSmoothness = value;
+      return chart;
+    };
+
     return chart;
 
   }
@@ -3191,6 +3201,129 @@
     rasterData.curEvent(curEvent.startID);
   });
 
+  function createSlider () {
+
+    var stepSize;
+    var domain;
+    var maxStepInd;
+    var units;
+    var curValue;
+    var minValue;
+    var maxValue;
+    var running = false;
+    var delay = 200;
+    var dispatch = d3.dispatch('sliderChange', 'start', 'stop');
+
+    function slider(selection) {
+      selection.each(function (value) {
+        var input = d3.select(this).selectAll('input');
+        var output = d3.select(this).selectAll('output');
+        stepSize = stepSize || d3.round(domain[1] - domain[0], 4);
+        maxStepInd = domain.length - 1;
+        curValue = value;
+        minValue = d3.min(domain);
+        maxValue = d3.max(domain);
+
+        input.property('min', minValue);
+        input.property('max', maxValue);
+        input.property('step', stepSize);
+        input.property('value', value);
+        input.on('input', function () {
+          dispatch.sliderChange(+this.value);
+        });
+
+        output.text(value + ' ' + units);
+      });
+    };
+
+    slider.stepSize = function (value) {
+      if (!arguments.length) return stepSize;
+      stepSize = value;
+      return slider;
+    };
+
+    slider.running = function (value) {
+      if (!arguments.length) return running;
+      running = value;
+      return slider;
+    };
+
+    slider.delay = function (value) {
+      if (!arguments.length) return delay;
+      delay = value;
+      return slider;
+    };
+
+    slider.domain = function (value) {
+      if (!arguments.length) return domain;
+      domain = value;
+      return slider;
+    };
+
+    slider.units = function (value) {
+      if (!arguments.length) return units;
+      units = value;
+      return slider;
+    };
+
+    slider.maxStepInd = function (value) {
+      if (!arguments.length) return maxStepInd;
+      maxStepInd = value;
+      return slider;
+    };
+
+    slider.curValue = function (value) {
+      if (!arguments.length) return curValue;
+      curValue = value;
+      return slider;
+    };
+
+    slider.play = function () {
+      running = true;
+      dispatch.start();
+
+      var t = setInterval(step, delay);
+
+      function step() {
+        if (curValue < maxValue && running) {
+          curValue += stepSize;
+          dispatch.sliderChange(curValue);
+        } else {
+          dispatch.stop();
+          running = false;
+          clearInterval(t);
+        }
+      }
+    };
+
+    slider.stop = function () {
+      running = false;
+      dispatch.stop();
+    };
+
+    slider.reset = function () {
+      running = false;
+      dispatch.sliderChange(minValue);
+      dispatch.stop();
+    };
+
+    d3.rebind(slider, dispatch, 'on');
+
+    return slider;
+
+  }
+
+  var smoothingSlider = createSlider();
+
+  smoothingSlider
+    .domain([5, 1000])
+    .stepSize(5)
+    .units('ms');
+
+  smoothingSlider.on('sliderChange', function (smoothing) {
+    rasterData.lineSmoothness(smoothing);
+  });
+
   var rasterData = rasterDataManger();
   rasterData.on('dataReady', function () {
     var chartWidth = document.getElementById('chart').offsetWidth;
@@ -3198,6 +3331,7 @@
       .width(chartWidth)
       .timeDomain(rasterData.timeDomain())
       .trialEvents(rasterData.trialEvents())
+      .lineSmoothness(rasterData.lineSmoothness())
       .curEvent(rasterData.curEvent());
 
     var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
@@ -3214,6 +3348,7 @@
     eventDropdown.options(rasterData.trialEvents());
     d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorDropdown);
     d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventDropdown);
+    d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);
   });
 
   rasterData.neuronName('cc1_9_1');

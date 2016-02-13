@@ -96,6 +96,12 @@ export default function () {
     return chart;
   };
 
+  chart.lineSmoothness = function (value) {
+    if (!arguments.length) return lineSmoothness;
+    lineSmoothness = value;
+    return chart;
+  };
+
   return chart;
 
 }

@@ -63,11 +63,13 @@
               <input type="checkbox" checked="checked"> Show raster
             </label>
           </div>
-          <div id="lineSmooth" class="col-md-2 text-center">
-            <label>
-              <input type="range" min="5" value="20" max="1000" step="5">
-              <output id="lineSmooth-value">Smoothing: 20 ms</output>
-            </label>
+          <div id="LineSmoothSliderPanel" class="col-md-2">
+            <label for="lineSmoothSlider">Line Smoothing:</label>
+            <output id="lineSmoothSlider-value"></output>
+            <form>
+              <input type="range" id="lineSmoothSlider">
+            </form>
+
           </div>
         </div>
         <div id="chart" class="row"></div>

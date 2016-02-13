@@ -3013,9 +3013,18 @@
       .attr('opacity', 1e-9);
   }
 
+  // Replaces underscores with blanks and 'plus' with '+'
+  function fixDimNames (dimName) {
+    var pat1 = /plus/;
+    var pat2 = /_/g;
+    var pat3 = /minus/;
+    var fixedName = dimName.replace(pat1, '+').replace(pat2, ' ').replace(pat3, '-');
+    return fixedName;
+  }
+
   function rasterChart () {
     // Defaults
-    var margin = { top: 0, right: 0, bottom: 0, left: 0 };
+    var margin = { top: 20, right: 20, bottom: 20, left: 20 };
     var outerWidth = 960;
     var outerHeight = 500;
     var timeDomain = [];
@@ -3025,6 +3034,7 @@
     var trialEvents = [];
     var lineSmoothness = 20;
     var interactionFactor = '';
+    var curFactor = '';
 
     function chart(selection) {
 
@@ -3041,6 +3051,12 @@
           .append('svg')
             .append('g');
         enterG
+          .append('rect')
+            .attr('width', innerWidth)
+            .attr('height', innerHeight)
+            .attr('opacity', 0.1)
+            .attr('fill', '#aaa');
+        enterG
           .append('g')
             .attr('class', 'trialEvents');
         enterG
@@ -3052,6 +3068,24 @@
         enterG
           .append('g')
             .attr('class', 'invisibleBox');
+
+        // Fix title names
+        var s = data.key.split('_');
+        if (s[0] === 'undefined') {
+          s[0] = '';
+        } else {
+          s[0] = ': ' + s[0];
+        };
+
+        var title = enterG
+          .append('text')
+          .attr('class', 'title')
+          .attr('font-size', 16)
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('dy', -8);
+        svg.select('text.title')
+          .text(fixDimNames(curFactor) + s[0]);
 
         // Update svg size, drawing area, and scales
         svg
@@ -3094,9 +3128,9 @@
       return chart;
     };
 
-    chart.curEvent = function (value) {
-      if (!arguments.length) return curEvent;
-      curEvent = value;
+    chart.curFactor = function (value) {
+      if (!arguments.length) return curFactor;
+      curFactor = value;
       return chart;
     };
 
@@ -3324,6 +3358,17 @@
     rasterData.lineSmoothness(smoothing);
   });
 
+  var neuronDropdown = createDropdown();
+
+  neuronDropdown
+    .key('')
+    .displayName('');
+
+  neuronDropdown.on('click', function () {
+    var neuronName = d3.select(this).data()[0];
+    rasterData.neuronName(neuronName);
+  });
+
   var rasterData = rasterDataManger();
   rasterData.on('dataReady', function () {
     var chartWidth = document.getElementById('chart').offsetWidth;
@@ -3332,7 +3377,8 @@
       .timeDomain(rasterData.timeDomain())
       .trialEvents(rasterData.trialEvents())
       .lineSmoothness(rasterData.lineSmoothness())
-      .curEvent(rasterData.curEvent());
+      .curEvent(rasterData.curEvent())
+      .curFactor(rasterData.curFactor());
 
     var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
 
@@ -3346,6 +3392,9 @@
 
     factorDropdown.options(rasterData.factorList());
     eventDropdown.options(rasterData.trialEvents());
+    neuronDropdown.options(rasterData.neuronList());
+
+    d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronDropdown);
     d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorDropdown);
     d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventDropdown);
     d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);

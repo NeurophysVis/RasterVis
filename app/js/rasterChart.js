@@ -2,10 +2,11 @@ import drawSpikes from './drawSpikes';
 import drawTrialEvents from './drawTrialEvents';
 import drawSmoothingLine from './drawSmoothingLine';
 import drawMouseBox from './drawMouseBox';
+import fixDimNames from './fixDimNames';
 
 export default function () {
   // Defaults
-  var margin = { top: 0, right: 0, bottom: 0, left: 0 };
+  var margin = { top: 20, right: 20, bottom: 20, left: 20 };
   var outerWidth = 960;
   var outerHeight = 500;
   var timeDomain = [];
@@ -15,6 +16,7 @@ export default function () {
   var trialEvents = [];
   var lineSmoothness = 20;
   var interactionFactor = '';
+  var curFactor = '';
 
   function chart(selection) {
 
@@ -31,6 +33,12 @@ export default function () {
         .append('svg')
           .append('g');
       enterG
+        .append('rect')
+          .attr('width', innerWidth)
+          .attr('height', innerHeight)
+          .attr('opacity', 0.1)
+          .attr('fill', '#aaa');
+      enterG
         .append('g')
           .attr('class', 'trialEvents');
       enterG
@@ -42,6 +50,24 @@ export default function () {
       enterG
         .append('g')
           .attr('class', 'invisibleBox');
+
+      // Fix title names
+      var s = data.key.split('_');
+      if (s[0] === 'undefined') {
+        s[0] = '';
+      } else {
+        s[0] = ': ' + s[0];
+      };
+
+      var title = enterG
+        .append('text')
+        .attr('class', 'title')
+        .attr('font-size', 16)
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('dy', -8);
+      svg.select('text.title')
+        .text(fixDimNames(curFactor) + s[0]);
 
       // Update svg size, drawing area, and scales
       svg
@@ -84,9 +110,9 @@ export default function () {
     return chart;
   };
 
-  chart.curEvent = function (value) {
-    if (!arguments.length) return curEvent;
-    curEvent = value;
+  chart.curFactor = function (value) {
+    if (!arguments.length) return curFactor;
+    curFactor = value;
     return chart;
   };
 

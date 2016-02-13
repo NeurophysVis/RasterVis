@@ -1,83 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>RasterVis</title>
-    <!-- Bootstrap -->
-    <link href="css/main.css" rel="stylesheet">
-  </head>
-  <body role="document">
-    <div class="container">
-      <div class="row" id="TitlePanel">
-       <h2 class="col-md-3" id="title">RasterVis</h2>
-        <button type="button" class="btn btn-lg bottom-buffer" id="help-button" aria-label="Help">
-          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
-        </button>
-      </div>
-      <div class="row" id="filterNav">
-            <div id="subjectMenu" class="col-md-2">
-                <b>Subject:</b><br>
-                <select name="subject-list" class="form-control">
-                </select>
-            </div>
-            <div id="sessionMenu" class="col-md-2">
-                <b>Recording Session:</b><br>
-                <select name="session-list" class="form-control">
-                </select>
-            </div>
-            <div id="neuronMenu" class="col-md-2">
-              <b>Neuron:</b><br>
-              <select name="neuron-list" class="form-control">
-              </select>
-            </div>
-            <div id="FactorSortMenu" class="col-md-3">
-              <label class="col-md-6">Sort by Experimental Factor:</label>
-              <div class="dropdown col-md-6" id="FactorSortDropdown">
-                <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="FactorSortButton" data-toggle="dropdown">
-                </button>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="FactorSortDropdown">
-                </ul>
-              </div>
-            </div>
-            <div id="EventMenu" class="col-md-3">
-              <label class="col-md-6">Time relative to:</label>
-              <div class="dropdown col-md-6" id="EventDropdown">
-                <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="EventButton" data-toggle="dropdown">
-                </button>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="EventDropdown">
-                </ul>
-              </div>
-            </div>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RasterVis</title>
+  <!-- Bootstrap -->
+  <link href="css/main.css" rel="stylesheet">
+</head>
+<body role="document">
+  <div class="container">
+    <div class="row" id="TitlePanel">
+      <h2 class="col-md-3" id="title">RasterVis</h2>
+      <button type="button" class="btn btn-lg bottom-buffer" id="help-button" aria-label="Help">
+        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="row" id="filterNav">
+      <div id="NeuronMenu" class="col-md-2">
+        <label class="col-md-6">Neuron:</label>
+        <div class="dropdown col-md-6" id="NeuronDropdown">
+          <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="NeuronButton" data-toggle="dropdown">
+          </button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="NeuronDropdown">
+          </ul>
         </div>
-        <div class="row">
-          <div id="showLines" class="col-md-2">
-            <label>
-              <input type="checkbox" checked="checked"> Show lines
-            </label>
-          </div>
-          <div id="showRaster" class="col-md-2">
-            <label>
-              <input type="checkbox" checked="checked"> Show raster
-            </label>
-          </div>
-          <div id="LineSmoothSliderPanel" class="col-md-2">
-            <label for="lineSmoothSlider">Line Smoothing:</label>
-            <output id="lineSmoothSlider-value"></output>
-            <form>
-              <input type="range" id="lineSmoothSlider">
-            </form>
+      </div>
+      <div id="FactorSortMenu" class="col-md-3">
+        <label class="col-md-6">Sort by Experimental Factor:</label>
+        <div class="dropdown col-md-6" id="FactorSortDropdown">
+          <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="FactorSortButton" data-toggle="dropdown">
+          </button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="FactorSortDropdown">
+          </ul>
+        </div>
+      </div>
+      <div id="EventMenu" class="col-md-3">
+        <label class="col-md-6">Time relative to:</label>
+        <div class="dropdown col-md-6" id="EventDropdown">
+          <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="EventButton" data-toggle="dropdown">
+          </button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="EventDropdown">
+          </ul>
+        </div>
+      </div>
 
-          </div>
-        </div>
-        <div id="chart" class="row"></div>
+      <div id="showLines" class="col-md-2">
+        <label>
+          <input type="checkbox" checked="checked"> Show lines
+        </label>
       </div>
-    <script src="js/vendor.js"></script>
-    <script src="js/main.js"></script>
-    <script>
-    // Extract parameters from the browser
+      <div id="showRaster" class="col-md-2">
+        <label>
+          <input type="checkbox" checked="checked"> Show raster
+        </label>
+      </div>
+      <div id="LineSmoothSliderPanel" class="col-md-2">
+        <label for="lineSmoothSlider">Line Smoothing:</label>
+        <output id="lineSmoothSlider-value"></output>
+        <form>
+          <input type="range" id="lineSmoothSlider">
+        </form>
+      </div>
+    </div>
+    <div id="chart" class="row"></div>
+  </div>
+  <script src="js/vendor.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+  // Extract parameters from the browser
   var extractedParams = {};
   var query = window.location.search.substring(1);
   if (query !== "") {
@@ -94,8 +86,8 @@
     });
   }
 
-      // Initialized visualization
-      rasterVis.init(extractedParams);
-      </script>
-  </body>
+  // Initialized visualization
+  rasterVis.init(extractedParams);
+  </script>
+</body>
 </html>

@@ -3,6 +3,7 @@ import rasterView from './rasterView';
 import factorButton from './UI/factorButton';
 import eventButton from './UI/eventButton';
 import smoothingSlider from './UI/smoothingSlider';
+import neuronDropdown from './UI/neuronDropdown';
 
 var rasterData = rasterDataManger();
 rasterData.on('dataReady', function () {
@@ -12,7 +13,8 @@ rasterData.on('dataReady', function () {
     .timeDomain(rasterData.timeDomain())
     .trialEvents(rasterData.trialEvents())
     .lineSmoothness(rasterData.lineSmoothness())
-    .curEvent(rasterData.curEvent());
+    .curEvent(rasterData.curEvent())
+    .curFactor(rasterData.curFactor());
 
   var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
 
@@ -26,6 +28,9 @@ rasterData.on('dataReady', function () {
 
   factorButton.options(rasterData.factorList());
   eventButton.options(rasterData.trialEvents());
+  neuronDropdown.options(rasterData.neuronList());
+
+  d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronDropdown);
   d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorButton);
   d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventButton);
   d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);

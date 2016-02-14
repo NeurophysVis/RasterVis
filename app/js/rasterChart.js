@@ -20,12 +20,22 @@ export default function () {
 
   function chart(selection) {
 
-    var innerWidth = outerWidth - margin.left - margin.right;
-
     selection.each(function (data) {
-      var numTrials = data.values.length;
-      outerHeight = (numTrials * 4) + margin.top + margin.bottom;
-      var innerHeight = outerHeight - margin.top - margin.bottom;
+
+      // Allow height and width to be determined by data
+      if (typeof outerHeight === 'function') {
+        var innerHeight = outerHeight(data) - margin.top - margin.bottom;
+
+      } else {
+        var innerHeight = outerHeight - margin.top - margin.bottom;
+      };
+
+      if (typeof outerWidth === 'function') {
+        var innerWidth = outerWidth(data) - margin.left - margin.right;
+      } else {
+        var innerWidth = outerWidth - margin.left - margin.right;
+      }
+
       var svg = d3.select(this).selectAll('svg').data([data], function (d) { return d.key; });
 
       // Initialize the chart
@@ -80,7 +90,7 @@ export default function () {
         .domain(timeDomain)
         .range([0, innerWidth]);
       yScale
-        .domain(d3.range(0, numTrials))
+        .domain(d3.range(0, data.values.length))
         .rangeBands([innerHeight, 0]);
 
       drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent);
@@ -95,6 +105,12 @@ export default function () {
   chart.width = function (value) {
     if (!arguments.length) return outerWidth;
     outerWidth = value;
+    return chart;
+  };
+
+  chart.height = function (value) {
+    if (!arguments.length) return outerHeight;
+    outerHeight = value;
     return chart;
   };
 

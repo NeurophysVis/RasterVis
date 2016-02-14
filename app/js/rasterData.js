@@ -10,6 +10,7 @@ rasterData.on('dataReady', function () {
   var chartWidth = document.getElementById('chart').offsetWidth;
   rasterView
     .width(chartWidth)
+    .height(function (d) {return d.values.length * 4; })
     .timeDomain(rasterData.timeDomain())
     .trialEvents(rasterData.trialEvents())
     .lineSmoothness(rasterData.lineSmoothness())

@@ -6,40 +6,39 @@ import fixDimNames from './fixDimNames';
 
 export default function () {
   // Defaults
-  var margin = { top: 20, right: 20, bottom: 20, left: 20 };
-  var outerWidth = 960;
-  var outerHeight = 500;
-  var timeDomain = [];
-  var timeScale = d3.scale.linear();
-  var yScale = d3.scale.ordinal();
-  var curEvent = '';
-  var trialEvents = [];
-  var lineSmoothness = 20;
-  var interactionFactor = '';
-  var curFactor = '';
+  let margin = { top: 20, right: 20, bottom: 20, left: 20 };
+  let outerWidth = 960;
+  let outerHeight = 500;
+  let timeDomain = [];
+  let timeScale = d3.scale.linear();
+  let yScale = d3.scale.ordinal();
+  let curEvent = '';
+  let trialEvents = [];
+  let lineSmoothness = 20;
+  let interactionFactor = '';
+  let curFactor = '';
 
   function chart(selection) {
-
     selection.each(function (data) {
 
       // Allow height and width to be determined by data
       if (typeof outerHeight === 'function') {
-        var innerHeight = outerHeight(data) - margin.top - margin.bottom;
+        let innerHeight = outerHeight(data) - margin.top - margin.bottom;
 
       } else {
-        var innerHeight = outerHeight - margin.top - margin.bottom;
+        let innerHeight = outerHeight - margin.top - margin.bottom;
       };
 
       if (typeof outerWidth === 'function') {
-        var innerWidth = outerWidth(data) - margin.left - margin.right;
+        let innerWidth = outerWidth(data) - margin.left - margin.right;
       } else {
-        var innerWidth = outerWidth - margin.left - margin.right;
+        let innerWidth = outerWidth - margin.left - margin.right;
       }
 
-      var svg = d3.select(this).selectAll('svg').data([data], function (d) { return d.key; });
+      let svg = d3.select(this).selectAll('svg').data([data], function (d) { return d.key; });
 
       // Initialize the chart
-      var enterG = svg.enter()
+      let enterG = svg.enter()
         .append('svg')
           .append('g');
       enterG
@@ -62,14 +61,14 @@ export default function () {
           .attr('class', 'invisibleBox');
 
       // Fix title names
-      var s = data.key.split('_');
+      let s = data.key.split('_');
       if (s[0] === 'undefined') {
         s[0] = '';
       } else {
         s[0] = ': ' + s[0];
       };
 
-      var title = enterG
+      let title = enterG
         .append('text')
         .attr('class', 'title')
         .attr('font-size', 16)
@@ -111,6 +110,12 @@ export default function () {
   chart.height = function (value) {
     if (!arguments.length) return outerHeight;
     outerHeight = value;
+    return chart;
+  };
+
+  chart.margin = function (value) {
+    if (!arguments.length) return margin;
+    margin = value;
     return chart;
   };
 

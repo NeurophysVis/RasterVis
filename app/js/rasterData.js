@@ -4,20 +4,21 @@ import factorButton from './UI/factorButton';
 import eventButton from './UI/eventButton';
 import smoothingSlider from './UI/smoothingSlider';
 import neuronDropdown from './UI/neuronDropdown';
+import chartHeight from './chartHeight';
 
-var rasterData = rasterDataManger();
+let rasterData = rasterDataManger();
 rasterData.on('dataReady', function () {
-  var chartWidth = document.getElementById('chart').offsetWidth;
+  let chartWidth = document.getElementById('chart').offsetWidth;
   rasterView
     .width(chartWidth)
-    .height(function (d) {return rasterData.showSpikes() ? (rasterView.margin().top + rasterView.margin().bottom + d.values.length * 4) : d3.min([200, (40 + d.values.length * 4)]); })
+    .height(chartHeight)
     .timeDomain(rasterData.timeDomain())
     .trialEvents(rasterData.trialEvents())
     .lineSmoothness(rasterData.lineSmoothness())
     .curEvent(rasterData.curEvent())
     .curFactor(rasterData.curFactor());
 
-  var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
+  let multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
 
   multiples.enter()
     .append('div')

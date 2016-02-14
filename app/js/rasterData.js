@@ -10,7 +10,7 @@ rasterData.on('dataReady', function () {
   var chartWidth = document.getElementById('chart').offsetWidth;
   rasterView
     .width(chartWidth)
-    .height(function (d) {return d.values.length * 4; })
+    .height(function (d) {return rasterData.showSpikes() ? (rasterView.margin().top + rasterView.margin().bottom + d.values.length * 4) : d3.min([200, (40 + d.values.length * 4)]); })
     .timeDomain(rasterData.timeDomain())
     .trialEvents(rasterData.trialEvents())
     .lineSmoothness(rasterData.lineSmoothness())

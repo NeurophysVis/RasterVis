@@ -1,5 +1,6 @@
 import merge from '../../node_modules/lodash-es/merge';
 import queue from '../../node_modules/d3-queue/src/queue';
+import loading from './loading';
 
 export default function() {
   let neuronName = '';
@@ -25,6 +26,7 @@ export default function() {
 
   dataManager.loadRasterData = function () {
     isLoaded = false;
+    loading(isLoaded);
 
     d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
       factorList = trialInfo.experimentalFactor;
@@ -43,10 +45,11 @@ export default function() {
           spikeInfo = neuron.Spikes;
           sessionInfo = sI;
           isLoaded = true;
-
+          loading(isLoaded);
           dataManager.sortRasterData();
           dataManager.changeEvent();
           dispatch.dataReady();
+
         });
     });
 

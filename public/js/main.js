@@ -2585,7 +2585,11 @@
           })
           .sortValues(function (a, b) {
             // If interaction factor is specified, then sort by that as well
-            if (interactionFactor !== '') return d3.descending(+a[interactionFactor], +b[interactionFactor]);
+            if (interactionFactor !== '') {
+              return d3.descending(+a[interactionFactor], +b[interactionFactor]);
+            } else {
+              return d3.descending(+a['trial_id'], +b['trial_id']);
+            };
           })
           .entries(rasterData);
       } else {

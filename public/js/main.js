@@ -3072,7 +3072,7 @@
 
         let svg = d3.select(this).selectAll('svg').data([data], function (d) { return d.key; });
 
-        // Initialize the chart
+        // Initialize the chart, set up drawing layers
         let enterG = svg.enter()
           .append('svg')
             .append('g');
@@ -3096,6 +3096,9 @@
         enterG
           .append('g')
             .attr('class', 'trialBox');
+        enterG
+          .append('g')
+            .attr('class', 'timeAxis');
 
         // Fix title names
         let s = data.key.split('_');
@@ -3129,10 +3132,28 @@
           .domain(d3.range(0, data.values.length))
           .rangeBands([innerHeight, 0]);
 
-        showSpikes ? drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent) : svg.select('g.spikes').selectAll('circle').remove();
-        drawTrialEvents(svg.select('g.trialEvents'), data.values, trialEvents, curEvent, timeScale, yScale);
-        drawMouseBox(svg.select('g.trialBox'), data.values, timeScale, yScale, curEvent, innerWidth);
-        showSmoothingLines ? drawSmoothingLine(svg.select('g.smoothLine'), data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : svg.select('g.smoothLine').selectAll('path.kdeLine').remove();
+        // Draw the chart
+        let spikesG = svg.select('g.spikes');
+        let trialEventsG = svg.select('g.trialEvents');
+        let trialBoxG = svg.select('g.trialBox');
+        let smoothLineG = svg.select('g.smoothLine');
+
+        showSpikes ? drawSpikes(spikesG, data.values, timeScale, yScale, curEvent) : spikesG.selectAll('circle').remove();
+        drawTrialEvents(trialEventsG, data.values, trialEvents, curEvent, timeScale, yScale);
+        drawMouseBox(trialBoxG, data.values, timeScale, yScale, curEvent, innerWidth);
+        showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : smoothLineG.selectAll('path.kdeLine').remove();
+
+        // Draw the axes
+        let timeAxisG = svg.select('g.timeAxis');
+        let timeAxis = d3.svg.axis()
+          .scale(timeScale)
+          .orient('bottom')
+          .ticks(10)
+          .tickSize(0)
+          .tickFormat(d3.format('4d'));
+        timeAxisG
+          .attr('transform', 'translate(0,' + innerHeight + ')')
+          .call(timeAxis);
 
       });
 

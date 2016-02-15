@@ -4,8 +4,8 @@ import gaussianKernel from './gaussianKernel';
 
 export default function (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) {
   // Nest by interaction factor
-  var spikes = d3.nest().key(function (d) {return d[interactionFactor];}).entries(data);
-  var kde = kernelDensityEstimator(gaussianKernel(lineSmoothness), timeScale.ticks(400));
+  let spikes = d3.nest().key(function (d) {return d[interactionFactor];}).entries(data);
+  let kde = kernelDensityEstimator(gaussianKernel(lineSmoothness), timeScale.ticks(400));
 
   spikes.forEach(function (e) {
 
@@ -29,17 +29,17 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
   });
 
   // max value of density estimate
-  var maxKDE = d3.max(spikes.map(function (d) {
+  let maxKDE = d3.max(spikes.map(function (d) {
     return d3.max(d.values, function (e) {
       return e[1];
     });
   }));
 
-  var kdeScale = d3.scale.linear()
+  let kdeScale = d3.scale.linear()
       .domain([0, maxKDE])
       .range([d3.max(yScale.range()), 0]);
 
-  var kdeG = selection.selectAll('g.kde').data(spikes, function (d) {return d.key;});
+  let kdeG = selection.selectAll('g.kde').data(spikes, function (d) {return d.key;});
 
   kdeG.enter()
     .append('g')
@@ -47,11 +47,11 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
   kdeG.exit()
     .remove();
 
-  var line = d3.svg.line()
+  let line = d3.svg.line()
     .x(function (d) {return timeScale(d[0]);})
     .y(function (d) {return kdeScale(d[1]);});
 
-  var kdeLine = kdeG.selectAll('path.kdeLine').data(function (d) {return [d];});
+  let kdeLine = kdeG.selectAll('path.kdeLine').data(function (d) {return [d];});
 
   kdeLine.enter()
     .append('path')

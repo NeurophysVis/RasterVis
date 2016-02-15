@@ -3,11 +3,11 @@
 
 export default function (selection, sessionInfo, trialEvents, curEvent, timeScale, yScale) {
 
-  var eventArea = selection.selectAll('path.eventArea').data(trialEvents, function (d) {return d.label;});
+  let eventArea = selection.selectAll('path.eventArea').data(trialEvents, function (d) {return d.label;});
 
   /* Reformat data for area chart. Duplicate data twice in order to draw
   straight vertical edges at the beginning and end of trials */
-  var dupData = duplicateData(sessionInfo);
+  let dupData = duplicateData(sessionInfo);
 
   // Plot area corresponding to trial events
   eventArea.enter()
@@ -31,7 +31,7 @@ export default function (selection, sessionInfo, trialEvents, curEvent, timeScal
 
 function AreaFun(values, trialEvents, timeScale, yScale, curEvent) {
   // Setup helper line function
-  var area = d3.svg.area()
+  let area = d3.svg.area()
     .defined(function (d) {
       return d[trialEvents.startID] != null && d[trialEvents.endID] != null && d[curEvent] != null;
     }) // if null, suppress line drawing
@@ -55,8 +55,8 @@ function AreaFun(values, trialEvents, timeScale, yScale, curEvent) {
 
 function duplicateData(data) {
   // Duplicate data so that it appears twice aka 11223344
-  var valuesInd = d3.range(data.length);
-  var newValues = data.concat(data);
+  let valuesInd = d3.range(data.length);
+  let newValues = data.concat(data);
   valuesInd = valuesInd.concat(valuesInd);
   newValues.forEach(function (d, i) {
     d.sortInd = valuesInd[i];

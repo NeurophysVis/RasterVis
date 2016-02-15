@@ -1,4 +1,4 @@
-var toolTip = d3.select('body').selectAll('div#tooltip').data([{}]);
+let toolTip = d3.select('body').selectAll('div#tooltip').data([{}]);
 toolTip.enter()
   .append('div')
     .attr('id', 'tooltip')
@@ -6,7 +6,7 @@ toolTip.enter()
 
 export default function (selection, data, timeScale, yScale, curEvent, width) {
   // Append invisible box for mouseover
-  var mouseBox = selection.selectAll('rect.trialBox').data(data);
+  let mouseBox = selection.selectAll('rect.trialBox').data(data);
 
   mouseBox.exit()
     .remove();

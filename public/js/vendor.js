@@ -9998,7 +9998,7 @@ return jQuery;
 
 !function() {
   var d3 = {
-    version: "3.5.14"
+    version: "3.5.15"
   };
   var d3_arraySlice = [].slice, d3_array = function(list) {
     return d3_arraySlice.call(list);
@@ -10218,20 +10218,20 @@ return jQuery;
     while (i < n) pairs[i] = [ p0 = p1, p1 = array[++i] ];
     return pairs;
   };
-  d3.zip = function() {
-    if (!(n = arguments.length)) return [];
-    for (var i = -1, m = d3.min(arguments, d3_zipLength), zips = new Array(m); ++i < m; ) {
-      for (var j = -1, n, zip = zips[i] = new Array(n); ++j < n; ) {
-        zip[j] = arguments[j][i];
+  d3.transpose = function(matrix) {
+    if (!(n = matrix.length)) return [];
+    for (var i = -1, m = d3.min(matrix, d3_transposeLength), transpose = new Array(m); ++i < m; ) {
+      for (var j = -1, n, row = transpose[i] = new Array(n); ++j < n; ) {
+        row[j] = matrix[j][i];
       }
     }
-    return zips;
+    return transpose;
   };
-  function d3_zipLength(d) {
+  function d3_transposeLength(d) {
     return d.length;
   }
-  d3.transpose = function(matrix) {
-    return d3.zip.apply(d3, matrix);
+  d3.zip = function() {
+    return d3.transpose(arguments);
   };
   d3.keys = function(map) {
     var keys = [];
@@ -11202,7 +11202,7 @@ return jQuery;
     }
     function dragstart(id, position, subject, move, end) {
       return function() {
-        var that = this, target = d3.event.target, parent = that.parentNode, dispatch = event.of(that, arguments), dragged = 0, dragId = id(), dragName = ".drag" + (dragId == null ? "" : "-" + dragId), dragOffset, dragSubject = d3.select(subject(target)).on(move + dragName, moved).on(end + dragName, ended), dragRestore = d3_event_dragSuppress(target), position0 = position(parent, dragId);
+        var that = this, target = d3.event.target.correspondingElement || d3.event.target, parent = that.parentNode, dispatch = event.of(that, arguments), dragged = 0, dragId = id(), dragName = ".drag" + (dragId == null ? "" : "-" + dragId), dragOffset, dragSubject = d3.select(subject(target)).on(move + dragName, moved).on(end + dragName, ended), dragRestore = d3_event_dragSuppress(target), position0 = position(parent, dragId);
         if (origin) {
           dragOffset = origin.apply(that, arguments);
           dragOffset = [ dragOffset.x - position0[0], dragOffset.y - position0[1] ];
@@ -20594,219 +20594,640 @@ d3.legend = {
 };
 },{"./color":1,"./size":3,"./symbol":4}]},{},[5]);
 
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-save-svg', ['exports'], factory) :
-  factory((global.d3_save_svg = {}));
-}(this, function (exports) { 'use strict';
+/**
+ * @license
+ * Fuse - Lightweight fuzzy-search
+ *
+ * Copyright (c) 2012-2016 Kirollos Risk <kirollos@gmail.com>.
+ * All Rights Reserved. Apache Software License 2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+;(function (global) {
+  'use strict'
 
-  function download (svgInfo, filename) {
-    window.URL = (window.URL || window.webkitURL);
-    var blob = new Blob(svgInfo.source, {type: 'text\/xml'});
-    var url = window.URL.createObjectURL(blob);
-    var body = document.body;
-    var a = document.createElement('a');
-
-    body.appendChild(a);
-    a.setAttribute('download', filename + '.svg');
-    a.setAttribute('href', url);
-    a.style.display = 'none';
-    a.click();
-    a.parentNode.removeChild(a);
-
-    setTimeout(function() {
-      window.URL.revokeObjectURL(url);
-    }, 10);
+  function log () {
+    console.log.apply(console, arguments)
   }
 
-  var prefix = {
-    svg: 'http://www.w3.org/2000/svg',
-    xhtml: 'http://www.w3.org/1999/xhtml',
-    xlink: 'http://www.w3.org/1999/xlink',
-    xml: 'http://www.w3.org/XML/1998/namespace',
-    xmlns: 'http://www.w3.org/2000/xmlns/',
-  };
+  var MULTI_CHAR_REGEX = / +/g
 
-  function setInlineStyles (svg) {
+  var defaultOptions = {
+    id: null,
+    caseSensitive: false,
+    // A list of values to be passed from the searcher to the result set.
+    // If include is set to ['score', 'highlight'], each result
+    //   in the list will be of the form: `{ item: ..., score: ..., highlight: ... }`
 
-    // add empty svg element
-    var emptySvg = window.document.createElementNS(prefix.svg, 'svg');
-    window.document.body.appendChild(emptySvg);
-    var emptySvgDeclarationComputed = window.getComputedStyle(emptySvg);
+    include: [],
 
-    // hardcode computed css styles inside svg
-    var allElements = traverse(svg);
-    var i = allElements.length;
-    while (i--) {
-      explicitlySetStyle(allElements[i]);
+    // Whether to sort the result list, by score
+    shouldSort: true,
+
+    // The search function to use
+    // Note that the default search function ([[Function]]) must conform to the following API:
+    //
+    //  @param pattern The pattern string to search
+    //  @param options The search option
+    //  [[Function]].constructor = function(pattern, options)
+    //
+    //  @param text: the string to search in for the pattern
+    //  @return Object in the form of:
+    //    - isMatch: boolean
+    //    - score: Int
+    //  [[Function]].prototype.search = function(text)
+    searchFn: BitapSearcher,
+
+    // Default sort function
+    sortFn: function (a, b) {
+      return a.score - b.score
+    },
+
+    // Default get function
+    getFn: deepValue,
+
+    keys: [],
+
+    verbose: false
+  }
+
+  function Fuse (list, options) {
+    var i
+    var len
+    var key
+    var keys
+
+    this.list = list
+    this.options = options = options || {}
+
+    // Add boolean type options
+    for (i = 0, keys = ['sort', 'shouldSort', 'verbose'], len = keys.length; i < len; i++) {
+      key = keys[i]
+      this.options[key] = key in options ? options[key] : defaultOptions[key]
     }
+    // Add all other options
+    for (i = 0, keys = ['searchFn', 'sortFn', 'keys', 'getFn', 'include'], len = keys.length; i < len; i++) {
+      key = keys[i]
+      this.options[key] = options[key] || defaultOptions[key]
+    }
+  }
 
-    emptySvg.parentNode.removeChild(emptySvg);
+  Fuse.VERSION = '2.0.1'
 
-    function explicitlySetStyle(element) {
-      var cSSStyleDeclarationComputed = window.getComputedStyle(element);
-      var i;
-      var len;
-      var key;
-      var value;
-      var computedStyleStr = '';
+  /**
+   * Sets a new list for Fuse to match against.
+   * @param {Array} list
+   * @return {Array} The newly set list
+   * @public
+   */
+  Fuse.prototype.set = function (list) {
+    this.list = list
+    return list
+  }
 
-      for (i = 0, len = cSSStyleDeclarationComputed.length; i < len; i++) {
-        key = cSSStyleDeclarationComputed[i];
-        value = cSSStyleDeclarationComputed.getPropertyValue(key);
-        if (value !== emptySvgDeclarationComputed.getPropertyValue(key)) {
-          // Don't set computed style of width and height. Makes SVG elmements disappear.
-          if ((key !== 'height') && (key !== 'width')) {
-            computedStyleStr += key + ':' + value + ';';
-          }
+  Fuse.prototype.search = function (pattern) {
+    if (this.options.verbose) log('=====================\n', 'Search term:', pattern)
 
+    this.pattern = pattern
+    this.results = []
+    this.resultMap = {}
+
+    this._prepareSearchers()
+    this._startSearch()
+    this._computeScore()
+    this._sort()
+
+    var output = this._format()
+    return output
+  }
+
+  Fuse.prototype._prepareSearchers = function () {
+    var options = this.options
+    var pattern = this.pattern
+    var searchFn = options.searchFn
+    var tokens = pattern.split(MULTI_CHAR_REGEX)
+    var i = 0
+    var len = tokens.length
+
+    this.tokenSearchers = []
+
+    for (; i < len; i++) {
+      this.tokenSearchers.push(new searchFn(tokens[i], options))
+    }
+    this.fullSeacher = new searchFn(pattern, options)
+  }
+
+  Fuse.prototype._startSearch = function () {
+    var options = this.options
+    var getFn = options.getFn
+    var list = this.list
+    var listLen = list.length
+    var keys = this.options.keys
+    var keysLen = keys.length
+    var item = null
+    var i
+    var j
+
+    // Check the first item in the list, if it's a string, then we assume
+    // that every item in the list is also a string, and thus it's a flattened array.
+    if (typeof list[0] === 'string') {
+      // Iterate over every item
+      for (i = 0; i < listLen; i++) {
+        this._analyze(list[i], i, i)
+      }
+    } else {
+      // Otherwise, the first item is an Object (hopefully), and thus the searching
+      // is done on the values of the keys of each item.
+      // Iterate over every item
+      for (i = 0; i < listLen; i++) {
+        item = list[i]
+        // Iterate over every key
+        for (j = 0; j < keysLen; j++) {
+          this._analyze(getFn(item, keys[j], []), item, i)
         }
       }
+    }
+  }
 
-      element.setAttribute('style', computedStyleStr);
+  Fuse.prototype._analyze = function (text, entity, index) {
+    var options = this.options
+    var words
+    var scores
+    var exists = false
+    var tokenSearchers = this.tokenSearchers
+    var tokenSearchersLen = tokenSearchers.length
+    var existingResult
+    var averageScore
+    var finalScore
+    var scoresLen
+    var mainSearchResult
+    var tokenSearcher
+    var termScores
+    var word
+    var tokenSearchResult
+    var i
+    var j
+
+    // Check if the text can be searched
+    if (text === undefined || text === null) {
+      return
     }
 
-    function traverse(obj) {
-      var tree = [];
-      tree.push(obj);
-      visit(obj);
-      function visit(node) {
-        if (node && node.hasChildNodes()) {
-          var child = node.firstChild;
-          while (child) {
-            if (child.nodeType === 1 && child.nodeName != 'SCRIPT') {
-              tree.push(child);
-              visit(child);
+    scores = []
+
+    if (typeof text === 'string') {
+      words = text.split(MULTI_CHAR_REGEX)
+
+      if (options.verbose) log('---------\n', 'Record:', words)
+
+      for (i = 0; i < this.tokenSearchers.length; i++) {
+        tokenSearcher = this.tokenSearchers[i]
+        termScores = []
+        for (j = 0; j < words.length; j++) {
+          word = words[j]
+          tokenSearchResult = tokenSearcher.search(word)
+          if (tokenSearchResult.isMatch) {
+            exists = true
+            termScores.push(tokenSearchResult.score)
+            scores.push(tokenSearchResult.score)
+          } else {
+            termScores.push(1)
+            scores.push(1)
+          }
+        }
+        if (options.verbose) log('Score for "' + tokenSearcher.pattern + '":', termScores)
+      }
+
+      averageScore = scores[0]
+      scoresLen = scores.length
+      for (i = 1; i < scoresLen; i++) {
+        averageScore += scores[i]
+      }
+      averageScore = averageScore / scoresLen
+
+      if (options.verbose) log('Individual word score average:', averageScore)
+
+      // Get the result
+      mainSearchResult = this.fullSeacher.search(text)
+      if (options.verbose) log('Full text score:', mainSearchResult.score)
+
+      finalScore = mainSearchResult.score
+      if (averageScore !== undefined) {
+        finalScore = (finalScore + averageScore) / 2
+      }
+
+      if (options.verbose) log('Average', finalScore)
+
+      // If a match is found, add the item to <rawResults>, including its score
+      if (exists || mainSearchResult.isMatch) {
+        // Check if the item already exists in our results
+        existingResult = this.resultMap[index]
+        if (existingResult) {
+          // Use the lowest score
+          // existingResult.score, bitapResult.score
+          existingResult.scores.push(finalScore)
+        } else {
+          // Add it to the raw result list
+          this.resultMap[index] = {
+            item: entity,
+            scores: [finalScore]
+          }
+          this.results.push(this.resultMap[index])
+        }
+      }
+    } else if (isArray(text)) {
+      for (i = 0; i < text.length; i++) {
+        this._analyze(text[i], entity, index)
+      }
+    }
+  }
+
+  Fuse.prototype._computeScore = function () {
+    var i
+    var j
+    var totalScore
+    var currScore
+    var scoreLen
+    var results = this.results
+
+    for (i = 0; i < results.length; i++) {
+      totalScore = 0
+      currScore = results[i].scores
+      scoreLen = currScore.length
+      for (j = 0; j < scoreLen; j++) {
+        totalScore += currScore[j]
+      }
+      results[i].score = totalScore / scoreLen
+    }
+  }
+
+  Fuse.prototype._sort = function () {
+    var options = this.options
+    if (options.shouldSort) {
+      if (options.verbose) log('Sorting....')
+      this.results.sort(options.sortFn)
+    }
+  }
+
+  Fuse.prototype._format = function () {
+    var options = this.options
+    var getFn = options.getFn
+    var output = []
+    var item
+    var i
+    var len
+    var results = this.results
+    var replaceValue
+    var getItemAtIndex
+
+    if (options.verbose) log('------------\n', 'Output:\n', results)
+
+    // Helper function, here for speed-up, which replaces the item with its value,
+    // if the options specifies it,
+    replaceValue = options.id ? function (index) {
+      results[index].item = getFn(results[index].item, options.id, [])[0]
+    } : function () {}
+
+    getItemAtIndex = function (index) {
+      var resultItem
+      var includeVal
+      var j
+
+      // If `include` has values, put the item under result.item
+      if (options.include.length > 0) {
+        resultItem = {
+          item: results[index].item,
+        }
+        // Then include the `includes`
+        for (j = 0; j < options.include.length; j++) {
+          includeVal = options.include[j]
+          resultItem[includeVal] = results[index][includeVal]
+        }
+      } else {
+        resultItem = results[index].item
+      }
+
+      return resultItem
+    }
+
+    // From the results, push into a new array only the item identifier (if specified)
+    // of the entire item.  This is because we don't want to return the <results>,
+    // since it contains other metadata
+    for (i = 0, len = results.length; i < len; i++) {
+      replaceValue(i)
+      item = getItemAtIndex(i)
+      output.push(item)
+    }
+
+    return output
+  }
+
+  // Helpers
+
+  function deepValue (obj, path, list) {
+    var firstSegment
+    var remaining
+    var dotIndex
+    var value
+    var i
+    var len
+
+    if (!path) {
+      // If there's no path left, we've gotten to the object we care about.
+      list.push(obj)
+    } else {
+      dotIndex = path.indexOf('.')
+
+      if (dotIndex !== -1) {
+        firstSegment = path.slice(0, dotIndex)
+        remaining = path.slice(dotIndex + 1)
+      } else {
+        firstSegment = path
+      }
+
+      value = obj[firstSegment]
+      if (value !== null && value !== undefined) {
+        if (!remaining && (typeof value === 'string' || typeof value === 'number')) {
+          list.push(value)
+        } else if (isArray(value)) {
+          // Search each item in the array.
+          for (i = 0, len = value.length; i < len; i++) {
+            deepValue(value[i], remaining, list)
+          }
+        } else if (remaining) {
+          // An object. Recurse further.
+          deepValue(value, remaining, list)
+        }
+      }
+    }
+
+    return list
+  }
+
+  function isArray (obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]'
+  }
+
+  /**
+   * Adapted from "Diff, Match and Patch", by Google
+   *
+   *   http://code.google.com/p/google-diff-match-patch/
+   *
+   * Modified by: Kirollos Risk <kirollos@gmail.com>
+   * -----------------------------------------------
+   * Details: the algorithm and structure was modified to allow the creation of
+   * <Searcher> instances with a <search> method which does the actual
+   * bitap search. The <pattern> (the string that is searched for) is only defined
+   * once per instance and thus it eliminates redundant re-creation when searching
+   * over a list of strings.
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License")
+   * you may not use this file except in compliance with the License.
+   */
+  function BitapSearcher (pattern, options) {
+    options = options || {}
+    this.options = options
+    this.options.location = options.location || BitapSearcher.defaultOptions.location
+    this.options.distance = 'distance' in options ? options.distance : BitapSearcher.defaultOptions.distance
+    this.options.threshold = 'threshold' in options ? options.threshold : BitapSearcher.defaultOptions.threshold
+    this.options.maxPatternLength = options.maxPatternLength || BitapSearcher.defaultOptions.maxPatternLength
+
+    this.pattern = options.caseSensitive ? pattern : pattern.toLowerCase()
+    this.patternLen = pattern.length
+
+    if (this.patternLen <= this.options.maxPatternLength) {
+      this.matchmask = 1 << (this.patternLen - 1)
+      this.patternAlphabet = this._calculatePatternAlphabet()
+    }
+  }
+
+  BitapSearcher.defaultOptions = {
+    // Approximately where in the text is the pattern expected to be found?
+    location: 0,
+
+    // Determines how close the match must be to the fuzzy location (specified above).
+    // An exact letter match which is 'distance' characters away from the fuzzy location
+    // would score as a complete mismatch. A distance of '0' requires the match be at
+    // the exact location specified, a threshold of '1000' would require a perfect match
+    // to be within 800 characters of the fuzzy location to be found using a 0.8 threshold.
+    distance: 100,
+
+    // At what point does the match algorithm give up. A threshold of '0.0' requires a perfect match
+    // (of both letters and location), a threshold of '1.0' would match anything.
+    threshold: 0.6,
+
+    // Machine word size
+    maxPatternLength: 32
+  }
+
+  /**
+   * Initialize the alphabet for the Bitap algorithm.
+   * @return {Object} Hash of character locations.
+   * @private
+   */
+  BitapSearcher.prototype._calculatePatternAlphabet = function () {
+    var mask = {},
+      i = 0
+
+    for (i = 0; i < this.patternLen; i++) {
+      mask[this.pattern.charAt(i)] = 0
+    }
+
+    for (i = 0; i < this.patternLen; i++) {
+      mask[this.pattern.charAt(i)] |= 1 << (this.pattern.length - i - 1)
+    }
+
+    return mask
+  }
+
+  /**
+   * Compute and return the score for a match with `e` errors and `x` location.
+   * @param {number} errors Number of errors in match.
+   * @param {number} location Location of match.
+   * @return {number} Overall score for match (0.0 = good, 1.0 = bad).
+   * @private
+   */
+  BitapSearcher.prototype._bitapScore = function (errors, location) {
+    var accuracy = errors / this.patternLen,
+      proximity = Math.abs(this.options.location - location)
+
+    if (!this.options.distance) {
+      // Dodge divide by zero error.
+      return proximity ? 1.0 : accuracy
+    }
+    return accuracy + (proximity / this.options.distance)
+  }
+
+  /**
+   * Compute and return the result of the search
+   * @param {String} text The text to search in
+   * @return {Object} Literal containing:
+   *                          {Boolean} isMatch Whether the text is a match or not
+   *                          {Decimal} score Overall score for the match
+   * @public
+   */
+  BitapSearcher.prototype.search = function (text) {
+    var options = this.options
+    var i
+    var j
+    var textLen
+    var location
+    var threshold
+    var bestLoc
+    var binMin
+    var binMid
+    var binMax
+    var start, finish
+    var bitArr
+    var lastBitArr
+    var charMatch
+    var score
+    var locations
+    var matches
+    var isMatched
+
+    text = options.caseSensitive ? text : text.toLowerCase()
+
+    if (this.pattern === text) {
+      // console.log("EXACT")
+      // Exact match
+      return {
+        isMatch: true,
+        score: 0
+      }
+    }
+
+    // When pattern length is greater than the machine word length, just do a
+    // a reject comparison
+    if (this.patternLen > options.maxPatternLength) {
+      matches = text.match(new RegExp(this.pattern.replace(MULTI_CHAR_REGEX, '|')))
+      isMatched = !!matches
+      return {
+        isMatch: isMatched,
+        // TODO: revisit this score
+        score: isMatched ? 0.5 : 1
+      }
+    }
+
+    location = options.location
+    // Set starting location at beginning text and initialize the alphabet.
+    textLen = text.length
+    // Highest score beyond which we give up.
+    threshold = options.threshold
+    // Is there a nearby exact match? (speedup)
+    bestLoc = text.indexOf(this.pattern, location)
+
+    if (bestLoc != -1) {
+      threshold = Math.min(this._bitapScore(0, bestLoc), threshold)
+      // What about in the other direction? (speed up)
+      bestLoc = text.lastIndexOf(this.pattern, location + this.patternLen)
+
+      if (bestLoc != -1) {
+        threshold = Math.min(this._bitapScore(0, bestLoc), threshold)
+      }
+    }
+
+    bestLoc = -1
+    score = 1
+    locations = []
+    binMax = this.patternLen + textLen
+
+    for (i = 0; i < this.patternLen; i++) {
+      // Scan for the best match; each iteration allows for one more error.
+      // Run a binary search to determine how far from the match location we can stray
+      // at this error level.
+      binMin = 0
+      binMid = binMax
+      while (binMin < binMid) {
+        if (this._bitapScore(i, location + binMid) <= threshold) {
+          binMin = binMid
+        } else {
+          binMax = binMid
+        }
+        binMid = Math.floor((binMax - binMin) / 2 + binMin)
+      }
+
+      // Use the result from this iteration as the maximum for the next.
+      binMax = binMid
+      start = Math.max(1, location - binMid + 1)
+      finish = Math.min(location + binMid, textLen) + this.patternLen
+
+      // Initialize the bit array
+      bitArr = Array(finish + 2)
+
+      bitArr[finish + 1] = (1 << i) - 1
+
+      for (j = finish; j >= start; j--) {
+        charMatch = this.patternAlphabet[text.charAt(j - 1)]
+        // console.log('charMatch', charMatch, text.charAt(j - 1))
+
+        if (i === 0) {
+          // First pass: exact match.
+          bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch
+        } else {
+          // Subsequent passes: fuzzy match.
+          bitArr[j] = ((bitArr[j + 1] << 1) | 1) & charMatch | (((lastBitArr[j + 1] | lastBitArr[j]) << 1) | 1) | lastBitArr[j + 1]
+        }
+        if (bitArr[j] & this.matchmask) {
+          // Count exact matches (those with a score of 0) to be "almost" exact
+          score = this._bitapScore(i, j - 1) || 0.001
+
+          // This match will almost certainly be better than any existing match.
+          // But check anyway.
+          if (score <= threshold) {
+            // Indeed it is
+            threshold = score
+            bestLoc = j - 1
+            locations.push(bestLoc)
+
+            if (bestLoc > location) {
+              // When passing loc, don't exceed our current distance from loc.
+              start = Math.max(1, 2 * location - bestLoc)
+            } else {
+              // Already passed loc, downhill from here on in.
+              break
             }
-
-            child = child.nextSibling;
           }
         }
       }
 
-      return tree;
-    }
-  }
-
-  function preprocess (svg) {
-    svg.setAttribute('version', '1.1');
-
-    // removing attributes so they aren't doubled up
-    svg.removeAttribute('xmlns');
-    svg.removeAttribute('xlink');
-
-    // These are needed for the svg
-    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns')) {
-      svg.setAttributeNS(prefix.xmlns, 'xmlns', prefix.svg);
-    }
-
-    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns:xlink')) {
-      svg.setAttributeNS(prefix.xmlns, 'xmlns:xlink', prefix.xlink);
-    }
-
-    setInlineStyles(svg);
-
-    var xmls = new XMLSerializer();
-    var source = xmls.serializeToString(svg);
-    var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
-    var rect = svg.getBoundingClientRect();
-    var svgInfo = {
-      top: rect.top,
-      left: rect.left,
-      width: rect.width,
-      height: rect.height,
-      class: svg.getAttribute('class'),
-      id: svg.getAttribute('id'),
-      childElementCount: svg.childElementCount,
-      source: [doctype + source],
-    };
-
-    return svgInfo;
-  }
-
-  function converterEngine(input) { // fn BLOB => Binary => Base64 ?
-    var uInt8Array = new Uint8Array(input);
-    var i = uInt8Array.length;
-    var biStr = []; //new Array(i);
-    while (i--) {
-      biStr[i] = String.fromCharCode(uInt8Array[i]);
-    }
-
-    var base64 = window.btoa(biStr.join(''));
-    return base64;
-  };
-
-  function getImageBase64(url, callback) {
-    var xhr = new XMLHttpRequest(url);
-    var img64;
-    xhr.open('GET', url, true); // url is the url of a PNG/JPG image.
-    xhr.responseType = 'arraybuffer';
-    xhr.callback = callback;
-    xhr.onload = function() {
-      img64 = converterEngine(this.response); // convert BLOB to base64
-      this.callback(null, img64); // callback : err, data
-    };
-
-    xhr.onerror = function() {
-      callback('B64 ERROR', null);
-    };
-
-    xhr.send();
-  };
-
-  function isDataURL(str) {
-    var uriPattern = /^\s*data:([a-z]+\/[a-z0-9\-]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/i;
-    return !!str.match(uriPattern);
-  }
-
-  function save(svgElement, config) {
-    if (svgElement.nodeName !== 'svg' || svgElement.nodeType !== 1) {
-      throw 'Need an svg element input';
-    }
-
-    var config = config || {};
-    var svgInfo = preprocess(svgElement, config);
-    var defaultFileName = getDefaultFileName(svgInfo);
-    var filename = config.filename || defaultFileName;
-    var svgInfo = preprocess(svgElement);
-    download(svgInfo, filename);
-  }
-
-  function embedRasterImages(svg) {
-
-    var images = svg.querySelectorAll('image');
-    [].forEach.call(images, function(image) {
-      var url = image.getAttribute('href');
-
-      // Check if it is already a data URL
-      if (!isDataURL(url)) {
-        // convert to base64 image and embed.
-        getImageBase64(url, function(err, d) {
-          image.setAttributeNS(prefix.xlink, 'href', 'data:image/png;base64,' + d);
-        });
+      // No hope for a (better) match at greater error levels.
+      if (this._bitapScore(i + 1, location) > threshold) {
+        break
       }
-
-    });
-
-  }
-
-  function getDefaultFileName(svgInfo) {
-    var defaultFileName = 'untitled';
-    if (svgInfo.id) {
-      defaultFileName = svgInfo.id;
-    } else if (svgInfo.class) {
-      defaultFileName = svgInfo.class;
-    } else if (window.document.title) {
-      defaultFileName = window.document.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      lastBitArr = bitArr
     }
 
-    return defaultFileName;
+    return {
+      isMatch: bestLoc >= 0,
+      score: score
+    }
   }
 
-  var version = "0.0.2";
+  // Export to Common JS Loader
+  if (typeof exports === 'object') {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = Fuse
+  } else if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define(function () {
+      return Fuse
+    })
+  } else {
+    // Browser globals (root is window)
+    global.Fuse = Fuse
+  }
 
-  exports.version = version;
-  exports.save = save;
-  exports.embedRasterImages = embedRasterImages;
-
-}));
+})(this)

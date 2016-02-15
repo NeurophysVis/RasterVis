@@ -1,7 +1,7 @@
 import createSlider from './createSlider';
 import rasterData from '../rasterData';
 
-var smoothingSlider = createSlider();
+let smoothingSlider = createSlider();
 
 smoothingSlider
   .domain([5, 1000])

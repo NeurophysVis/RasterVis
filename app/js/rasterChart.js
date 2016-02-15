@@ -17,22 +17,25 @@ export default function () {
   let lineSmoothness = 20;
   let interactionFactor = '';
   let curFactor = '';
+  let showSpikes = true;
+  let showSmoothingLines = true;
+  let innerHeight;
+  let innerWidth;
 
   function chart(selection) {
     selection.each(function (data) {
 
       // Allow height and width to be determined by data
       if (typeof outerHeight === 'function') {
-        let innerHeight = outerHeight(data) - margin.top - margin.bottom;
-
+        innerHeight = outerHeight(data) - margin.top - margin.bottom;
       } else {
-        let innerHeight = outerHeight - margin.top - margin.bottom;
+        innerHeight = outerHeight - margin.top - margin.bottom;
       };
 
       if (typeof outerWidth === 'function') {
-        let innerWidth = outerWidth(data) - margin.left - margin.right;
+        innerWidth = outerWidth(data) - margin.left - margin.right;
       } else {
-        let innerWidth = outerWidth - margin.left - margin.right;
+        innerWidth = outerWidth - margin.left - margin.right;
       }
 
       let svg = d3.select(this).selectAll('svg').data([data], function (d) { return d.key; });
@@ -43,6 +46,8 @@ export default function () {
           .append('g');
       enterG
         .append('rect')
+          .attr('class', 'backgroundLayer');
+      svg.select('rect.backgroundLayer')
           .attr('width', innerWidth)
           .attr('height', innerHeight)
           .attr('opacity', 0.1)
@@ -58,7 +63,7 @@ export default function () {
           .attr('class', 'smoothLine');
       enterG
         .append('g')
-          .attr('class', 'invisibleBox');
+          .attr('class', 'trialBox');
 
       // Fix title names
       let s = data.key.split('_');
@@ -92,10 +97,10 @@ export default function () {
         .domain(d3.range(0, data.values.length))
         .rangeBands([innerHeight, 0]);
 
-      drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent);
+      showSpikes ? drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent) : svg.select('g.spikes').selectAll('circle').remove();
       drawTrialEvents(svg.select('g.trialEvents'), data.values, trialEvents, curEvent, timeScale, yScale);
-      drawMouseBox(svg.select('g.invisibleBox'), data.values, timeScale, yScale, curEvent, innerWidth);
-      drawSmoothingLine(svg.select('g.smoothLine'), data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor);
+      drawMouseBox(svg.select('g.trialBox'), data.values, timeScale, yScale, curEvent, innerWidth);
+      showSmoothingLines ? drawSmoothingLine(svg.select('g.smoothLine'), data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : svg.select('g.smoothLine').selectAll('path.kdeLine').remove();
 
     });
 
@@ -146,6 +151,18 @@ export default function () {
   chart.lineSmoothness = function (value) {
     if (!arguments.length) return lineSmoothness;
     lineSmoothness = value;
+    return chart;
+  };
+
+  chart.showSmoothingLines = function (value) {
+    if (!arguments.length) return showSmoothingLines;
+    showSmoothingLines = value;
+    return chart;
+  };
+
+  chart.showSpikes = function (value) {
+    if (!arguments.length) return showSpikes;
+    showSpikes = value;
     return chart;
   };
 

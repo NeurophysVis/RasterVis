@@ -29,7 +29,7 @@ gulp.task('createVendorJS', function () {
      'app/components/colorbrewer/colorbrewer.js',
      'app/components/spin.js/spin.js',
      'app/components/d3-legend/d3-legend.js',
-     'node_modules/d3-save-svg/build/d3-save-svg.js',
+     'app/components/fuse.js/src/fuse.js',
    ]).pipe(concat('vendor.js'))
      .pipe(gulp.dest('public/js'))
      .pipe(connect.reload());
@@ -44,7 +44,7 @@ gulp.task('createVendorJS-build', function () {
     'app/components/colorbrewer/colorbrewer.js',
     'app/components/spin.js/spin.js',
     'app/components/d3-legend/d3-legend.js',
-    'node_modules/d3-save-svg/build/d3-save-svg.js',
+    'app/components/src/fuse.js',
   ]).pipe(concat('vendor.js'))
     .pipe(uglify())
     .pipe(rename({

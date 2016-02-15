@@ -9,85 +9,130 @@
   <!-- Bootstrap -->
   <link href="css/main.css" rel="stylesheet">
 </head>
-<body role="document">
+<body>
   <div class="container">
+    <!-- Title Panel -->
     <div class="row" id="TitlePanel">
-      <h2 class="col-md-3" id="title">RasterVis</h2>
-      <button type="button" class="btn btn-lg bottom-buffer" id="help-button" aria-label="Help">
+      <h3>RasterVis</h3>
+    </div>
+    <div id="export-link-help" class="row btn-group btn-group-xs" role="group">
+      <button type="button" class="btn btn-default" id="link" title="Link to this view of the visualization">
+        <span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span>
+        Link
+      </button>
+      <div id="permalink">
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <label>Copy the text below or bookmark this <a class="bookmark" href="">link</a> to get back to this view of RasterVis.</label>
+        <textarea class="copy-link" spellcheck="false"></textarea>
+      </div>
+      <button type="button" class="btn btn-default" id="export" title="Export a screenshot of the visualization">
+        <span class="glyphicon glyphicon-save" aria-hidden="true"></span>
+        Export
+      </button>
+      <button type="button" class="btn btn-default" id="help-button" aria-label="Help" title="Display Help">
         <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        Help
       </button>
     </div>
-    <div class="row" id="filterNav">
-      <div id="NeuronMenu" class="col-md-2">
-        <label class="col-md-6">Neuron:</label>
-        <div class="dropdown col-md-6" id="NeuronDropdown">
-          <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="NeuronButton" data-toggle="dropdown">
-          </button>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="NeuronDropdown">
+    <div class="row">
+      <div class="col-md-2" id="filterNav">
+        <div id="NeuronMenu">
+          <label for="Neuron">Neurons</label>
+          <select multiple class="form-control" id="NeuronSelect">
+          </select>
+        </div>
+        <div class="form-group dropdown" id="NeuronSearch">
+          <input type="text" class="form-control" placeholder="Search">
+          <ul class="dropdown-menu" data-toggle="dropdown" aria-labelledby="NeuronSearchDropdown">
+            <li>blah</li>
           </ul>
         </div>
-      </div>
-      <div id="FactorSortMenu" class="col-md-3">
-        <label class="col-md-6">Sort by Experimental Factor:</label>
-        <div class="dropdown col-md-6" id="FactorSortDropdown">
-          <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="FactorSortButton" data-toggle="dropdown">
-          </button>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="FactorSortDropdown">
-          </ul>
+        <div id="FactorSortMenu">
+          <label>Sort by Experimental Factor:</label>
+          <div class="dropdown" id="FactorSortDropdown">
+            <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="FactorSortButton" data-toggle="dropdown">
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="FactorSortDropdown">
+            </ul>
+          </div>
+        </div>
+        <div id="EventMenu">
+          <label>Time relative to:</label>
+          <div class="dropdown" id="EventDropdown">
+            <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="EventButton" data-toggle="dropdown">
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="EventDropdown">
+            </ul>
+          </div>
+        </div>
+        <div id="LineSmoothSliderPanel">
+          <label for="lineSmoothSlider">Line Smoothing:</label>
+          <output id="lineSmoothSlider-value"></output>
+          <form>
+            <input type="range" id="lineSmoothSlider">
+          </form>
+        </div>
+        <div id="showLines" class="col-md-6">
+          <label>
+            <input type="checkbox" checked="checked"> Show lines
+          </label>
+        </div>
+        <div id="showRaster" class="col-md-6">
+          <label>
+            <input type="checkbox" checked="checked"> Show spikes
+          </label>
         </div>
       </div>
-      <div id="EventMenu" class="col-md-3">
-        <label class="col-md-6">Time relative to:</label>
-        <div class="dropdown col-md-6" id="EventDropdown">
-          <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="EventButton" data-toggle="dropdown">
-          </button>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="EventDropdown">
-          </ul>
-        </div>
-      </div>
-
-      <div id="showLines" class="col-md-2">
-        <label>
-          <input type="checkbox" checked="checked"> Show lines
-        </label>
-      </div>
-      <div id="showRaster" class="col-md-2">
-        <label>
-          <input type="checkbox" checked="checked"> Show raster
-        </label>
-      </div>
-      <div id="LineSmoothSliderPanel" class="col-md-2">
-        <label for="lineSmoothSlider">Line Smoothing:</label>
-        <output id="lineSmoothSlider-value"></output>
-        <form>
-          <input type="range" id="lineSmoothSlider">
-        </form>
-      </div>
+      <div id="chart" class="col-md-10"></div>
     </div>
-    <div id="chart" class="row"></div>
   </div>
-  <script src="js/vendor.js"></script>
-  <script src="js/main.js"></script>
-  <script>
-  // Extract parameters from the browser
-  var extractedParams = {};
-  var query = window.location.search.substring(1);
-  if (query !== "") {
-    var vars = query.split("&");
-    vars.forEach(function(v) {
-      var p = v.split("=");
-      var isUndefined = (typeof(p[1]) === 'undefined');
-      var isEmpty = (p[1] === "");
-      if (isUndefined || isEmpty) {
-        extractedParams[p[0]] = null;
-      } else {
-        extractedParams[p[0]] = decodeURI(p[1]);
-      }
-    });
-  }
+  <div id="overlay" style="display:none;">
+    <div id="helpToolTip">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h4>How to Use SpectraVis</h4>
+      <div id="toolTip-content">
+        <p>
+          <strong>WARNING</strong>: This visualization may take a long time to load due to some large files. Please be patient on the first load.</p>
+          <p>
+            <strong>Click</strong> on any two nodes or the edge between them to load the spectra and coherences/correlations between those two nodes. </p>
+            <p>
+              <strong>Mouse over</strong> the spectra or cohereograms/correlograms to see the network at that time and/or frequency </p>
+              <p>
+                <strong>Click on</strong> the spectra or cohereograms/correlograms to freeze the network at a particular time and frequency value</p>
+                <br>
+                <p>
+                  <strong>Edge Filter</strong> allows you to look at only edges between areas, edges within areas, or all edges</p>
+                  <p>
+                    <strong>Network View</strong> allows you to toggle between viewing the nodes in their anatomical location or in a layout designed to give you a sense of the structure of the network (topological) </p>
+                  </div>
+                </div>
+              </div>
+              <script src="js/vendor.js"></script>
+              <script src="js/main.js"></script>
+              <script>
+              // Extract parameters from the browser
+              var extractedParams = {};
+              var query = window.location.search.substring(1);
+              if (query !== "") {
+                var vars = query.split("&");
+                vars.forEach(function(v) {
+                  var p = v.split("=");
+                  var isUndefined = (typeof(p[1]) === 'undefined');
+                  var isEmpty = (p[1] === "");
+                  if (isUndefined || isEmpty) {
+                    extractedParams[p[0]] = null;
+                  } else {
+                    extractedParams[p[0]] = decodeURI(p[1]);
+                  }
+                });
+              }
 
-  // Initialized visualization
-  rasterVis.init(extractedParams);
-  </script>
-</body>
-</html>
+              // Initialized visualization
+              rasterVis.init(extractedParams);
+              </script>
+            </body>
+            </html>

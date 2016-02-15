@@ -3,10 +3,13 @@ import rasterView from './rasterView';
 import factorButton from './UI/factorButton';
 import eventButton from './UI/eventButton';
 import smoothingSlider from './UI/smoothingSlider';
-import neuronDropdown from './UI/neuronDropdown';
 import chartHeight from './chartHeight';
+import neuronList from './UI/neuronList';
+import neuronSearch from './UI/neuronSearch';
 
 let rasterData = rasterDataManger();
+let fuseOptions = { threshold: .4 };
+
 rasterData.on('dataReady', function () {
   let chartWidth = document.getElementById('chart').offsetWidth;
   rasterView
@@ -15,6 +18,8 @@ rasterData.on('dataReady', function () {
     .timeDomain(rasterData.timeDomain())
     .trialEvents(rasterData.trialEvents())
     .lineSmoothness(rasterData.lineSmoothness())
+    .showSmoothingLines(rasterData.showSmoothingLines())
+    .showSpikes(rasterData.showSpikes())
     .curEvent(rasterData.curEvent())
     .curFactor(rasterData.curFactor());
 
@@ -30,12 +35,12 @@ rasterData.on('dataReady', function () {
 
   factorButton.options(rasterData.factorList());
   eventButton.options(rasterData.trialEvents());
-  neuronDropdown.options(rasterData.neuronList());
 
-  d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronDropdown);
   d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorButton);
   d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventButton);
   d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);
+  d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronList);
+  d3.select('#NeuronSearch').datum(rasterData.neuronList()).call(neuronSearch);
 });
 
 export default rasterData;

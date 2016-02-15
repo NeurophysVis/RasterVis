@@ -1,12 +1,12 @@
 export default function() {
-  var key;
-  var displayName;
-  var options;
-  var dispatch = d3.dispatch('click');
+  let key;
+  let displayName;
+  let options;
+  let dispatch = d3.dispatch('click');
 
   function button(selection) {
     selection.each(function (data) {
-      var menu = d3.select(this).selectAll('ul').selectAll('li').data(options,
+      let menu = d3.select(this).selectAll('ul').selectAll('li').data(options,
         function (d) { return d[key]; });
 
       displayName = (typeof displayName === 'undefined') ? key : displayName;
@@ -28,7 +28,7 @@ export default function() {
 
       menu.exit().remove();
 
-      var curText = options.filter(function (d) {return d[key] === data;})
+      let curText = options.filter(function (d) {return d[key] === data;})
         .map(function (d) { return d[displayName]; })[0];
 
       d3.select(this).selectAll('button')

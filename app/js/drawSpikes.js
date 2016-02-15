@@ -3,11 +3,11 @@ import flatten from '../../node_modules/lodash-es/flatten';
 // Draws spikes as circles
 export default function (selection, sessionInfo, timeScale, yScale, curEvent) {
 
-  var circleRadius = yScale.rangeBand() / 2;
+  let circleRadius = yScale.rangeBand() / 2;
 
   // Reshape to spike time, trial position.
   // Adjust spike time relative to current trial event
-  var data = sessionInfo.map(function (trial, ind) {
+  let data = sessionInfo.map(function (trial, ind) {
     if (!Array.isArray(trial.spikes)) { return []; };
 
     return trial.spikes.map(function (spike) {
@@ -18,7 +18,7 @@ export default function (selection, sessionInfo, timeScale, yScale, curEvent) {
   // Flatten
   data = flatten(data);
 
-  var circles = selection.selectAll('circle').data(data);
+  let circles = selection.selectAll('circle').data(data);
   circles.enter()
     .append('circle')
     .style('opacity', 1E-5);

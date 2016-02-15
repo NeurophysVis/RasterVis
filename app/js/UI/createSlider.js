@@ -1,20 +1,20 @@
 export default function () {
 
-  var stepSize;
-  var domain;
-  var maxStepInd;
-  var units;
-  var curValue;
-  var minValue;
-  var maxValue;
-  var running = false;
-  var delay = 200;
-  var dispatch = d3.dispatch('sliderChange', 'start', 'stop');
+  let stepSize;
+  let domain;
+  let maxStepInd;
+  let units;
+  let curValue;
+  let minValue;
+  let maxValue;
+  let running = false;
+  let delay = 200;
+  let dispatch = d3.dispatch('sliderChange', 'start', 'stop');
 
   function slider(selection) {
     selection.each(function (value) {
-      var input = d3.select(this).selectAll('input');
-      var output = d3.select(this).selectAll('output');
+      let input = d3.select(this).selectAll('input');
+      let output = d3.select(this).selectAll('output');
       stepSize = stepSize || d3.round(domain[1] - domain[0], 4);
       maxStepInd = domain.length - 1;
       curValue = value;
@@ -79,7 +79,7 @@ export default function () {
     running = true;
     dispatch.start();
 
-    var t = setInterval(step, delay);
+    let t = setInterval(step, delay);
 
     function step() {
       if (curValue < maxValue && running) {

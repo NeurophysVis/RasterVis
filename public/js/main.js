@@ -1575,7 +1575,7 @@
   }
 
   /** Built-in value references. */
-  var Uint8Array = root.Uint8Array;
+  var Uint8Array$1 = root.Uint8Array;
 
   /**
    * Creates a clone of `arrayBuffer`.
@@ -1587,9 +1587,9 @@
   function cloneArrayBuffer(arrayBuffer) {
     var Ctor = arrayBuffer.constructor,
         result = new Ctor(arrayBuffer.byteLength),
-        view = new Uint8Array(result);
+        view = new Uint8Array$1(result);
 
-    view.set(new Uint8Array(arrayBuffer));
+    view.set(new Uint8Array$1(arrayBuffer));
     return result;
   }
 
@@ -2512,26 +2512,26 @@
   }
 
   function rasterDataManger() {
-    var neuronName = '';
-    var sessionName = '';
-    var brainArea = '';
-    var Subject = '';
-    var timeDomain = [];
-    var factorList = [];
-    var trialEvents = [];
-    var neuronList = [];
-    var rasterData = {};
-    var spikeInfo = {};
-    var sessionInfo = {};
-    var showSpikes = true;
-    var showSmoothingLines = true;
-    var lineSmoothness = 20;
-    var curFactor = 'trial_id';
-    var curEvent = 'start_time';
-    var interactionFactor = '';
-    var isLoaded = false;
-    var dispatch = d3.dispatch('dataReady');
-    var dataManager = {};
+    let neuronName = '';
+    let sessionName = '';
+    let brainArea = '';
+    let Subject = '';
+    let timeDomain = [];
+    let factorList = [];
+    let trialEvents = [];
+    let neuronList = [];
+    let rasterData = {};
+    let spikeInfo = {};
+    let sessionInfo = {};
+    let showSpikes = true;
+    let showSmoothingLines = true;
+    let lineSmoothness = 20;
+    let curFactor = 'trial_id';
+    let curEvent = 'start_time';
+    let interactionFactor = '';
+    let isLoaded = false;
+    let dispatch = d3.dispatch('dataReady');
+    let dataManager = {};
 
     dataManager.loadRasterData = function () {
       isLoaded = false;
@@ -2543,7 +2543,7 @@
 
         if (neuronName === '') {neuronName = neuronList[0];};
 
-        var s = neuronName.split('_');
+        let s = neuronName.split('_');
         sessionName = s[0];
 
         queue()
@@ -2563,16 +2563,16 @@
     };
 
     dataManager.changeEvent = function () {
-      var minTime = d3.min(sessionInfo, function (s) { return s.start_time - s[curEvent]; });
+      let minTime = d3.min(sessionInfo, function (s) { return s.start_time - s[curEvent]; });
 
-      var maxTime = d3.max(sessionInfo, function (s) { return s.end_time - s[curEvent]; });
+      let maxTime = d3.max(sessionInfo, function (s) { return s.end_time - s[curEvent]; });
 
       timeDomain = [minTime, maxTime];
     };
 
     dataManager.sortRasterData = function () {
       rasterData = merge(sessionInfo, spikeInfo);
-      var factorType = factorList.filter(function (d) {return d.value === curFactor;})
+      let factorType = factorList.filter(function (d) {return d.value === curFactor;})
                                  .map(function (d) {return d.factorType;})[0].toUpperCase();
 
       // Nest and Sort Data
@@ -2601,12 +2601,19 @@
     dataManager.neuronName  = function (value) {
       if (!arguments.length) return neuronName;
       neuronName = value;
+      dataManager.loadRasterData();
       return dataManager;
     };
 
     dataManager.sessionName  = function (value) {
       if (!arguments.length) return sessionName;
       sessionName = value;
+      return dataManager;
+    };
+
+    dataManager.interactionFactor  = function (value) {
+      if (!arguments.length) return interactionFactor;
+      interactionFactor = value;
       return dataManager;
     };
 
@@ -2619,12 +2626,14 @@
     dataManager.showSpikes  = function (value) {
       if (!arguments.length) return showSpikes;
       showSpikes = value;
+      if (isLoaded) dispatch.dataReady();
       return dataManager;
     };
 
     dataManager.showSmoothingLines = function (value) {
       if (!arguments.length) return showSmoothingLines;
       showSmoothingLines = value;
+      if (isLoaded) dispatch.dataReady();
       return dataManager;
     };
 
@@ -2752,11 +2761,11 @@
   // Draws spikes as circles
   function drawSpikes (selection, sessionInfo, timeScale, yScale, curEvent) {
 
-    var circleRadius = yScale.rangeBand() / 2;
+    let circleRadius = yScale.rangeBand() / 2;
 
     // Reshape to spike time, trial position.
     // Adjust spike time relative to current trial event
-    var data = sessionInfo.map(function (trial, ind) {
+    let data = sessionInfo.map(function (trial, ind) {
       if (!Array.isArray(trial.spikes)) { return []; };
 
       return trial.spikes.map(function (spike) {
@@ -2767,7 +2776,7 @@
     // Flatten
     data = flatten(data);
 
-    var circles = selection.selectAll('circle').data(data);
+    let circles = selection.selectAll('circle').data(data);
     circles.enter()
       .append('circle')
       .style('opacity', 1E-5);
@@ -2792,11 +2801,11 @@
 
   function drawTrialEvents (selection, sessionInfo, trialEvents, curEvent, timeScale, yScale) {
 
-    var eventArea = selection.selectAll('path.eventArea').data(trialEvents, function (d) {return d.label;});
+    let eventArea = selection.selectAll('path.eventArea').data(trialEvents, function (d) {return d.label;});
 
     /* Reformat data for area chart. Duplicate data twice in order to draw
     straight vertical edges at the beginning and end of trials */
-    var dupData = duplicateData(sessionInfo);
+    let dupData = duplicateData(sessionInfo);
 
     // Plot area corresponding to trial events
     eventArea.enter()
@@ -2820,7 +2829,7 @@
 
   function AreaFun(values, trialEvents, timeScale, yScale, curEvent) {
     // Setup helper line function
-    var area = d3.svg.area()
+    let area = d3.svg.area()
       .defined(function (d) {
         return d[trialEvents.startID] != null && d[trialEvents.endID] != null && d[curEvent] != null;
       }) // if null, suppress line drawing
@@ -2844,8 +2853,8 @@
 
   function duplicateData(data) {
     // Duplicate data so that it appears twice aka 11223344
-    var valuesInd = d3.range(data.length);
-    var newValues = data.concat(data);
+    let valuesInd = d3.range(data.length);
+    let newValues = data.concat(data);
     valuesInd = valuesInd.concat(valuesInd);
     newValues.forEach(function (d, i) {
       d.sortInd = valuesInd[i];
@@ -2874,8 +2883,8 @@
 
   function drawSmoothingLine (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) {
     // Nest by interaction factor
-    var spikes = d3.nest().key(function (d) {return d[interactionFactor];}).entries(data);
-    var kde = kernelDensityEstimator(gaussianKernel(lineSmoothness), timeScale.ticks(400));
+    let spikes = d3.nest().key(function (d) {return d[interactionFactor];}).entries(data);
+    let kde = kernelDensityEstimator(gaussianKernel(lineSmoothness), timeScale.ticks(400));
 
     spikes.forEach(function (e) {
 
@@ -2899,17 +2908,17 @@
     });
 
     // max value of density estimate
-    var maxKDE = d3.max(spikes.map(function (d) {
+    let maxKDE = d3.max(spikes.map(function (d) {
       return d3.max(d.values, function (e) {
         return e[1];
       });
     }));
 
-    var kdeScale = d3.scale.linear()
+    let kdeScale = d3.scale.linear()
         .domain([0, maxKDE])
         .range([d3.max(yScale.range()), 0]);
 
-    var kdeG = selection.selectAll('g.kde').data(spikes, function (d) {return d.key;});
+    let kdeG = selection.selectAll('g.kde').data(spikes, function (d) {return d.key;});
 
     kdeG.enter()
       .append('g')
@@ -2917,11 +2926,11 @@
     kdeG.exit()
       .remove();
 
-    var line = d3.svg.line()
+    let line = d3.svg.line()
       .x(function (d) {return timeScale(d[0]);})
       .y(function (d) {return kdeScale(d[1]);});
 
-    var kdeLine = kdeG.selectAll('path.kdeLine').data(function (d) {return [d];});
+    let kdeLine = kdeG.selectAll('path.kdeLine').data(function (d) {return [d];});
 
     kdeLine.enter()
       .append('path')
@@ -2938,7 +2947,7 @@
 
   }
 
-  var toolTip = d3.select('body').selectAll('div#tooltip').data([{}]);
+  let toolTip = d3.select('body').selectAll('div#tooltip').data([{}]);
   toolTip.enter()
     .append('div')
       .attr('id', 'tooltip')
@@ -2946,7 +2955,7 @@
 
   function drawMouseBox (selection, data, timeScale, yScale, curEvent, width) {
     // Append invisible box for mouseover
-    var mouseBox = selection.selectAll('rect.trialBox').data(data);
+    let mouseBox = selection.selectAll('rect.trialBox').data(data);
 
     mouseBox.exit()
       .remove();
@@ -3015,43 +3024,57 @@
 
   // Replaces underscores with blanks and 'plus' with '+'
   function fixDimNames (dimName) {
-    var pat1 = /plus/;
-    var pat2 = /_/g;
-    var pat3 = /minus/;
-    var fixedName = dimName.replace(pat1, '+').replace(pat2, ' ').replace(pat3, '-');
+    let pat1 = /plus/;
+    let pat2 = /_/g;
+    let pat3 = /minus/;
+    let fixedName = dimName.replace(pat1, '+').replace(pat2, ' ').replace(pat3, '-');
     return fixedName;
   }
 
   function rasterChart () {
     // Defaults
-    var margin = { top: 20, right: 20, bottom: 20, left: 20 };
-    var outerWidth = 960;
-    var outerHeight = 500;
-    var timeDomain = [];
-    var timeScale = d3.scale.linear();
-    var yScale = d3.scale.ordinal();
-    var curEvent = '';
-    var trialEvents = [];
-    var lineSmoothness = 20;
-    var interactionFactor = '';
-    var curFactor = '';
+    let margin = { top: 20, right: 20, bottom: 20, left: 20 };
+    let outerWidth = 960;
+    let outerHeight = 500;
+    let timeDomain = [];
+    let timeScale = d3.scale.linear();
+    let yScale = d3.scale.ordinal();
+    let curEvent = '';
+    let trialEvents = [];
+    let lineSmoothness = 20;
+    let interactionFactor = '';
+    let curFactor = '';
+    let showSpikes = true;
+    let showSmoothingLines = true;
+    let innerHeight;
+    let innerWidth;
 
     function chart(selection) {
-
-      var innerWidth = outerWidth - margin.left - margin.right;
-
       selection.each(function (data) {
-        var numTrials = data.values.length;
-        outerHeight = (numTrials * 4) + margin.top + margin.bottom;
-        var innerHeight = outerHeight - margin.top - margin.bottom;
-        var svg = d3.select(this).selectAll('svg').data([data], function (d) { return d.key; });
+
+        // Allow height and width to be determined by data
+        if (typeof outerHeight === 'function') {
+          innerHeight = outerHeight(data) - margin.top - margin.bottom;
+        } else {
+          innerHeight = outerHeight - margin.top - margin.bottom;
+        };
+
+        if (typeof outerWidth === 'function') {
+          innerWidth = outerWidth(data) - margin.left - margin.right;
+        } else {
+          innerWidth = outerWidth - margin.left - margin.right;
+        }
+
+        let svg = d3.select(this).selectAll('svg').data([data], function (d) { return d.key; });
 
         // Initialize the chart
-        var enterG = svg.enter()
+        let enterG = svg.enter()
           .append('svg')
             .append('g');
         enterG
           .append('rect')
+            .attr('class', 'backgroundLayer');
+        svg.select('rect.backgroundLayer')
             .attr('width', innerWidth)
             .attr('height', innerHeight)
             .attr('opacity', 0.1)
@@ -3067,17 +3090,17 @@
             .attr('class', 'smoothLine');
         enterG
           .append('g')
-            .attr('class', 'invisibleBox');
+            .attr('class', 'trialBox');
 
         // Fix title names
-        var s = data.key.split('_');
+        let s = data.key.split('_');
         if (s[0] === 'undefined') {
           s[0] = '';
         } else {
           s[0] = ': ' + s[0];
         };
 
-        var title = enterG
+        let title = enterG
           .append('text')
           .attr('class', 'title')
           .attr('font-size', 16)
@@ -3098,13 +3121,13 @@
           .domain(timeDomain)
           .range([0, innerWidth]);
         yScale
-          .domain(d3.range(0, numTrials))
+          .domain(d3.range(0, data.values.length))
           .rangeBands([innerHeight, 0]);
 
-        drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent);
+        showSpikes ? drawSpikes(svg.select('g.spikes'), data.values, timeScale, yScale, curEvent) : svg.select('g.spikes').selectAll('circle').remove();
         drawTrialEvents(svg.select('g.trialEvents'), data.values, trialEvents, curEvent, timeScale, yScale);
-        drawMouseBox(svg.select('g.invisibleBox'), data.values, timeScale, yScale, curEvent, innerWidth);
-        drawSmoothingLine(svg.select('g.smoothLine'), data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor);
+        drawMouseBox(svg.select('g.trialBox'), data.values, timeScale, yScale, curEvent, innerWidth);
+        showSmoothingLines ? drawSmoothingLine(svg.select('g.smoothLine'), data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : svg.select('g.smoothLine').selectAll('path.kdeLine').remove();
 
       });
 
@@ -3113,6 +3136,18 @@
     chart.width = function (value) {
       if (!arguments.length) return outerWidth;
       outerWidth = value;
+      return chart;
+    };
+
+    chart.height = function (value) {
+      if (!arguments.length) return outerHeight;
+      outerHeight = value;
+      return chart;
+    };
+
+    chart.margin = function (value) {
+      if (!arguments.length) return margin;
+      margin = value;
       return chart;
     };
 
@@ -3146,21 +3181,33 @@
       return chart;
     };
 
+    chart.showSmoothingLines = function (value) {
+      if (!arguments.length) return showSmoothingLines;
+      showSmoothingLines = value;
+      return chart;
+    };
+
+    chart.showSpikes = function (value) {
+      if (!arguments.length) return showSpikes;
+      showSpikes = value;
+      return chart;
+    };
+
     return chart;
 
   }
 
-  var rasterView = rasterChart();
+  let rasterView = rasterChart();
 
   function createDropdown() {
-    var key;
-    var displayName;
-    var options;
-    var dispatch = d3.dispatch('click');
+    let key;
+    let displayName;
+    let options;
+    let dispatch = d3.dispatch('click');
 
     function button(selection) {
       selection.each(function (data) {
-        var menu = d3.select(this).selectAll('ul').selectAll('li').data(options,
+        let menu = d3.select(this).selectAll('ul').selectAll('li').data(options,
           function (d) { return d[key]; });
 
         displayName = (typeof displayName === 'undefined') ? key : displayName;
@@ -3182,7 +3229,7 @@
 
         menu.exit().remove();
 
-        var curText = options.filter(function (d) {return d[key] === data;})
+        let curText = options.filter(function (d) {return d[key] === data;})
           .map(function (d) { return d[displayName]; })[0];
 
         d3.select(this).selectAll('button')
@@ -3226,32 +3273,32 @@
     rasterData.curFactor(curFactor.value);
   });
 
-  var eventDropdown = createDropdown()
+  let eventDropdown = createDropdown()
     .key('startID')
     .displayName('name');
 
   eventDropdown.on('click', function () {
-    var curEvent = d3.select(this).data()[0];
+    let curEvent = d3.select(this).data()[0];
     rasterData.curEvent(curEvent.startID);
   });
 
   function createSlider () {
 
-    var stepSize;
-    var domain;
-    var maxStepInd;
-    var units;
-    var curValue;
-    var minValue;
-    var maxValue;
-    var running = false;
-    var delay = 200;
-    var dispatch = d3.dispatch('sliderChange', 'start', 'stop');
+    let stepSize;
+    let domain;
+    let maxStepInd;
+    let units;
+    let curValue;
+    let minValue;
+    let maxValue;
+    let running = false;
+    let delay = 200;
+    let dispatch = d3.dispatch('sliderChange', 'start', 'stop');
 
     function slider(selection) {
       selection.each(function (value) {
-        var input = d3.select(this).selectAll('input');
-        var output = d3.select(this).selectAll('output');
+        let input = d3.select(this).selectAll('input');
+        let output = d3.select(this).selectAll('output');
         stepSize = stepSize || d3.round(domain[1] - domain[0], 4);
         maxStepInd = domain.length - 1;
         curValue = value;
@@ -3316,7 +3363,7 @@
       running = true;
       dispatch.start();
 
-      var t = setInterval(step, delay);
+      let t = setInterval(step, delay);
 
       function step() {
         if (curValue < maxValue && running) {
@@ -3347,7 +3394,7 @@
 
   }
 
-  var smoothingSlider = createSlider();
+  let smoothingSlider = createSlider();
 
   smoothingSlider
     .domain([5, 1000])
@@ -3358,29 +3405,118 @@
     rasterData.lineSmoothness(smoothing);
   });
 
-  var neuronDropdown = createDropdown();
+  /* If showing spikes, set to reasonable height so spikes are visible, else
+     pick the normal height of the plot if it's small or a value that can fit
+     several plots on the screen.
+  */
+  function chartHeight (data) {
+    const spikeDiameter = 4;
+    const noSpikesHeight = 200;
+    let heightMargin = rasterView.margin().top + rasterView.margin().bottom;
+    let withSpikesHeight = (data.values.length * spikeDiameter) + heightMargin;
 
-  neuronDropdown
-    .key('')
-    .displayName('');
+    return rasterData.showSpikes() ? withSpikesHeight : d3.min([noSpikesHeight, withSpikesHeight]);
+  }
 
-  neuronDropdown.on('click', function () {
-    var neuronName = d3.select(this).data()[0];
-    rasterData.neuronName(neuronName);
+  function createList () {
+    let dispatch = d3.dispatch('click');
+
+    function list(selection) {
+      selection.each(function (data) {
+        let options = d3.select(this).select('select').selectAll('options').data(data, String);
+        options.enter()
+          .append('option')
+          .text(function (d) {return d;});
+
+        options.exit().remove();
+        options.on('click', function (d) { return dispatch.click(d); });
+
+      });
+    }
+
+    d3.rebind(list, dispatch, 'on');
+
+    return list;
+  }
+
+  let neuronList = createList();
+
+  neuronList.on('click', function (d) {
+    rasterData.neuronName(d);
   });
 
-  var rasterData = rasterDataManger();
+  function createSearch () {
+    let fuseOptions = {};
+    let dispatch = d3.dispatch('click');
+
+    function searchBox(selection) {
+      selection.each(function (data) {
+        let fuseSearch = new Fuse(data, fuseOptions);
+
+        selection.select('input').on('input', function () {
+          let curInput = d3.select(this).property('value');
+          let guesses = fuseSearch.search(curInput).map(function (d) {return data[d];});
+
+          if (guesses.length > 5) guesses = guesses.slice(0, 5);
+
+          let guessList = selection.select('ul').selectAll('li').data(guesses, String);
+          guessList.enter()
+            .append('li')
+              .append('a')
+              .attr('role', 'menuitem')
+              .attr('tabindex', -1)
+              .text(function (d) {return d;});
+
+          guessList.selectAll('a').on('click', function (d) {
+            selection.select('input').property('value', '');
+            dispatch.click(d);
+          });
+
+          guessList.exit().remove();
+
+          selection.classed('open', guesses.length > 0);
+        });
+      });
+    }
+
+    searchBox.fuseOptions = function (value) {
+      if (!arguments.length) return fuseOptions;
+      fuseOptions = value;
+      return fuseOptions;
+    };
+
+    d3.rebind(searchBox, dispatch, 'on');
+    return searchBox;
+  }
+
+  let neuronSearch = createSearch();
+  const fuseOptions$1 = {
+    threshold: 0.4,
+    shouldSort: true,
+    location: 1,
+  };
+
+  neuronSearch.on('click', function (d) {
+    rasterData.neuronName(d);
+  });
+
+  neuronSearch.fuseOptions(fuseOptions$1);
+
+  let rasterData = rasterDataManger();
   rasterData.on('dataReady', function () {
-    var chartWidth = document.getElementById('chart').offsetWidth;
+    let chartWidth = document.getElementById('chart').offsetWidth;
     rasterView
       .width(chartWidth)
+      .height(chartHeight)
       .timeDomain(rasterData.timeDomain())
       .trialEvents(rasterData.trialEvents())
       .lineSmoothness(rasterData.lineSmoothness())
+      .showSmoothingLines(rasterData.showSmoothingLines())
+      .showSpikes(rasterData.showSpikes())
       .curEvent(rasterData.curEvent())
       .curFactor(rasterData.curFactor());
 
-    var multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
+    let multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
 
     multiples.enter()
       .append('div')
@@ -3392,18 +3528,253 @@
 
     factorDropdown.options(rasterData.factorList());
     eventDropdown.options(rasterData.trialEvents());
-    neuronDropdown.options(rasterData.neuronList());
 
-    d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronDropdown);
     d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorDropdown);
     d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventDropdown);
     d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);
+    d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronList);
+    d3.select('#NeuronSearch').datum(rasterData.neuronList()).call(neuronSearch);
   });
 
-  rasterData.neuronName('cc1_9_1');
+  function download (svgInfo, filename) {
+    window.URL = (window.URL || window.webkitURL);
+    var blob = new Blob(svgInfo.source, {type: 'text\/xml'});
+    var url = window.URL.createObjectURL(blob);
+    var body = document.body;
+    var a = document.createElement('a');
+
+    body.appendChild(a);
+    a.setAttribute('download', filename + '.svg');
+    a.setAttribute('href', url);
+    a.style.display = 'none';
+    a.click();
+    a.parentNode.removeChild(a);
+
+    setTimeout(function() {
+      window.URL.revokeObjectURL(url);
+    }, 10);
+  }
+
+  var prefix = {
+    svg: 'http://www.w3.org/2000/svg',
+    xhtml: 'http://www.w3.org/1999/xhtml',
+    xlink: 'http://www.w3.org/1999/xlink',
+    xml: 'http://www.w3.org/XML/1998/namespace',
+    xmlns: 'http://www.w3.org/2000/xmlns/',
+  };
+
+  function setInlineStyles (svg) {
+
+    // add empty svg element
+    var emptySvg = window.document.createElementNS(prefix.svg, 'svg');
+    window.document.body.appendChild(emptySvg);
+    var emptySvgDeclarationComputed = window.getComputedStyle(emptySvg);
+
+    // hardcode computed css styles inside svg
+    var allElements = traverse(svg);
+    var i = allElements.length;
+    while (i--) {
+      explicitlySetStyle(allElements[i]);
+    }
+
+    emptySvg.parentNode.removeChild(emptySvg);
+
+    function explicitlySetStyle(element) {
+      var cSSStyleDeclarationComputed = window.getComputedStyle(element);
+      var i;
+      var len;
+      var key;
+      var value;
+      var computedStyleStr = '';
+
+      for (i = 0, len = cSSStyleDeclarationComputed.length; i < len; i++) {
+        key = cSSStyleDeclarationComputed[i];
+        value = cSSStyleDeclarationComputed.getPropertyValue(key);
+        if (value !== emptySvgDeclarationComputed.getPropertyValue(key)) {
+          // Don't set computed style of width and height. Makes SVG elmements disappear.
+          if ((key !== 'height') && (key !== 'width')) {
+            computedStyleStr += key + ':' + value + ';';
+          }
+
+        }
+      }
+
+      element.setAttribute('style', computedStyleStr);
+    }
+
+    function traverse(obj) {
+      var tree = [];
+      tree.push(obj);
+      visit(obj);
+      function visit(node) {
+        if (node && node.hasChildNodes()) {
+          var child = node.firstChild;
+          while (child) {
+            if (child.nodeType === 1 && child.nodeName != 'SCRIPT') {
+              tree.push(child);
+              visit(child);
+            }
+
+            child = child.nextSibling;
+          }
+        }
+      }
+
+      return tree;
+    }
+  }
+
+  function preprocess (svg) {
+    svg.setAttribute('version', '1.1');
+
+    // removing attributes so they aren't doubled up
+    svg.removeAttribute('xmlns');
+    svg.removeAttribute('xlink');
+
+    // These are needed for the svg
+    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns')) {
+      svg.setAttributeNS(prefix.xmlns, 'xmlns', prefix.svg);
+    }
+
+    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns:xlink')) {
+      svg.setAttributeNS(prefix.xmlns, 'xmlns:xlink', prefix.xlink);
+    }
+
+    setInlineStyles(svg);
+
+    var xmls = new XMLSerializer();
+    var source = xmls.serializeToString(svg);
+    var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
+    var rect = svg.getBoundingClientRect();
+    var svgInfo = {
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+      class: svg.getAttribute('class'),
+      id: svg.getAttribute('id'),
+      childElementCount: svg.childElementCount,
+      source: [doctype + source],
+    };
+
+    return svgInfo;
+  }
+
+  function save(svgElement, config) {
+    if (svgElement.nodeName !== 'svg' || svgElement.nodeType !== 1) {
+      throw 'Need an svg element input';
+    }
+
+    var config = config || {};
+    var svgInfo = preprocess(svgElement, config);
+    var defaultFileName = getDefaultFileName(svgInfo);
+    var filename = config.filename || defaultFileName;
+    var svgInfo = preprocess(svgElement);
+    download(svgInfo, filename);
+  }
+
+  function getDefaultFileName(svgInfo) {
+    var defaultFileName = 'untitled';
+    if (svgInfo.id) {
+      defaultFileName = svgInfo.id;
+    } else if (svgInfo.class) {
+      defaultFileName = svgInfo.class;
+    } else if (window.document.title) {
+      defaultFileName = window.document.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    }
+
+    return defaultFileName;
+  }
+
+  let exportButton = d3.select('button#export');
+
+  exportButton
+    .on('click', function () {
+      let svg = d3.selectAll('#chart').selectAll('svg')[0];
+      let levelNames = rasterData.rasterData().map(function (d) {return d.key;});
+      let curFactor = rasterData.curFactor();
+      let curEvent = rasterData.curEvent();
+      let neuronName = rasterData.neuronName();
+
+      svg.forEach(function (s, i) {
+        let saveName = neuronName + '_' +
+                       curEvent + '_' +
+                       curFactor + '_' +
+                       levelNames[i];
+        save(s, { filename: saveName });
+      });
+
+    });
+
+  let permalinkBox = d3.select('#permalink');
+  let permalinkButton = d3.select('button#link');
+  permalinkButton
+    .on('click', function () {
+      permalinkBox
+        .style('display', 'block');
+
+      let linkString = window.location.origin + window.location.pathname + '?' +
+        'neuronName=' + rasterData.neuronName() +
+        '&curFactor=' + rasterData.curFactor() +
+        '&curEvent=' + rasterData.curEvent() +
+        '&showSmoothingLines=' + rasterData.showSmoothingLines() +
+        '&lineSmoothness=' + rasterData.lineSmoothness() +
+        '&showSpikes=' + rasterData.showSpikes() +
+        '&interactionFactor=' + rasterData.interactionFactor();
+      permalinkBox.selectAll('textarea').html(linkString);
+      permalinkBox.selectAll('.bookmark').attr('href', linkString);
+    });
+
+  permalinkBox.selectAll('.close')
+    .on('click', function () {
+      permalinkBox.style('display', 'none');
+    });
+
+  // Set up help overlay
+  let overlay = d3.select('#overlay');
+  let helpButton = d3.select('button#help-button');
+  overlay.selectAll('.close')
+    .on('click', function() {
+      overlay.style('display', 'none');
+    });
+
+  helpButton
+    .on('click', function() {
+      overlay
+        .style('display', 'block');
+    });
+
+  let showLinesCheckbox = d3.select('#showLines input');
+
+  showLinesCheckbox.on('change', function () {
+    rasterData.showSmoothingLines(this.checked);
+  });
+
+  let showSpikesCheckbox = d3.select('#showRaster input');
+
+  showSpikesCheckbox.on('change', function () {
+    rasterData.showSpikes(this.checked);
+  });
 
   function init(passedParams) {
-    rasterData.loadRasterData();
+
+    let showSpikes = (passedParams.showSpikes === undefined) ? true : (passedParams.showSpikes === 'true');
+    let showSmoothingLines = (passedParams.showSmoothingLines === undefined) ? true : (passedParams.showSmoothingLines === 'true');
+    let lineSmoothness = (passedParams.lineSmoothness || 20);
+    let curFactor = passedParams.curFactor || 'trial_id';
+    let curEvent = passedParams.curEvent || 'start_time';
+    let interactionFactor = passedParams.interactionFactor || '';
+    let neuronName = passedParams.neuronName || '';
+
+    rasterData
+      .showSpikes(showSpikes)
+      .showSmoothingLines(showSmoothingLines)
+      .lineSmoothness(lineSmoothness)
+      .curFactor(curFactor)
+      .curEvent(curEvent)
+      .interactionFactor(interactionFactor)
+      .neuronName(neuronName);
+
   }
 
   exports.init = init;

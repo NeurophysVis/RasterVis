@@ -2,26 +2,26 @@ import merge from '../../node_modules/lodash-es/merge';
 import queue from '../../node_modules/d3-queue/src/queue';
 
 export default function() {
-  var neuronName = '';
-  var sessionName = '';
-  var brainArea = '';
-  var Subject = '';
-  var timeDomain = [];
-  var factorList = [];
-  var trialEvents = [];
-  var neuronList = [];
-  var rasterData = {};
-  var spikeInfo = {};
-  var sessionInfo = {};
-  var showSpikes = true;
-  var showSmoothingLines = true;
-  var lineSmoothness = 20;
-  var curFactor = 'trial_id';
-  var curEvent = 'start_time';
-  var interactionFactor = '';
-  var isLoaded = false;
-  var dispatch = d3.dispatch('dataReady');
-  var dataManager = {};
+  let neuronName = '';
+  let sessionName = '';
+  let brainArea = '';
+  let Subject = '';
+  let timeDomain = [];
+  let factorList = [];
+  let trialEvents = [];
+  let neuronList = [];
+  let rasterData = {};
+  let spikeInfo = {};
+  let sessionInfo = {};
+  let showSpikes = true;
+  let showSmoothingLines = true;
+  let lineSmoothness = 20;
+  let curFactor = 'trial_id';
+  let curEvent = 'start_time';
+  let interactionFactor = '';
+  let isLoaded = false;
+  let dispatch = d3.dispatch('dataReady');
+  let dataManager = {};
 
   dataManager.loadRasterData = function () {
     isLoaded = false;
@@ -33,7 +33,7 @@ export default function() {
 
       if (neuronName === '') {neuronName = neuronList[0];};
 
-      var s = neuronName.split('_');
+      let s = neuronName.split('_');
       sessionName = s[0];
 
       queue()
@@ -53,16 +53,16 @@ export default function() {
   };
 
   dataManager.changeEvent = function () {
-    var minTime = d3.min(sessionInfo, function (s) { return s.start_time - s[curEvent]; });
+    let minTime = d3.min(sessionInfo, function (s) { return s.start_time - s[curEvent]; });
 
-    var maxTime = d3.max(sessionInfo, function (s) { return s.end_time - s[curEvent]; });
+    let maxTime = d3.max(sessionInfo, function (s) { return s.end_time - s[curEvent]; });
 
     timeDomain = [minTime, maxTime];
   };
 
   dataManager.sortRasterData = function () {
     rasterData = merge(sessionInfo, spikeInfo);
-    var factorType = factorList.filter(function (d) {return d.value === curFactor;})
+    let factorType = factorList.filter(function (d) {return d.value === curFactor;})
                                .map(function (d) {return d.factorType;})[0].toUpperCase();
 
     // Nest and Sort Data
@@ -91,12 +91,19 @@ export default function() {
   dataManager.neuronName  = function (value) {
     if (!arguments.length) return neuronName;
     neuronName = value;
+    dataManager.loadRasterData();
     return dataManager;
   };
 
   dataManager.sessionName  = function (value) {
     if (!arguments.length) return sessionName;
     sessionName = value;
+    return dataManager;
+  };
+
+  dataManager.interactionFactor  = function (value) {
+    if (!arguments.length) return interactionFactor;
+    interactionFactor = value;
     return dataManager;
   };
 
@@ -109,12 +116,14 @@ export default function() {
   dataManager.showSpikes  = function (value) {
     if (!arguments.length) return showSpikes;
     showSpikes = value;
+    if (isLoaded) dispatch.dataReady();
     return dataManager;
   };
 
   dataManager.showSmoothingLines = function (value) {
     if (!arguments.length) return showSmoothingLines;
     showSmoothingLines = value;
+    if (isLoaded) dispatch.dataReady();
     return dataManager;
   };
 

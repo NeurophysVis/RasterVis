@@ -1,5 +1,5 @@
 import rasterChart from './rasterChart';
 
-var rasterView = rasterChart();
+let rasterView = rasterChart();
 
 export default rasterView;

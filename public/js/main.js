@@ -2511,6 +2511,16 @@
     return newQueue(arguments.length ? +concurrency : Infinity);
   }
 
+  function loading (isLoading) {
+    if (!isLoading) {
+      d3.selectAll('#chart svg').attr('display', 'none');
+      d3.select('#chart').append('text').attr('class', 'loading').text('Loading...');
+    } else {
+      d3.select('.loading').remove();
+      d3.selectAll('#chart svg').attr('display', '');
+    }
+  }
+
   function rasterDataManger() {
     let neuronName = '';
     let sessionName = '';
@@ -2535,6 +2545,7 @@
 
     dataManager.loadRasterData = function () {
       isLoaded = false;
+      loading(isLoaded);
 
       d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
         factorList = trialInfo.experimentalFactor;
@@ -2553,10 +2564,11 @@
             spikeInfo = neuron.Spikes;
             sessionInfo = sI;
             isLoaded = true;
-
+            loading(isLoaded);
             dataManager.sortRasterData();
             dataManager.changeEvent();
             dispatch.dataReady();
+
           });
       });
 
@@ -2950,6 +2962,8 @@
     kdeLine.exit()
       .remove();
 
+    return maxKDE;
+
   }
 
   let toolTip = d3.select('body').selectAll('div#tooltip').data([{}]);
@@ -3038,7 +3052,7 @@
 
   function rasterChart () {
     // Defaults
-    let margin = { top: 20, right: 20, bottom: 20, left: 20 };
+    let margin = { top: 30, right: 30, bottom: 30, left: 30 };
     let outerWidth = 960;
     let outerHeight = 500;
     let timeDomain = [];
@@ -3099,6 +3113,9 @@
         enterG
           .append('g')
             .attr('class', 'timeAxis');
+        enterG
+          .append('g')
+            .attr('class', 'yAxis');
 
         // Fix title names
         let s = data.key.split('_');
@@ -3141,19 +3158,37 @@
         showSpikes ? drawSpikes(spikesG, data.values, timeScale, yScale, curEvent) : spikesG.selectAll('circle').remove();
         drawTrialEvents(trialEventsG, data.values, trialEvents, curEvent, timeScale, yScale);
         drawMouseBox(trialBoxG, data.values, timeScale, yScale, curEvent, innerWidth);
-        showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : smoothLineG.selectAll('path.kdeLine').remove();
+        let maxKDE = showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : d3.selectAll('path.kdeLine').remove();
 
-        // Draw the axes
+        // Draw the time axis
         let timeAxisG = svg.select('g.timeAxis');
         let timeAxis = d3.svg.axis()
           .scale(timeScale)
           .orient('bottom')
-          .ticks(10)
+          .ticks(7)
           .tickSize(0)
           .tickFormat(d3.format('4d'));
         timeAxisG
           .attr('transform', 'translate(0,' + innerHeight + ')')
           .call(timeAxis);
+
+        // Draw smoothing axis if showing smoothing line
+        let yAxisG = svg.select('g.yAxis');
+        if (showSmoothingLines) {
+          yAxisG.attr('display', '');
+          let smoothScale = d3.scale.linear()
+            .domain([0, (maxKDE * 1000)]) // assuming in milliseconds
+            .range([innerHeight, 0]);
+          let yAxis = d3.svg.axis()
+            .scale(smoothScale)
+            .orient('left')
+            .ticks(2)
+            .tickSize(0);
+          yAxisG.call(yAxis);
+        } else {
+          // hide axis
+          yAxisG.attr('display', 'none');
+        }
 
       });
 

@@ -66,4 +66,6 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
   kdeLine.exit()
     .remove();
 
+  return maxKDE;
+
 }

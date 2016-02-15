@@ -131,3 +131,6 @@
   overflow: hidden;
   width: 100%
 }
+#NeuronName {
+  font-size: 12px;
+}

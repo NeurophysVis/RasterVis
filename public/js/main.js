@@ -2511,10 +2511,13 @@
     return newQueue(arguments.length ? +concurrency : Infinity);
   }
 
-  function loading (isLoading) {
+  function loading (isLoading, neuronName) {
     if (!isLoading) {
       d3.selectAll('#chart svg').attr('display', 'none');
-      d3.select('#chart').append('text').attr('class', 'loading').text('Loading...');
+      d3.select('#chart')
+        .append('text')
+          .attr('class', 'loading')
+          .html('Loading... ' + neuronName);
     } else {
       d3.select('.loading').remove();
       d3.selectAll('#chart svg').attr('display', '');
@@ -2545,7 +2548,6 @@
 
     dataManager.loadRasterData = function () {
       isLoaded = false;
-      loading(isLoaded);
 
       d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
         factorList = trialInfo.experimentalFactor;
@@ -2553,6 +2555,8 @@
         neuronList = Object.getOwnPropertyNames(trialInfo.neurons);
 
         if (neuronName === '') {neuronName = neuronList[0];};
+
+        loading(isLoaded, neuronName);
 
         let s = neuronName.split('_');
         sessionName = s[0];
@@ -2562,6 +2566,7 @@
           .defer(d3.json, 'DATA/Neuron_' + neuronName + '.json')
           .await(function (error, sI, neuron) {
             spikeInfo = neuron.Spikes;
+            brainArea = neuron.Brain_Area;
             sessionInfo = sI;
             isLoaded = true;
             loading(isLoaded);
@@ -2619,6 +2624,12 @@
       if (!arguments.length) return neuronName;
       neuronName = value;
       dataManager.loadRasterData();
+      return dataManager;
+    };
+
+    dataManager.brainArea  = function (value) {
+      if (!arguments.length) return brainArea;
+      brainArea = value;
       return dataManager;
     };
 
@@ -3577,6 +3588,7 @@
 
   let rasterData = rasterDataManger();
   rasterData.on('dataReady', function () {
+    d3.select('span#NeuronName').text('Neuron ' + rasterData.brainArea().toUpperCase() + ' ' + rasterData.neuronName());
     let chartWidth = document.getElementById('chart').offsetWidth;
     rasterView
       .width(chartWidth)

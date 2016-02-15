@@ -26,7 +26,6 @@ export default function() {
 
   dataManager.loadRasterData = function () {
     isLoaded = false;
-    loading(isLoaded);
 
     d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
       factorList = trialInfo.experimentalFactor;
@@ -34,6 +33,8 @@ export default function() {
       neuronList = Object.getOwnPropertyNames(trialInfo.neurons);
 
       if (neuronName === '') {neuronName = neuronList[0];};
+
+      loading(isLoaded, neuronName);
 
       let s = neuronName.split('_');
       sessionName = s[0];
@@ -43,6 +44,7 @@ export default function() {
         .defer(d3.json, 'DATA/Neuron_' + neuronName + '.json')
         .await(function (error, sI, neuron) {
           spikeInfo = neuron.Spikes;
+          brainArea = neuron.Brain_Area;
           sessionInfo = sI;
           isLoaded = true;
           loading(isLoaded);
@@ -100,6 +102,12 @@ export default function() {
     if (!arguments.length) return neuronName;
     neuronName = value;
     dataManager.loadRasterData();
+    return dataManager;
+  };
+
+  dataManager.brainArea  = function (value) {
+    if (!arguments.length) return brainArea;
+    brainArea = value;
     return dataManager;
   };
 

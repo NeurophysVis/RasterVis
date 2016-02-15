@@ -3,10 +3,11 @@ import drawTrialEvents from './drawTrialEvents';
 import drawSmoothingLine from './drawSmoothingLine';
 import drawMouseBox from './drawMouseBox';
 import fixDimNames from './fixDimNames';
+import eventMarkers from './eventMarkers';
 
 export default function () {
   // Defaults
-  let margin = { top: 30, right: 30, bottom: 30, left: 30 };
+  let margin = { top: 50, right: 50, bottom: 50, left: 50 };
   let outerWidth = 960;
   let outerHeight = 500;
   let timeDomain = [];
@@ -113,6 +114,7 @@ export default function () {
       drawTrialEvents(trialEventsG, data.values, trialEvents, curEvent, timeScale, yScale);
       drawMouseBox(trialBoxG, data.values, timeScale, yScale, curEvent, innerWidth);
       let maxKDE = showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : d3.selectAll('path.kdeLine').remove();
+      eventMarkers(svg, data.values, trialEvents, timeScale, curEvent);
 
       // Draw the time axis
       let timeAxisG = svg.select('g.timeAxis');

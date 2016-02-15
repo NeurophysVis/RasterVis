@@ -2588,6 +2588,7 @@
             if (interactionFactor !== '') {
               return d3.descending(+a[interactionFactor], +b[interactionFactor]);
             } else {
+              // else sort by trial id
               return d3.descending(+a['trial_id'], +b['trial_id']);
             };
           })
@@ -3506,6 +3507,18 @@
 
   neuronSearch.fuseOptions(fuseOptions$1);
 
+  let showLinesCheckbox = d3.select('#showLines input');
+
+  showLinesCheckbox.on('change', function () {
+    rasterData.showSmoothingLines(this.checked);
+  });
+
+  let showSpikesCheckbox = d3.select('#showRaster input');
+
+  showSpikesCheckbox.on('change', function () {
+    rasterData.showSpikes(this.checked);
+  });
+
   let rasterData = rasterDataManger();
   rasterData.on('dataReady', function () {
     let chartWidth = document.getElementById('chart').offsetWidth;
@@ -3538,6 +3551,9 @@
     d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);
     d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronList);
     d3.select('#NeuronSearch').datum(rasterData.neuronList()).call(neuronSearch);
+
+    showLinesCheckbox.property('checked', rasterData.showSmoothingLines());
+    showSpikesCheckbox.property('checked', rasterData.showSpikes());
   });
 
   function download (svgInfo, filename) {
@@ -3747,18 +3763,6 @@
       overlay
         .style('display', 'block');
     });
-
-  let showLinesCheckbox = d3.select('#showLines input');
-
-  showLinesCheckbox.on('change', function () {
-    rasterData.showSmoothingLines(this.checked);
-  });
-
-  let showSpikesCheckbox = d3.select('#showRaster input');
-
-  showSpikesCheckbox.on('change', function () {
-    rasterData.showSpikes(this.checked);
-  });
 
   function init(passedParams) {
 

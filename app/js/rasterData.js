@@ -6,6 +6,8 @@ import smoothingSlider from './UI/smoothingSlider';
 import chartHeight from './chartHeight';
 import neuronList from './UI/neuronList';
 import neuronSearch from './UI/neuronSearch';
+import showLinesCheckbox from './UI/showLinesCheckbox';
+import showSpikesCheckbox from './UI/showSpikesCheckbox';
 
 let rasterData = rasterDataManger();
 let fuseOptions = { threshold: .4 };
@@ -41,6 +43,9 @@ rasterData.on('dataReady', function () {
   d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);
   d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronList);
   d3.select('#NeuronSearch').datum(rasterData.neuronList()).call(neuronSearch);
+
+  showLinesCheckbox.property('checked', rasterData.showSmoothingLines());
+  showSpikesCheckbox.property('checked', rasterData.showSpikes());
 });
 
 export default rasterData;

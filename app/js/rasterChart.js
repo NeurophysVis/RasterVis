@@ -71,6 +71,9 @@ export default function () {
       enterG
         .append('g')
           .attr('class', 'yAxis');
+      enterG
+        .append('g')
+          .attr('class', 'eventMarker');
 
       // Fix title names
       let s = data.key.split('_');
@@ -109,12 +112,13 @@ export default function () {
       let trialEventsG = svg.select('g.trialEvents');
       let trialBoxG = svg.select('g.trialBox');
       let smoothLineG = svg.select('g.smoothLine');
+      let eventMarkerG = svg.select('g.eventMarker');
 
       showSpikes ? drawSpikes(spikesG, data.values, timeScale, yScale, curEvent) : spikesG.selectAll('circle').remove();
       drawTrialEvents(trialEventsG, data.values, trialEvents, curEvent, timeScale, yScale);
       drawMouseBox(trialBoxG, data.values, timeScale, yScale, curEvent, innerWidth);
       let maxKDE = showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : d3.selectAll('path.kdeLine').remove();
-      eventMarkers(svg, data.values, trialEvents, timeScale, curEvent);
+      eventMarkers(eventMarkerG, data.values, trialEvents, timeScale, curEvent, innerHeight);
 
       // Draw the time axis
       let timeAxisG = svg.select('g.timeAxis');

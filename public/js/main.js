@@ -3061,38 +3061,44 @@
     return fixedName;
   }
 
-  function eventMarkers (selection, data, trialEvents, timeScale, curEvent) {
+  // Append average start time for event label position
+  function findAverageStartTime (data, trialEvents, curEvent) {
+    trialEvents.forEach(function (period, ind) {
+      let avgTime = d3.mean(data, function (trial) {
+        if (trial[curEvent] !== null && trial[period.startID] !== null) {
+          return trial[period.startID] - trial[curEvent];
+        }
+
+      });
+
+      period.labelPosition = avgTime;
+    });
+  }
+
+  function eventMarkers (selection, data, trialEvents, timeScale, curEvent, innerHeight) {
 
     const labelWidth = 45;
+    const labelHeight = 33;
 
-    // if timePeriod value is null, find the next non-null trial
-    var dataStartInd = 0;
-    while (data[dataStartInd][trialEvents[0].startID] === null && (dataStartInd < data.length - 1)) {
-      dataStartInd++;
-    }
-
-    // Append first non-null time for label position
-    trialEvents.forEach(function (period, ind) {
-      period.labelPosition = data[dataStartInd][period.startID] - data[dataStartInd][curEvent];
-    });
+    findAverageStartTime(data, trialEvents, curEvent);
 
     // Add labels corresponding to trial events
-    var eventLabel = selection.selectAll('.eventLabel').data(trialEvents, function (d) {return d.label;});
+    let eventLabel = selection.selectAll('.eventLabel').data(trialEvents, function (d) {return d.label;});
 
     eventLabel.enter()
       .append('foreignObject')
         .attr('class', 'eventLabel')
         .attr('id', function (d) {return d.label;})
-        .attr('y', 0)
         .attr('width', labelWidth)
         .attr('height', 33)
         .style('color', function (d) {return d.color;})
-        .html(function (d) {return '<div>' + d.label + '<br>▼</div>'; });
+        .html(function (d) {return '<div>▲' + d.label + '</div>'; });
 
     eventLabel
       .attr('x', function (d) {
-        return timeScale(d.labelPosition) + (labelWidth / 2);
-      });
+        return timeScale(d.labelPosition) - (labelWidth / 2);
+      })
+      .attr('y', innerHeight + 16);
   }
 
   function rasterChart () {
@@ -3161,6 +3167,9 @@
         enterG
           .append('g')
             .attr('class', 'yAxis');
+        enterG
+          .append('g')
+            .attr('class', 'eventMarker');
 
         // Fix title names
         let s = data.key.split('_');
@@ -3199,12 +3208,13 @@
         let trialEventsG = svg.select('g.trialEvents');
         let trialBoxG = svg.select('g.trialBox');
         let smoothLineG = svg.select('g.smoothLine');
+        let eventMarkerG = svg.select('g.eventMarker');
 
         showSpikes ? drawSpikes(spikesG, data.values, timeScale, yScale, curEvent) : spikesG.selectAll('circle').remove();
         drawTrialEvents(trialEventsG, data.values, trialEvents, curEvent, timeScale, yScale);
         drawMouseBox(trialBoxG, data.values, timeScale, yScale, curEvent, innerWidth);
         let maxKDE = showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : d3.selectAll('path.kdeLine').remove();
-        eventMarkers(svg, data.values, trialEvents, timeScale, curEvent);
+        eventMarkers(eventMarkerG, data.values, trialEvents, timeScale, curEvent, innerHeight);
 
         // Draw the time axis
         let timeAxisG = svg.select('g.timeAxis');

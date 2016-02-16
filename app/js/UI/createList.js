@@ -1,18 +1,27 @@
 export default function () {
+  let key = '';
   let dispatch = d3.dispatch('click');
 
   function list(selection) {
     selection.each(function (data) {
-      let options = d3.select(this).select('select').selectAll('options').data(data, String);
+      if (data.length === 0) return;
+      let options = d3.select(this).select('select').selectAll('options').data(data, function (d) {return d[key];});
+
       options.enter()
         .append('option')
-        .text(function (d) {return d;});
+        .text(function (d) {return d[key];});
 
       options.exit().remove();
-      options.on('click', function (d) { return dispatch.click(d); });
+      options.on('click', function (d) { return dispatch.click(d[key]); });
 
     });
   }
+
+  list.key = function (value) {
+    if (!arguments.length) return key;
+    key = value;
+    return list;
+  };
 
   d3.rebind(list, dispatch, 'on');
 

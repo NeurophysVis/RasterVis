@@ -30,9 +30,9 @@ export default function() {
     d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
       factorList = trialInfo.experimentalFactor;
       trialEvents = trialInfo.timePeriods;
-      neuronList = Object.getOwnPropertyNames(trialInfo.neurons);
+      neuronList = trialInfo.neurons;
 
-      if (neuronName === '') {neuronName = neuronList[0];};
+      if (neuronName === '') {neuronName = neuronList[0].name;};
 
       loading(isLoaded, neuronName);
 

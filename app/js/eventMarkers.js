@@ -17,7 +17,7 @@ export default function (selection, data, trialEvents, timeScale, curEvent, inne
       .attr('width', labelWidth)
       .attr('height', 33)
       .style('color', function (d) {return d.color;})
-      .html(function (d) {return '<div>▲' + d.label + '</div>'; });
+      .html(function (d) {return '<div>▲<br>' + d.label + '</div>'; });
 
   eventLabel
     .attr('x', function (d) {

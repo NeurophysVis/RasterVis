@@ -6,7 +6,7 @@ import rasterData from './rasterData';
 */
 export default function (data) {
   const spikeDiameter = 4;
-  const noSpikesHeight = 200;
+  const noSpikesHeight = 250;
   let heightMargin = rasterView.margin().top + rasterView.margin().bottom;
   let withSpikesHeight = (data.values.length * spikeDiameter) + heightMargin;
 

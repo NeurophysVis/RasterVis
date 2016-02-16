@@ -2552,9 +2552,9 @@
       d3.json('DATA/' + 'trialInfo.json', function (error, trialInfo) {
         factorList = trialInfo.experimentalFactor;
         trialEvents = trialInfo.timePeriods;
-        neuronList = Object.getOwnPropertyNames(trialInfo.neurons);
+        neuronList = trialInfo.neurons;
 
-        if (neuronName === '') {neuronName = neuronList[0];};
+        if (neuronName === '') {neuronName = neuronList[0].name;};
 
         loading(isLoaded, neuronName);
 
@@ -3092,7 +3092,7 @@
         .attr('width', labelWidth)
         .attr('height', 33)
         .style('color', function (d) {return d.color;})
-        .html(function (d) {return '<div>▲' + d.label + '</div>'; });
+        .html(function (d) {return '<div>▲<br>' + d.label + '</div>'; });
 
     eventLabel
       .attr('x', function (d) {
@@ -3528,7 +3528,7 @@
   */
   function chartHeight (data) {
     const spikeDiameter = 4;
-    const noSpikesHeight = 200;
+    const noSpikesHeight = 250;
     let heightMargin = rasterView.margin().top + rasterView.margin().bottom;
     let withSpikesHeight = (data.values.length * spikeDiameter) + heightMargin;
 
@@ -3536,20 +3536,29 @@
   }
 
   function createList () {
+    let key = '';
     let dispatch = d3.dispatch('click');
 
     function list(selection) {
       selection.each(function (data) {
-        let options = d3.select(this).select('select').selectAll('options').data(data, String);
+        if (data.length === 0) return;
+        let options = d3.select(this).select('select').selectAll('options').data(data, function (d) {return d[key];});
+
         options.enter()
           .append('option')
-          .text(function (d) {return d;});
+          .text(function (d) {return d[key];});
 
         options.exit().remove();
-        options.on('click', function (d) { return dispatch.click(d); });
+        options.on('click', function (d) { return dispatch.click(d[key]); });
 
       });
     }
+
+    list.key = function (value) {
+      if (!arguments.length) return key;
+      key = value;
+      return list;
+    };
 
     d3.rebind(list, dispatch, 'on');
 
@@ -3558,12 +3567,15 @@
 
   let neuronList = createList();
 
+  neuronList.key('name');
+
   neuronList.on('click', function (d) {
     rasterData.neuronName(d);
   });
 
   function createSearch () {
     let fuseOptions = {};
+    let key = '';
     let dispatch = d3.dispatch('click');
 
     function searchBox(selection) {
@@ -3572,11 +3584,15 @@
 
         selection.select('input').on('input', function () {
           let curInput = d3.select(this).property('value');
-          let guesses = fuseSearch.search(curInput).map(function (d) {return data[d];});
+          if (curInput.length < 2) return;
+          let guesses = fuseSearch.search(curInput);
 
-          if (guesses.length > 5) guesses = guesses.slice(0, 5);
+          guesses = guesses.filter(function (g) {return g.score < 0.05;});
 
-          let guessList = selection.select('ul').selectAll('li').data(guesses, String);
+          if (guesses.length > 20) guesses = guesses.slice(0, 20);
+
+          let guessList = selection.select('ul').selectAll('li').data(guesses.map(function (d) {return d.item[key];}), String);
+
           guessList.enter()
             .append('li')
               .append('a')
@@ -3599,7 +3615,19 @@
     searchBox.fuseOptions = function (value) {
       if (!arguments.length) return fuseOptions;
       fuseOptions = value;
-      return fuseOptions;
+      return searchBox;
+    };
+
+    searchBox.fuseOptions = function (value) {
+      if (!arguments.length) return fuseOptions;
+      fuseOptions = value;
+      return searchBox;
+    };
+
+    searchBox.key = function (value) {
+      if (!arguments.length) return key;
+      key = value;
+      return searchBox;
     };
 
     d3.rebind(searchBox, dispatch, 'on');
@@ -3607,17 +3635,22 @@
   }
 
   let neuronSearch = createSearch();
+
   const fuseOptions$1 = {
     threshold: 0.4,
     shouldSort: true,
+    include: ['score'],
     location: 1,
+    keys: ['name', 'brainArea'],
   };
 
   neuronSearch.on('click', function (d) {
     rasterData.neuronName(d);
   });
 
-  neuronSearch.fuseOptions(fuseOptions$1);
+  neuronSearch
+    .fuseOptions(fuseOptions$1)
+    .key('name');
 
   let showLinesCheckbox = d3.select('#showLines input');
 

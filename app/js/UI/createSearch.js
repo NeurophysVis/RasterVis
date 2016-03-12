@@ -32,7 +32,7 @@ export default function () {
 
         guessList.exit().remove();
 
-        selection.classed('open', guesses.length > 0);
+        selection.classed('open', guesses.length > 0 & curInput.length > 2);
       });
     });
   }

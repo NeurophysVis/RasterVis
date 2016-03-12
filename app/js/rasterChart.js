@@ -137,12 +137,12 @@ export default function () {
       if (showSmoothingLines) {
         yAxisG.attr('display', '');
         let smoothScale = d3.scale.linear()
-          .domain([0, (maxKDE * 1000)]) // assuming in milliseconds
+          .domain([0, maxKDE]) // assuming in milliseconds
           .range([innerHeight, 0]);
         let yAxis = d3.svg.axis()
           .scale(smoothScale)
           .orient('left')
-          .ticks(2)
+          .tickValues([0, maxKDE])
           .tickSize(0);
         yAxisG.call(yAxis);
       } else {

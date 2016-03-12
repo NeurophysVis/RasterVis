@@ -7,8 +7,10 @@ import showSpikesCheckbox from './UI/showSpikesCheckbox';
 
 export function init(passedParams) {
 
-  let showSpikes = (passedParams.showSpikes === undefined) ? true : (passedParams.showSpikes === 'true');
-  let showSmoothingLines = (passedParams.showSmoothingLines === undefined) ? true : (passedParams.showSmoothingLines === 'true');
+  let showSpikes = (passedParams.showSpikes === undefined) ?
+    true : (passedParams.showSpikes === 'true');
+  let showSmoothingLines = (passedParams.showSmoothingLines === undefined) ?
+    true : (passedParams.showSmoothingLines === 'true');
   let lineSmoothness = (passedParams.lineSmoothness || 20);
   let curFactor = passedParams.curFactor || 'trial_id';
   let curEvent = passedParams.curEvent || 'start_time';

@@ -1,5 +1,6 @@
 export default function () {
   let key = '';
+  let curSelected = '';
   let dispatch = d3.dispatch('click');
 
   function list(selection) {
@@ -20,6 +21,12 @@ export default function () {
   list.key = function (value) {
     if (!arguments.length) return key;
     key = value;
+    return list;
+  };
+
+  list.curSelected = function (value) {
+    if (!arguments.length) return curSelected;
+    curSelected = value;
     return list;
   };
 

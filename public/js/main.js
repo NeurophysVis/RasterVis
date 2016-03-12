@@ -2558,8 +2558,10 @@
 
         loading(isLoaded, neuronName);
 
-        let s = neuronName.split('_');
-        sessionName = s[0];
+        let neuronInfo = neuronList.filter(function (d) {return d.name === neuronName;})[0];
+
+        sessionName = neuronInfo.sessionName;
+        Subject = neuronInfo.subjectName;
 
         queue()
           .defer(d3.json, 'DATA/' + sessionName + '_TrialInfo.json')
@@ -2898,41 +2900,72 @@
   function kernelDensityEstimator (kernel, x) {
     return function (sample) {
       return x.map(function (x) {
-        return [x, d3.mean(sample, function (v) { return kernel(x - v); })];
+        return [x, d3.sum(sample, function (v) { return kernel(x - v); })];
       });
     };
   }
 
-  function gaussianKernel (scale) {
-    return function (u) {
-      return Math.exp((-0.5 * u * u) / (scale * scale)) / (scale * Math.sqrt(2 * Math.PI));
+  function gaussianKernel (bandwidth) {
+    return function (spikeTime) {
+      return Math.exp((spikeTime * spikeTime) / (-2 * bandwidth * bandwidth))
+        / (bandwidth * Math.sqrt(2 * Math.PI));
     };
   }
 
   function drawSmoothingLine (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) {
     // Nest by interaction factor
-    let spikes = d3.nest().key(function (d) {return d[interactionFactor];}).entries(data);
-    let kde = kernelDensityEstimator(gaussianKernel(lineSmoothness), timeScale.ticks(400));
+    let spikes = d3.nest()
+      .key(function (d) {return d[interactionFactor];})
+      .entries(data.filter(function (d) {
+        return d.start_time != null && d.isIncluded === 'Included';
+      })); // Don't include trials with no start time or excluded
 
-    spikes.forEach(function (e) {
+    // Compute kernel density estimate
+    let timeRange = d3.range(d3.min(timeScale.domain()), d3.max(timeScale.domain()));
+    let kde = kernelDensityEstimator(gaussianKernel(lineSmoothness), timeRange);
 
-      // Reshape the data into the kernel density estimate of spikes
-      e.values = kde(
+    spikes.forEach(function (factor) {
 
-        // flatten the spikes into one array
-        flatten(
-          e.values.map(function (d) { // adjust spike times to be relative to cue
-            if (d.spikes[0] != undefined) {
-              return d.spikes.map(function (spike) {
-                return spike - d[curEvent];
-              });
-            } else {
-              return undefined;
+      let kdeByTrial = factor.values.map(function (trial) {
+        if (trial.spikes[0] != undefined) {
+          return kde(
+            trial.spikes.map(function (spike) { return spike - trial[curEvent];})
+          );
+        }
+      });
+
+      let y = kdeByTrial.map(function (trial) {
+        if (trial != undefined) {
+          return trial.map(function (e) { return e[1]; });
+        };
+      });
+
+      factor.values = timeRange.map(function (time, ind) {
+        return [
+          time,
+          1000 * d3.sum(y.map(function (row) {
+            if (row != undefined) {
+              return row[ind];
             }
-          })
-        )
+          })) / factor.values.length,
+        ];
 
-      );
+      });
+
+      // factor.values = kde(
+      //
+      //   // flatten the spikes into one array
+      //   flatten(
+      //     factor.values.map(function (d) { // adjust spike times to be relative to cue
+      //       if (d.spikes[0] != undefined) {
+      //         return d.spikes.map(function (spike) {
+      //           return spike - d[curEvent];
+      //         });
+      //       }
+      //     })
+      //   )
+      // );
+
     });
 
     // max value of density estimate
@@ -2944,7 +2977,7 @@
 
     let kdeScale = d3.scale.linear()
         .domain([0, maxKDE])
-        .range([d3.max(yScale.range()), 0]);
+        .range([yScale.range()[0] + yScale.rangeBand(), 0]);
 
     let kdeG = selection.selectAll('g.kde').data(spikes, function (d) {return d.key;});
 
@@ -2968,7 +3001,8 @@
         .duration(1000)
       .attr('d', function (d) {return line(d.values);})
       .attr('stroke', function (d) {
-        return 'black';});
+        return 'black';
+      });
 
     kdeLine.exit()
       .remove();
@@ -3233,12 +3267,12 @@
         if (showSmoothingLines) {
           yAxisG.attr('display', '');
           let smoothScale = d3.scale.linear()
-            .domain([0, (maxKDE * 1000)]) // assuming in milliseconds
+            .domain([0, maxKDE]) // assuming in milliseconds
             .range([innerHeight, 0]);
           let yAxis = d3.svg.axis()
             .scale(smoothScale)
             .orient('left')
-            .ticks(2)
+            .tickValues([0, maxKDE])
             .tickSize(0);
           yAxisG.call(yAxis);
         } else {
@@ -3537,6 +3571,7 @@
 
   function createList () {
     let key = '';
+    let curSelected = '';
     let dispatch = d3.dispatch('click');
 
     function list(selection) {
@@ -3557,6 +3592,12 @@
     list.key = function (value) {
       if (!arguments.length) return key;
       key = value;
+      return list;
+    };
+
+    list.curSelected = function (value) {
+      if (!arguments.length) return curSelected;
+      curSelected = value;
       return list;
     };
 
@@ -3607,7 +3648,7 @@
 
           guessList.exit().remove();
 
-          selection.classed('open', guesses.length > 0);
+          selection.classed('open', guesses.length > 0 & curInput.length > 2);
         });
       });
     }
@@ -3912,8 +3953,10 @@
 
   function init(passedParams) {
 
-    let showSpikes = (passedParams.showSpikes === undefined) ? true : (passedParams.showSpikes === 'true');
-    let showSmoothingLines = (passedParams.showSmoothingLines === undefined) ? true : (passedParams.showSmoothingLines === 'true');
+    let showSpikes = (passedParams.showSpikes === undefined) ?
+      true : (passedParams.showSpikes === 'true');
+    let showSmoothingLines = (passedParams.showSmoothingLines === undefined) ?
+      true : (passedParams.showSmoothingLines === 'true');
     let lineSmoothness = (passedParams.lineSmoothness || 20);
     let curFactor = passedParams.curFactor || 'trial_id';
     let curEvent = passedParams.curEvent || 'start_time';

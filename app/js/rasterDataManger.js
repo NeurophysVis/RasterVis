@@ -36,8 +36,10 @@ export default function() {
 
       loading(isLoaded, neuronName);
 
-      let s = neuronName.split('_');
-      sessionName = s[0];
+      let neuronInfo = neuronList.filter(function (d) {return d.name === neuronName;})[0];
+
+      sessionName = neuronInfo.sessionName;
+      Subject = neuronInfo.subjectName;
 
       queue()
         .defer(d3.json, 'DATA/' + sessionName + '_TrialInfo.json')

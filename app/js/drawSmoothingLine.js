@@ -4,28 +4,44 @@ import gaussianKernel from './gaussianKernel';
 
 export default function (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) {
   // Nest by interaction factor
-  let spikes = d3.nest().key(function (d) {return d[interactionFactor];}).entries(data);
-  let kde = kernelDensityEstimator(gaussianKernel(lineSmoothness), timeScale.ticks(400));
+  let spikes = d3.nest()
+    .key(function (d) {return d[interactionFactor];})
+    .entries(data.filter(function (d) {
+      return d.start_time != null && d.isIncluded === 'Included';
+    })); // Don't include trials with no start time or excluded
 
-  spikes.forEach(function (e) {
+  // Compute kernel density estimate
+  let timeRange = d3.range(d3.min(timeScale.domain()), d3.max(timeScale.domain()));
+  let kde = kernelDensityEstimator(gaussianKernel(lineSmoothness), timeRange);
 
-    // Reshape the data into the kernel density estimate of spikes
-    e.values = kde(
+  spikes.forEach(function (factor) {
 
-      // flatten the spikes into one array
-      flatten(
-        e.values.map(function (d) { // adjust spike times to be relative to cue
-          if (d.spikes[0] != undefined) {
-            return d.spikes.map(function (spike) {
-              return spike - d[curEvent];
-            });
-          } else {
-            return undefined;
+    let kdeByTrial = factor.values.map(function (trial) {
+      if (trial.spikes[0] != undefined) {
+        return kde(
+          trial.spikes.map(function (spike) { return spike - trial[curEvent];})
+        );
+      }
+    });
+
+    let y = kdeByTrial.map(function (trial) {
+      if (trial != undefined) {
+        return trial.map(function (e) { return e[1]; });
+      };
+    });
+
+    factor.values = timeRange.map(function (time, ind) {
+      return [
+        time,
+        1000 * d3.sum(y.map(function (row) {
+          if (row != undefined) {
+            return row[ind];
           }
-        })
-      )
+        })) / factor.values.length,
+      ];
 
-    );
+    });
+
   });
 
   // max value of density estimate
@@ -37,7 +53,7 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
 
   let kdeScale = d3.scale.linear()
       .domain([0, maxKDE])
-      .range([d3.max(yScale.range()), 0]);
+      .range([yScale.range()[0] + yScale.rangeBand(), 0]);
 
   let kdeG = selection.selectAll('g.kde').data(spikes, function (d) {return d.key;});
 
@@ -61,7 +77,8 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
       .duration(1000)
     .attr('d', function (d) {return line(d.values);})
     .attr('stroke', function (d) {
-      return 'black';});
+      return 'black';
+    });
 
   kdeLine.exit()
     .remove();

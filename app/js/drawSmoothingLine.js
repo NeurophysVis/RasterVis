@@ -20,6 +20,8 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
         return kde(
           trial.spikes.map(function (spike) { return spike - trial[curEvent];})
         );
+      } else if (trial.start_time !== null) {
+        return kde(0);
       }
     });
 

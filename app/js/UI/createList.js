@@ -5,13 +5,14 @@ export default function () {
 
   function list(selection) {
     selection.each(function (data) {
-      if (data.length === 0) {
+      if (data.length === undefined) {
         if (data[key] !== undefined) {
           data = [data];
         } else return;
       }
 
-      let options = d3.select(this).select('select').selectAll('options').data(data, function (d) {return d[key];});
+      let options = d3.select(this).select('select').selectAll('options')
+        .data(data, function (d) {return d[key];});
 
       options.enter()
         .append('option')

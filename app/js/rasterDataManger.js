@@ -23,6 +23,7 @@ export default function() {
   let isLoaded = false;
   let dispatch = d3.dispatch('dataReady');
   let dataManager = {};
+  let colorScale = function (d) {return 'black';};
 
   dataManager.loadRasterData = function () {
     isLoaded = false;
@@ -52,6 +53,17 @@ export default function() {
           sessionInfo = sI;
           isLoaded = true;
           loading(isLoaded);
+
+          if (interactionFactor.length > 0) {
+            let factorLevels = d3.set(sessionInfo.map(function (s) {
+              return s[interactionFactor];
+            })).values();
+
+            colorScale = d3.scale.ordinal()
+              .domain(factorLevels)
+              .range(['#e41a1c', '#377eb8', '#ff7f00', '#4daf4am', '#984ea3']);
+          }
+
           dataManager.sortRasterData();
           dataManager.changeEvent();
           dispatch.dataReady();
@@ -84,11 +96,11 @@ export default function() {
         })
         .sortValues(function (a, b) {
           // If interaction factor is specified, then sort by that as well
-          if (interactionFactor !== '') {
-            return d3.descending(+a[interactionFactor], +b[interactionFactor]);
+          if (interactionFactor.length > 0) {
+            return d3.descending(a[interactionFactor], b[interactionFactor]);
           } else {
             // else sort by trial id
-            return d3.descending(+a['trial_id'], +b['trial_id']);
+            return d3.descending(+a.trial_id, +b.trial_id);
           };
         })
         .entries(rasterData);
@@ -189,6 +201,12 @@ export default function() {
   dataManager.neuronList = function (value) {
     if (!arguments.length) return neuronList;
     neuronList = value;
+    return dataManager;
+  };
+
+  dataManager.colorScale = function (value) {
+    if (!arguments.length) return colorScale;
+    colorScale = value;
     return dataManager;
   };
 

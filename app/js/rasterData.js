@@ -24,7 +24,9 @@ rasterData.on('dataReady', function () {
     .showSmoothingLines(rasterData.showSmoothingLines())
     .showSpikes(rasterData.showSpikes())
     .curEvent(rasterData.curEvent())
-    .curFactor(rasterData.curFactor());
+    .curFactor(rasterData.curFactor())
+    .interactionFactor(rasterData.interactionFactor())
+    .colorScale(rasterData.colorScale());
 
   let multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
 

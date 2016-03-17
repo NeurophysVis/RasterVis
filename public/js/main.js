@@ -2545,6 +2545,7 @@
     let isLoaded = false;
     let dispatch = d3.dispatch('dataReady');
     let dataManager = {};
+    let colorScale = function (d) {return 'black';};
 
     dataManager.loadRasterData = function () {
       isLoaded = false;
@@ -2574,6 +2575,17 @@
             sessionInfo = sI;
             isLoaded = true;
             loading(isLoaded);
+
+            if (interactionFactor.length > 0) {
+              let factorLevels = d3.set(sessionInfo.map(function (s) {
+                return s[interactionFactor];
+              })).values();
+
+              colorScale = d3.scale.ordinal()
+                .domain(factorLevels)
+                .range(['#e41a1c', '#377eb8', '#ff7f00', '#4daf4am', '#984ea3']);
+            }
+
             dataManager.sortRasterData();
             dataManager.changeEvent();
             dispatch.dataReady();
@@ -2606,11 +2618,11 @@
           })
           .sortValues(function (a, b) {
             // If interaction factor is specified, then sort by that as well
-            if (interactionFactor !== '') {
-              return d3.descending(+a[interactionFactor], +b[interactionFactor]);
+            if (interactionFactor.length > 0) {
+              return d3.descending(a[interactionFactor], b[interactionFactor]);
             } else {
               // else sort by trial id
-              return d3.descending(+a['trial_id'], +b['trial_id']);
+              return d3.descending(+a.trial_id, +b.trial_id);
             };
           })
           .entries(rasterData);
@@ -2714,6 +2726,12 @@
       return dataManager;
     };
 
+    dataManager.colorScale = function (value) {
+      if (!arguments.length) return colorScale;
+      colorScale = value;
+      return dataManager;
+    };
+
     d3.rebind(dataManager, dispatch, 'on');
 
     return dataManager;
@@ -2791,7 +2809,7 @@
   }
 
   // Draws spikes as circles
-  function drawSpikes (selection, sessionInfo, timeScale, yScale, curEvent) {
+  function drawSpikes (selection, sessionInfo, timeScale, yScale, curEvent, interactionFactor, colorScale) {
 
     let circleRadius = yScale.rangeBand() / 2;
 
@@ -2804,6 +2822,8 @@
         return [spike - trial[curEvent], ind];
       });
     });
+
+    let factorLevel = sessionInfo.map(function (d) {return d[interactionFactor];});
 
     // Flatten
     data = flatten(data);
@@ -2822,6 +2842,9 @@
       .duration(1000)
       .attr('cx', function (d) {
         return timeScale(d[0]);
+      })
+      .attr('fill', function (d) {
+        return colorScale(factorLevel[d[1]]);
       })
       .style('opacity', 1)
       .attr('r', circleRadius)
@@ -2914,7 +2937,7 @@
     };
   }
 
-  function drawSmoothingLine (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) {
+  function drawSmoothingLine (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor, colorScale) {
     // Nest by interaction factor
     let spikes = d3.nest()
       .key(function (d) {return d[interactionFactor];})
@@ -2952,20 +2975,6 @@
 
       });
 
-      // factor.values = kde(
-      //
-      //   // flatten the spikes into one array
-      //   flatten(
-      //     factor.values.map(function (d) { // adjust spike times to be relative to cue
-      //       if (d.spikes[0] != undefined) {
-      //         return d.spikes.map(function (spike) {
-      //           return spike - d[curEvent];
-      //         });
-      //       }
-      //     })
-      //   )
-      // );
-
     });
 
     // max value of density estimate
@@ -3000,9 +3009,7 @@
       .transition()
         .duration(1000)
       .attr('d', function (d) {return line(d.values);})
-      .attr('stroke', function (d) {
-        return 'black';
-      });
+      .attr('stroke', function (d) { return colorScale(d.key); });
 
     kdeLine.exit()
       .remove();
@@ -3152,6 +3159,7 @@
     let showSmoothingLines = true;
     let innerHeight;
     let innerWidth;
+    let colorScale = function (d) {return 'black';};
 
     function chart(selection) {
       selection.each(function (data) {
@@ -3244,10 +3252,10 @@
         let smoothLineG = svg.select('g.smoothLine');
         let eventMarkerG = svg.select('g.eventMarker');
 
-        showSpikes ? drawSpikes(spikesG, data.values, timeScale, yScale, curEvent) : spikesG.selectAll('circle').remove();
+        showSpikes ? drawSpikes(spikesG, data.values, timeScale, yScale, curEvent, interactionFactor, colorScale) : spikesG.selectAll('circle').remove();
         drawTrialEvents(trialEventsG, data.values, trialEvents, curEvent, timeScale, yScale);
         drawMouseBox(trialBoxG, data.values, timeScale, yScale, curEvent, innerWidth);
-        let maxKDE = showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : d3.selectAll('path.kdeLine').remove();
+        let maxKDE = showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor, colorScale) : d3.selectAll('path.kdeLine').remove();
         eventMarkers(eventMarkerG, data.values, trialEvents, timeScale, curEvent, innerHeight);
 
         // Draw the time axis
@@ -3320,6 +3328,12 @@
       return chart;
     };
 
+    chart.interactionFactor = function (value) {
+      if (!arguments.length) return interactionFactor;
+      interactionFactor = value;
+      return chart;
+    };
+
     chart.trialEvents = function (value) {
       if (!arguments.length) return trialEvents;
       trialEvents = value;
@@ -3341,6 +3355,12 @@
     chart.showSpikes = function (value) {
       if (!arguments.length) return showSpikes;
       showSpikes = value;
+      return chart;
+    };
+
+    chart.colorScale = function (value) {
+      if (!arguments.length) return colorScale;
+      colorScale = value;
       return chart;
     };
 
@@ -3722,7 +3742,9 @@
       .showSmoothingLines(rasterData.showSmoothingLines())
       .showSpikes(rasterData.showSpikes())
       .curEvent(rasterData.curEvent())
-      .curFactor(rasterData.curFactor());
+      .curFactor(rasterData.curFactor())
+      .interactionFactor(rasterData.interactionFactor())
+      .colorScale(rasterData.colorScale());
 
     let multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
 

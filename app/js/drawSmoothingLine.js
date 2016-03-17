@@ -1,8 +1,7 @@
-import flatten from '../../node_modules/lodash-es/flatten';
 import kernelDensityEstimator from './kernelDensityEstimator';
 import gaussianKernel from './gaussianKernel';
 
-export default function (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) {
+export default function (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor, colorScale) {
   // Nest by interaction factor
   let spikes = d3.nest()
     .key(function (d) {return d[interactionFactor];})
@@ -74,9 +73,7 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
     .transition()
       .duration(1000)
     .attr('d', function (d) {return line(d.values);})
-    .attr('stroke', function (d) {
-      return 'black';
-    });
+    .attr('stroke', function (d) { return colorScale(d.key); });
 
   kdeLine.exit()
     .remove();

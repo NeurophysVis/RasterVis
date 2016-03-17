@@ -1,7 +1,7 @@
 import flatten from '../../node_modules/lodash-es/flatten';
 
 // Draws spikes as circles
-export default function (selection, sessionInfo, timeScale, yScale, curEvent) {
+export default function (selection, sessionInfo, timeScale, yScale, curEvent, interactionFactor, colorScale) {
 
   let circleRadius = yScale.rangeBand() / 2;
 
@@ -14,6 +14,8 @@ export default function (selection, sessionInfo, timeScale, yScale, curEvent) {
       return [spike - trial[curEvent], ind];
     });
   });
+
+  let factorLevel = sessionInfo.map(function (d) {return d[interactionFactor];});
 
   // Flatten
   data = flatten(data);
@@ -32,6 +34,9 @@ export default function (selection, sessionInfo, timeScale, yScale, curEvent) {
     .duration(1000)
     .attr('cx', function (d) {
       return timeScale(d[0]);
+    })
+    .attr('fill', function (d) {
+      return colorScale(factorLevel[d[1]]);
     })
     .style('opacity', 1)
     .attr('r', circleRadius)

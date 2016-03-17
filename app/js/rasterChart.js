@@ -22,6 +22,7 @@ export default function () {
   let showSmoothingLines = true;
   let innerHeight;
   let innerWidth;
+  let colorScale = function (d) {return 'black';};
 
   function chart(selection) {
     selection.each(function (data) {
@@ -114,10 +115,10 @@ export default function () {
       let smoothLineG = svg.select('g.smoothLine');
       let eventMarkerG = svg.select('g.eventMarker');
 
-      showSpikes ? drawSpikes(spikesG, data.values, timeScale, yScale, curEvent) : spikesG.selectAll('circle').remove();
+      showSpikes ? drawSpikes(spikesG, data.values, timeScale, yScale, curEvent, interactionFactor, colorScale) : spikesG.selectAll('circle').remove();
       drawTrialEvents(trialEventsG, data.values, trialEvents, curEvent, timeScale, yScale);
       drawMouseBox(trialBoxG, data.values, timeScale, yScale, curEvent, innerWidth);
-      let maxKDE = showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor) : d3.selectAll('path.kdeLine').remove();
+      let maxKDE = showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor, colorScale) : d3.selectAll('path.kdeLine').remove();
       eventMarkers(eventMarkerG, data.values, trialEvents, timeScale, curEvent, innerHeight);
 
       // Draw the time axis
@@ -190,6 +191,12 @@ export default function () {
     return chart;
   };
 
+  chart.interactionFactor = function (value) {
+    if (!arguments.length) return interactionFactor;
+    interactionFactor = value;
+    return chart;
+  };
+
   chart.trialEvents = function (value) {
     if (!arguments.length) return trialEvents;
     trialEvents = value;
@@ -211,6 +218,12 @@ export default function () {
   chart.showSpikes = function (value) {
     if (!arguments.length) return showSpikes;
     showSpikes = value;
+    return chart;
+  };
+
+  chart.colorScale = function (value) {
+    if (!arguments.length) return colorScale;
+    colorScale = value;
     return chart;
   };
 

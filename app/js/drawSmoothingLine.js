@@ -17,7 +17,7 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
   spikes.forEach(function (factor) {
 
     let kdeByTrial = factor.values.map(function (trial) {
-      if (trial.spikes[0] != undefined) {
+      if (trial.spikes[0] !== undefined) {
         return kde(
           trial.spikes.map(function (spike) { return spike - trial[curEvent];})
         );
@@ -25,7 +25,7 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
     });
 
     let y = kdeByTrial.map(function (trial) {
-      if (trial != undefined) {
+      if (trial !== undefined) {
         return trial.map(function (e) { return e[1]; });
       };
     });
@@ -33,11 +33,9 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
     factor.values = timeRange.map(function (time, ind) {
       return [
         time,
-        1000 * d3.sum(y.map(function (row) {
-          if (row != undefined) {
-            return row[ind];
-          }
-        })) / factor.values.length,
+        1000 * d3.mean(y.map(function (row) {
+          if (row != undefined) return row[ind];
+        })),
       ];
 
     });

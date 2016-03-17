@@ -2554,11 +2554,13 @@
         trialEvents = trialInfo.timePeriods;
         neuronList = trialInfo.neurons;
 
-        if (neuronName === '') {neuronName = neuronList[0].name;};
+        if (neuronName === '') {
+          neuronName = neuronList.length ? neuronList[0].name : neuronList.name;
+        };
 
         loading(isLoaded, neuronName);
 
-        let neuronInfo = neuronList.filter(function (d) {return d.name === neuronName;})[0];
+        let neuronInfo = neuronList.length ? neuronList.filter(function (d) {return d.name === neuronName;})[0] : neuronList;
 
         sessionName = neuronInfo.sessionName;
         Subject = neuronInfo.subjectName;
@@ -3576,8 +3578,12 @@
 
     function list(selection) {
       selection.each(function (data) {
-        if (data.length === 0) return;
-        let options = d3.select(this).select('select').selectAll('options').data(data, function (d) {return d[key];});
+        if (data[key] !== undefined) {
+          data = [data];
+        } else return;
+        let options = d3.select(this).select('select').selectAll('options').data(data, function (d) {
+          return d[key];
+        });
 
         options.enter()
           .append('option')

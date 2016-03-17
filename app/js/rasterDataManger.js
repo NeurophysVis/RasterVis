@@ -32,11 +32,13 @@ export default function() {
       trialEvents = trialInfo.timePeriods;
       neuronList = trialInfo.neurons;
 
-      if (neuronName === '') {neuronName = neuronList[0].name;};
+      if (neuronName === '') {
+        neuronName = neuronList.length ? neuronList[0].name : neuronList.name;
+      };
 
       loading(isLoaded, neuronName);
 
-      let neuronInfo = neuronList.filter(function (d) {return d.name === neuronName;})[0];
+      let neuronInfo = neuronList.length ? neuronList.filter(function (d) {return d.name === neuronName;})[0] : neuronList;
 
       sessionName = neuronInfo.sessionName;
       Subject = neuronInfo.subjectName;

@@ -61,8 +61,8 @@
    */
   function isFunction(value) {
     // The use of `Object#toString` avoids issues with the `typeof` operator
-    // in Safari 8 which returns 'object' for typed array constructors, and
-    // PhantomJS 1.9 which returns 'function' for `NodeList` instances.
+    // in Safari 8 which returns 'object' for typed array and weak map constructors,
+    // and PhantomJS 1.9 which returns 'function' for `NodeList` instances.
     var tag = isObject(value) ? objectToString$2.call(value) : '';
     return tag == funcTag$2 || tag == genTag$1;
   }
@@ -326,7 +326,8 @@
    * // => false
    */
   function isLength(value) {
-    return typeof value == 'number' && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
+    return typeof value == 'number' &&
+      value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
   }
 
   /**
@@ -336,7 +337,6 @@
    *
    * @static
    * @memberOf _
-   * @type Function
    * @category Lang
    * @param {*} value The value to check.
    * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
@@ -355,8 +355,7 @@
    * // => false
    */
   function isArrayLike(value) {
-    return value != null &&
-      !(typeof value == 'function' && isFunction(value)) && isLength(getLength(value));
+    return value != null && isLength(getLength(value)) && !isFunction(value);
   }
 
   /** Used as references for various `Number` constants. */
@@ -415,7 +414,10 @@
           customizer = length > 1 ? sources[length - 1] : undefined,
           guard = length > 2 ? sources[2] : undefined;
 
-      customizer = typeof customizer == 'function' ? (length--, customizer) : undefined;
+      customizer = typeof customizer == 'function'
+        ? (length--, customizer)
+        : undefined;
+
       if (guard && isIterateeCall(sources[0], sources[1], guard)) {
         customizer = length < 3 ? undefined : customizer;
         length = 1;
@@ -665,7 +667,7 @@
    * @returns {*} Returns the function if it's native, else `undefined`.
    */
   function getNative(object, key) {
-    var value = object == null ? undefined : object[key];
+    var value = object[key];
     return isNative(value) ? value : undefined;
   }
 
@@ -679,6 +681,7 @@
    * Creates an hash object.
    *
    * @private
+   * @constructor
    * @returns {Object} Returns the new hash object.
    */
   function Hash() {}
@@ -704,10 +707,14 @@
   };
 
   /** Detect free variable `exports`. */
-  var freeExports$1 = (objectTypes$1[typeof exports] && exports && !exports.nodeType) ? exports : null;
+  var freeExports$1 = (objectTypes$1[typeof exports] && exports && !exports.nodeType)
+    ? exports
+    : undefined;
 
   /** Detect free variable `module`. */
-  var freeModule$1 = (objectTypes$1[typeof module] && module && !module.nodeType) ? module : null;
+  var freeModule$1 = (objectTypes$1[typeof module] && module && !module.nodeType)
+    ? module
+    : undefined;
 
   /** Detect free variable `global` from Node.js. */
   var freeGlobal = checkGlobal(freeExports$1 && freeModule$1 && typeof global == 'object' && global);
@@ -727,7 +734,9 @@
    * The `this` value is used if it's the global object to avoid Greasemonkey's
    * restricted `window` object, otherwise the `window` object is used.
    */
-  var root = freeGlobal || ((freeWindow !== (thisGlobal && thisGlobal.window)) && freeWindow) || freeSelf || thisGlobal || Function('return this')();
+  var root = freeGlobal ||
+    ((freeWindow !== (thisGlobal && thisGlobal.window)) && freeWindow) ||
+      freeSelf || thisGlobal || Function('return this')();
 
   /* Built-in method references that are verified to be native. */
   var Map = getNative(root, 'Map');
@@ -740,7 +749,11 @@
    * @memberOf MapCache
    */
   function mapClear() {
-    this.__data__ = { 'hash': new Hash, 'map': Map ? new Map : [], 'string': new Hash };
+    this.__data__ = {
+      'hash': new Hash,
+      'map': Map ? new Map : [],
+      'string': new Hash
+    };
   }
 
   /** Used for built-in method references. */
@@ -783,7 +796,7 @@
   function isKeyable(value) {
     var type = typeof value;
     return type == 'number' || type == 'boolean' ||
-      (type == 'string' && value !== '__proto__') || value == null;
+      (type == 'string' && value != '__proto__') || value == null;
   }
 
   /**
@@ -920,6 +933,7 @@
    * Creates a map cache object to store key-value pairs.
    *
    * @private
+   * @constructor
    * @param {Array} [values] The values to cache.
    */
   function MapCache(values) {
@@ -976,6 +990,7 @@
    * Creates a stack cache object to store key-value pairs.
    *
    * @private
+   * @constructor
    * @param {Array} [values] The values to cache.
    */
   function Stack(values) {
@@ -1018,7 +1033,8 @@
   }
 
   /**
-   * This function is like `assignValue` except that it doesn't assign `undefined` values.
+   * This function is like `assignValue` except that it doesn't assign
+   * `undefined` values.
    *
    * @private
    * @param {Object} object The object to modify.
@@ -1050,8 +1066,7 @@
    */
   function assignValue(object, key, value) {
     var objValue = object[key];
-    if ((!eq(objValue, value) ||
-          (eq(objValue, objectProto$7[key]) && !hasOwnProperty$2.call(object, key))) ||
+    if (!(hasOwnProperty$2.call(object, key) && eq(objValue, value)) ||
         (value === undefined && !(key in object))) {
       object[key] = value;
     }
@@ -1075,8 +1090,11 @@
         length = props.length;
 
     while (++index < length) {
-      var key = props[index],
-          newValue = customizer ? customizer(object[key], source[key], key, object, source) : source[key];
+      var key = props[index];
+
+      var newValue = customizer
+        ? customizer(object[key], source[key], key, object, source)
+        : source[key];
 
       assignValue(object, key, newValue);
     }
@@ -1103,7 +1121,7 @@
   var hasOwnProperty$6 = objectProto$14.hasOwnProperty;
 
   /** Built-in value references. */
-  var getPrototypeOf$1 = Object.getPrototypeOf;
+  var getPrototypeOf$2 = Object.getPrototypeOf;
 
   /**
    * The base implementation of `_.has` without support for deep paths.
@@ -1118,7 +1136,7 @@
     // that are composed entirely of index properties, return `false` for
     // `hasOwnProperty` checks of them.
     return hasOwnProperty$6.call(object, key) ||
-      (typeof object == 'object' && key in object && getPrototypeOf$1(object) === null);
+      (typeof object == 'object' && key in object && getPrototypeOf$2(object) === null);
   }
 
   /* Built-in method references for those with the same name as other `lodash` methods. */
@@ -1129,7 +1147,6 @@
    * property of prototypes or treat sparse arrays as dense.
    *
    * @private
-   * @type Function
    * @param {Object} object The object to query.
    * @returns {Array} Returns the array of property names.
    */
@@ -1162,7 +1179,6 @@
    *
    * @static
    * @memberOf _
-   * @type Function
    * @category Lang
    * @param {*} value The value to check.
    * @returns {boolean} Returns `true` if `value` is an array-like object, else `false`.
@@ -1229,7 +1245,7 @@
    *
    * @static
    * @memberOf _
-   * @type Function
+   * @type {Function}
    * @category Lang
    * @param {*} value The value to check.
    * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
@@ -1438,9 +1454,7 @@
     if (isDeep) {
       return buffer.slice();
     }
-    var Ctor = buffer.constructor,
-        result = new Ctor(buffer.length);
-
+    var result = new buffer.constructor(buffer.length);
     buffer.copy(result);
     return result;
   }
@@ -1585,11 +1599,8 @@
    * @returns {ArrayBuffer} Returns the cloned array buffer.
    */
   function cloneArrayBuffer(arrayBuffer) {
-    var Ctor = arrayBuffer.constructor,
-        result = new Ctor(arrayBuffer.byteLength),
-        view = new Uint8Array$1(result);
-
-    view.set(new Uint8Array$1(arrayBuffer));
+    var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
+    new Uint8Array$1(result).set(new Uint8Array$1(arrayBuffer));
     return result;
   }
 
@@ -1602,6 +1613,7 @@
    * @returns {Object} Returns `map`.
    */
   function addMapEntry(map, pair) {
+    // Don't return `Map#set` because it doesn't return the map instance in IE 11.
     map.set(pair[0], pair[1]);
     return map;
   }
@@ -1655,8 +1667,7 @@
    * @returns {Object} Returns the cloned map.
    */
   function cloneMap(map) {
-    var Ctor = map.constructor;
-    return arrayReduce(mapToArray(map), addMapEntry, new Ctor);
+    return arrayReduce(mapToArray(map), addMapEntry, new map.constructor);
   }
 
   /** Used to match `RegExp` flags from their coerced string values. */
@@ -1670,9 +1681,7 @@
    * @returns {Object} Returns the cloned regexp.
    */
   function cloneRegExp(regexp) {
-    var Ctor = regexp.constructor,
-        result = new Ctor(regexp.source, reFlags.exec(regexp));
-
+    var result = new regexp.constructor(regexp.source, reFlags.exec(regexp));
     result.lastIndex = regexp.lastIndex;
     return result;
   }
@@ -1715,15 +1724,14 @@
    * @returns {Object} Returns the cloned set.
    */
   function cloneSet(set) {
-    var Ctor = set.constructor;
-    return arrayReduce(setToArray(set), addSetEntry, new Ctor);
+    return arrayReduce(setToArray(set), addSetEntry, new set.constructor);
   }
 
   /** Built-in value references. */
   var Symbol = root.Symbol;
 
   var symbolProto = Symbol ? Symbol.prototype : undefined;
-  var symbolValueOf = Symbol ? symbolProto.valueOf : undefined;
+  var symbolValueOf = symbolProto ? symbolProto.valueOf : undefined;
   /**
    * Creates a clone of the `symbol` object.
    *
@@ -1732,7 +1740,7 @@
    * @returns {Object} Returns the cloned symbol object.
    */
   function cloneSymbol(symbol) {
-    return Symbol ? Object(symbolValueOf.call(symbol)) : {};
+    return symbolValueOf ? Object(symbolValueOf.call(symbol)) : {};
   }
 
   /**
@@ -1744,10 +1752,8 @@
    * @returns {Object} Returns the cloned typed array.
    */
   function cloneTypedArray(typedArray, isDeep) {
-    var buffer = typedArray.buffer,
-        Ctor = typedArray.constructor;
-
-    return new Ctor(isDeep ? cloneArrayBuffer(buffer) : buffer, typedArray.byteOffset, typedArray.length);
+    var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
+    return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
   }
 
   var boolTag$2 = '[object Boolean]';
@@ -1813,6 +1819,9 @@
     }
   }
 
+  /** Built-in value references. */
+  var objectCreate = Object.create;
+
   /**
    * The base implementation of `_.create` without support for assigning
    * properties to the created object.
@@ -1821,17 +1830,12 @@
    * @param {Object} prototype The object to inherit from.
    * @returns {Object} Returns the new object.
    */
-  var baseCreate = (function() {
-    function object() {}
-    return function(prototype) {
-      if (isObject(prototype)) {
-        object.prototype = prototype;
-        var result = new object;
-        object.prototype = undefined;
-      }
-      return result || {};
-    };
-  }());
+  function baseCreate(proto) {
+    return isObject(proto) ? objectCreate(proto) : {};
+  }
+
+  /** Built-in value references. */
+  var getPrototypeOf$1 = Object.getPrototypeOf;
 
   /**
    * Initializes an object clone.
@@ -1841,11 +1845,9 @@
    * @returns {Object} Returns the initialized clone.
    */
   function initCloneObject(object) {
-    if (isPrototype(object)) {
-      return {};
-    }
-    var Ctor = object.constructor;
-    return baseCreate(isFunction(Ctor) ? Ctor.prototype : undefined);
+    return (typeof object.constructor == 'function' && !isPrototype(object))
+      ? baseCreate(getPrototypeOf$1(object))
+      : {};
   }
 
   /**
@@ -1877,13 +1879,19 @@
   };
 
   /** Detect free variable `exports`. */
-  var freeExports = (objectTypes[typeof exports] && exports && !exports.nodeType) ? exports : null;
+  var freeExports = (objectTypes[typeof exports] && exports && !exports.nodeType)
+    ? exports
+    : undefined;
 
   /** Detect free variable `module`. */
-  var freeModule = (objectTypes[typeof module] && module && !module.nodeType) ? module : null;
+  var freeModule = (objectTypes[typeof module] && module && !module.nodeType)
+    ? module
+    : undefined;
 
   /** Detect the popular CommonJS extension `module.exports`. */
-  var moduleExports = (freeModule && freeModule.exports === freeExports) ? freeExports : null;
+  var moduleExports = (freeModule && freeModule.exports === freeExports)
+    ? freeExports
+    : undefined;
 
   /** Built-in value references. */
   var Buffer = moduleExports ? root.Buffer : undefined;
@@ -1956,13 +1964,14 @@
    * @private
    * @param {*} value The value to clone.
    * @param {boolean} [isDeep] Specify a deep clone.
+   * @param {boolean} [isFull] Specify a clone including symbols.
    * @param {Function} [customizer] The function to customize cloning.
    * @param {string} [key] The key of `value`.
    * @param {Object} [object] The parent object of `value`.
    * @param {Object} [stack] Tracks traversed objects and their clone counterparts.
    * @returns {*} Returns the cloned value.
    */
-  function baseClone(value, isDeep, customizer, key, object, stack) {
+  function baseClone(value, isDeep, isFull, customizer, key, object, stack) {
     var result;
     if (customizer) {
       result = object ? customizer(value, key, object, stack) : customizer(value);
@@ -1992,12 +2001,14 @@
         }
         result = initCloneObject(isFunc ? {} : value);
         if (!isDeep) {
-          return copySymbols(value, baseAssign(result, value));
+          result = baseAssign(result, value);
+          return isFull ? copySymbols(value, result) : result;
         }
       } else {
-        return cloneableTags[tag]
-          ? initCloneByTag(value, tag, isDeep)
-          : (object ? value : {});
+        if (!cloneableTags[tag]) {
+          return object ? value : {};
+        }
+        result = initCloneByTag(value, tag, isDeep);
       }
     }
     // Check for circular references and return its corresponding clone.
@@ -2010,9 +2021,9 @@
 
     // Recursively populate clone (susceptible to call stack limits).
     (isArr ? arrayEach : baseForOwn)(value, function(subValue, key) {
-      assignValue(result, key, baseClone(subValue, isDeep, customizer, key, value, stack));
+      assignValue(result, key, baseClone(subValue, isDeep, isFull, customizer, key, value, stack));
     });
-    return isArr ? result : copySymbols(value, result);
+    return (isFull && !isArr) ? copySymbols(value, result) : result;
   }
 
   /** `Object#toString` result references. */
@@ -2064,13 +2075,11 @@
    * // => true
    */
   function isPlainObject(value) {
-    if (!isObjectLike(value) || objectToString$3.call(value) != objectTag$2 || isHostObject(value)) {
+    if (!isObjectLike(value) ||
+        objectToString$3.call(value) != objectTag$2 || isHostObject(value)) {
       return false;
     }
-    var proto = objectProto$4;
-    if (typeof value.constructor == 'function') {
-      proto = getPrototypeOf(value);
-    }
+    var proto = getPrototypeOf(value);
     if (proto === null) {
       return true;
     }
@@ -2143,7 +2152,8 @@
    * // => false
    */
   function isTypedArray(value) {
-    return isObjectLike(value) && isLength(value.length) && !!typedArrayTags[objectToString.call(value)];
+    return isObjectLike(value) &&
+      isLength(value.length) && !!typedArrayTags[objectToString.call(value)];
   }
 
   /** Built-in value references. */
@@ -2297,21 +2307,24 @@
       assignMergeValue(object, key, stacked);
       return;
     }
-    var newValue = customizer ? customizer(objValue, srcValue, (key + ''), object, source, stack) : undefined,
-        isCommon = newValue === undefined;
+    var newValue = customizer
+      ? customizer(objValue, srcValue, (key + ''), object, source, stack)
+      : undefined;
+
+    var isCommon = newValue === undefined;
 
     if (isCommon) {
       newValue = srcValue;
       if (isArray(srcValue) || isTypedArray(srcValue)) {
         if (isArray(objValue)) {
-          newValue = srcIndex ? copyArray(objValue) : objValue;
+          newValue = objValue;
         }
         else if (isArrayLikeObject(objValue)) {
           newValue = copyArray(objValue);
         }
         else {
           isCommon = false;
-          newValue = baseClone(srcValue);
+          newValue = baseClone(srcValue, !customizer);
         }
       }
       else if (isPlainObject(srcValue) || isArguments(srcValue)) {
@@ -2320,10 +2333,10 @@
         }
         else if (!isObject(objValue) || (srcIndex && isFunction(objValue))) {
           isCommon = false;
-          newValue = baseClone(srcValue);
+          newValue = baseClone(srcValue, !customizer);
         }
         else {
-          newValue = srcIndex ? baseClone(objValue) : objValue;
+          newValue = objValue;
         }
       }
       else {
@@ -2336,6 +2349,7 @@
       // Recursively merge objects and arrays (susceptible to call stack limits).
       mergeFunc(newValue, srcValue, srcIndex, customizer, stack);
     }
+    stack['delete'](srcValue);
     assignMergeValue(object, key, newValue);
   }
 
@@ -2353,7 +2367,10 @@
     if (object === source) {
       return;
     }
-    var props = (isArray(source) || isTypedArray(source)) ? undefined : keysIn(source);
+    var props = (isArray(source) || isTypedArray(source))
+      ? undefined
+      : keysIn(source);
+
     arrayEach(props || source, function(srcValue, key) {
       if (props) {
         key = srcValue;
@@ -2364,7 +2381,10 @@
         baseMergeDeep(object, source, key, srcIndex, baseMerge, customizer, stack);
       }
       else {
-        var newValue = customizer ? customizer(object[key], srcValue, (key + ''), object, source, stack) : undefined;
+        var newValue = customizer
+          ? customizer(object[key], srcValue, (key + ''), object, source, stack)
+          : undefined;
+
         if (newValue === undefined) {
           newValue = srcValue;
         }
@@ -2374,12 +2394,13 @@
   }
 
   /**
-   * Recursively merges own and inherited enumerable properties of source
-   * objects into the destination object, skipping source properties that resolve
-   * to `undefined`. Array and plain object properties are merged recursively.
-   * Other objects and value types are overridden by assignment. Source objects
-   * are applied from left to right. Subsequent sources overwrite property
-   * assignments of previous sources.
+   * This method is like `_.assign` except that it recursively merges own and
+   * inherited enumerable properties of source objects into the destination
+   * object. Source properties that resolve to `undefined` are skipped if a
+   * destination value exists. Array and plain object properties are merged
+   * recursively.Other objects and value types are overridden by assignment.
+   * Source objects are applied from left to right. Subsequent sources
+   * overwrite property assignments of previous sources.
    *
    * **Note:** This method mutates `object`.
    *
@@ -2408,107 +2429,109 @@
 
   var slice = [].slice;
 
-  function noop() {}
-
   var noabort = {};
 
-  function newQueue(concurrency) {
-    if (!(concurrency >= 1)) throw new Error;
+  function Queue(size) {
+    if (!(size >= 1)) throw new Error;
+    this._size = size;
+    this._call =
+    this._error = null;
+    this._tasks = [];
+    this._data = [];
+    this._waiting =
+    this._active =
+    this._ended =
+    this._start = 0; // inside a synchronous task callback?
+  }
 
-    var q,
-        tasks = [],
-        results = [],
-        waiting = 0,
-        active = 0,
-        ended = 0,
-        starting, // inside a synchronous task callback?
-        error = null,
-        notify = noop;
-
-    function poke() {
-      if (!starting) try { start(); } // let the current task complete
-      catch (e) { if (tasks[ended + active - 1]) abort(e); } // task errored synchronously
+  Queue.prototype = queue.prototype = {
+    constructor: Queue,
+    defer: function(callback) {
+      if (typeof callback !== "function" || this._call) throw new Error;
+      if (this._error != null) return this;
+      var t = slice.call(arguments, 1);
+      t.push(callback);
+      ++this._waiting, this._tasks.push(t);
+      poke(this);
+      return this;
+    },
+    abort: function() {
+      if (this._error == null) abort(this, new Error("abort"));
+      return this;
+    },
+    await: function(callback) {
+      if (typeof callback !== "function" || this._call) throw new Error;
+      this._call = function(error, results) { callback.apply(null, [error].concat(results)); };
+      maybeNotify(this);
+      return this;
+    },
+    awaitAll: function(callback) {
+      if (typeof callback !== "function" || this._call) throw new Error;
+      this._call = callback;
+      maybeNotify(this);
+      return this;
     }
+  };
 
-    function start() {
-      while (starting = waiting && active < concurrency) {
-        var i = ended + active,
-            t = tasks[i],
-            j = t.length - 1,
-            c = t[j];
-        t[j] = end(i);
-        --waiting, ++active;
-        t = c.apply(null, t);
-        if (!tasks[i]) continue; // task finished synchronously
-        tasks[i] = t || noabort;
-      }
+  function poke(q) {
+    if (!q._start) try { start(q); } // let the current task complete
+    catch (e) { if (q._tasks[q._ended + q._active - 1]) abort(q, e); } // task errored synchronously
+  }
+
+  function start(q) {
+    while (q._start = q._waiting && q._active < q._size) {
+      var i = q._ended + q._active,
+          t = q._tasks[i],
+          j = t.length - 1,
+          c = t[j];
+      t[j] = end(q, i);
+      --q._waiting, ++q._active;
+      t = c.apply(null, t);
+      if (!q._tasks[i]) continue; // task finished synchronously
+      q._tasks[i] = t || noabort;
     }
+  }
 
-    function end(i) {
-      return function(e, r) {
-        if (!tasks[i]) return; // ignore multiple callbacks
-        --active, ++ended;
-        tasks[i] = null;
-        if (error != null) return; // ignore secondary errors
-        if (e != null) {
-          abort(e);
-        } else {
-          results[i] = r;
-          if (waiting) poke();
-          else if (!active) notify(error, results);
-        }
-      };
-    }
-
-    function abort(e) {
-      var i = tasks.length, t;
-      error = e; // ignore active callbacks
-      results = undefined; // allow gc
-      waiting = NaN; // prevent starting
-
-      while (--i >= 0) {
-        if (t = tasks[i]) {
-          tasks[i] = null;
-          if (t.abort) try { t.abort(); }
-          catch (e) { /* ignore */ }
-        }
-      }
-
-      active = NaN; // allow notification
-      notify(error, results);
-    }
-
-    return q = {
-      defer: function(callback) {
-        if (typeof callback !== "function" || notify !== noop) throw new Error;
-        if (error != null) return q;
-        var t = slice.call(arguments, 1);
-        t.push(callback);
-        ++waiting, tasks.push(t);
-        poke();
-        return q;
-      },
-      abort: function() {
-        if (error == null) abort(new Error("abort"));
-        return q;
-      },
-      await: function(callback) {
-        if (typeof callback !== "function" || notify !== noop) throw new Error;
-        notify = function(error, results) { callback.apply(null, [error].concat(results)); };
-        if (!active) notify(error, results);
-        return q;
-      },
-      awaitAll: function(callback) {
-        if (typeof callback !== "function" || notify !== noop) throw new Error;
-        notify = callback;
-        if (!active) notify(error, results);
-        return q;
+  function end(q, i) {
+    return function(e, r) {
+      if (!q._tasks[i]) return; // ignore multiple callbacks
+      --q._active, ++q._ended;
+      q._tasks[i] = null;
+      if (q._error != null) return; // ignore secondary errors
+      if (e != null) {
+        abort(q, e);
+      } else {
+        q._data[i] = r;
+        if (q._waiting) poke(q);
+        else maybeNotify(q);
       }
     };
   }
 
+  function abort(q, e) {
+    var i = q._tasks.length, t;
+    q._error = e; // ignore active callbacks
+    q._data = undefined; // allow gc
+    q._waiting = NaN; // prevent starting
+
+    while (--i >= 0) {
+      if (t = q._tasks[i]) {
+        q._tasks[i] = null;
+        if (t.abort) try { t.abort(); }
+        catch (e) { /* ignore */ }
+      }
+    }
+
+    q._active = NaN; // allow notification
+    maybeNotify(q);
+  }
+
+  function maybeNotify(q) {
+    if (!q._active && q._call) q._call(q._error, q._data);
+  }
+
   function queue(concurrency) {
-    return newQueue(arguments.length ? +concurrency : Infinity);
+    return new Queue(arguments.length ? +concurrency : Infinity);
   }
 
   function loading (isLoading, neuronName) {
@@ -2762,12 +2785,12 @@
    *
    * @private
    * @param {Array} array The array to flatten.
-   * @param {boolean} [isDeep] Specify a deep flatten.
+   * @param {number} depth The maximum recursion depth.
    * @param {boolean} [isStrict] Restrict flattening to arrays-like objects.
    * @param {Array} [result=[]] The initial result value.
    * @returns {Array} Returns the new flattened array.
    */
-  function baseFlatten(array, isDeep, isStrict, result) {
+  function baseFlatten(array, depth, isStrict, result) {
     result || (result = []);
 
     var index = -1,
@@ -2775,11 +2798,11 @@
 
     while (++index < length) {
       var value = array[index];
-      if (isArrayLikeObject(value) &&
+      if (depth > 0 && isArrayLikeObject(value) &&
           (isStrict || isArray(value) || isArguments(value))) {
-        if (isDeep) {
+        if (depth > 1) {
           // Recursively flatten arrays (susceptible to call stack limits).
-          baseFlatten(value, isDeep, isStrict, result);
+          baseFlatten(value, depth - 1, isStrict, result);
         } else {
           arrayPush(result, value);
         }
@@ -2791,7 +2814,7 @@
   }
 
   /**
-   * Flattens `array` a single level.
+   * Flattens `array` a single level deep.
    *
    * @static
    * @memberOf _
@@ -2800,12 +2823,12 @@
    * @returns {Array} Returns the new flattened array.
    * @example
    *
-   * _.flatten([1, [2, 3, [4]]]);
-   * // => [1, 2, 3, [4]]
+   * _.flatten([1, [2, [3, [4]], 5]]);
+   * // => [1, 2, [3, [4]], 5]
    */
   function flatten(array) {
     var length = array ? array.length : 0;
-    return length ? baseFlatten(array) : [];
+    return length ? baseFlatten(array, 1) : [];
   }
 
   // Draws spikes as circles
@@ -3596,12 +3619,13 @@
 
     function list(selection) {
       selection.each(function (data) {
-        if (data[key] !== undefined) {
-          data = [data];
-        } else return;
-        let options = d3.select(this).select('select').selectAll('options').data(data, function (d) {
-          return d[key];
-        });
+        if (data.length === 0) {
+          if (data[key] !== undefined) {
+            data = [data];
+          } else return;
+        }
+
+        let options = d3.select(this).select('select').selectAll('options').data(data, function (d) {return d[key];});
 
         options.enter()
           .append('option')

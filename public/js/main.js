@@ -3621,20 +3621,24 @@
 
     function list(selection) {
       selection.each(function (data) {
-        if (data.length === undefined) {
+        if (data.length === undefined || data.length === 0) {
           if (data[key] !== undefined) {
             data = [data];
           } else return;
         }
 
-        let options = d3.select(this).select('select').selectAll('options')
-          .data(data, function (d) {return d[key];});
+        let options = d3.select(this).select('select').selectAll('option')
+          .data(data, function (d) {
+            return d[key];
+          });
 
         options.enter()
           .append('option')
           .text(function (d) {return d[key];});
 
         options.exit().remove();
+        options.property('selected', false);
+        options.filter(function (d) {return d[key] === curSelected;}).property('selected', true)
         options.on('click', function (d) { return dispatch.click(d[key]); });
 
       });
@@ -3786,6 +3790,7 @@
     factorDropdown.options(rasterData.factorList());
     eventDropdown.options(rasterData.trialEvents());
 
+    neuronList.curSelected(rasterData.neuronName());
     d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorDropdown);
     d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventDropdown);
     d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);

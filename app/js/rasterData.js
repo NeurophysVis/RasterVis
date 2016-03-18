@@ -41,6 +41,7 @@ rasterData.on('dataReady', function () {
   factorButton.options(rasterData.factorList());
   eventButton.options(rasterData.trialEvents());
 
+  neuronList.curSelected(rasterData.neuronName());
   d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorButton);
   d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventButton);
   d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);

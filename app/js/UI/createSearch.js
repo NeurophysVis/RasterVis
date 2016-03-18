@@ -4,6 +4,7 @@ export default function () {
   let dispatch = d3.dispatch('click');
   let guessIndex = 0;
   let guesses;
+  const MAX_GUESSES = 10;
 
   function searchBox(selection) {
     selection.each(function (data) {
@@ -20,7 +21,7 @@ export default function () {
 
         guesses = guesses.filter(function (g) {return g.score < 0.05;});
 
-        if (guesses.length > 20) guesses = guesses.slice(0, 20);
+        if (guesses.length > MAX_GUESSES) guesses = guesses.slice(0, MAX_GUESSES);
 
         let guessList = selection.select('ul').selectAll('li').data(guesses.map(function (d) {return d.item[key];}), String);
 

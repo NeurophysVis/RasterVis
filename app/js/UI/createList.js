@@ -22,7 +22,7 @@ export default function () {
 
       options.exit().remove();
       options.property('selected', false);
-      options.filter(function (d) {return d[key] === curSelected;}).property('selected', true)
+      options.filter(function (d) {return d[key] === curSelected;}).property('selected', true);
       options.on('click', function (d) { return dispatch.click(d[key]); });
 
     });

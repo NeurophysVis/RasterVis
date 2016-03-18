@@ -11,8 +11,10 @@ export default function () {
         } else return;
       }
 
-      let options = d3.select(this).select('select').selectAll('options')
-        .data(data, function (d) {return d[key];});
+      let options = d3.select(this).select('select').selectAll('option')
+        .data(data, function (d) {
+          return d[key];
+        });
 
       options.enter()
         .append('option')

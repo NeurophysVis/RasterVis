@@ -8,12 +8,14 @@ import neuronList from './UI/neuronList';
 import neuronSearch from './UI/neuronSearch';
 import showLinesCheckbox from './UI/showLinesCheckbox';
 import showSpikesCheckbox from './UI/showSpikesCheckbox';
+import legendView from './legendView';
 
 let rasterData = rasterDataManger();
 let fuseOptions = { threshold: .4 };
 
 rasterData.on('dataReady', function () {
-  d3.select('span#NeuronName').text('Neuron ' + rasterData.brainArea().toUpperCase() + ' ' + rasterData.neuronName());
+  d3.select('span#NeuronName')
+    .text('Neuron ' + rasterData.brainArea().toUpperCase() + ' ' + rasterData.neuronName());
   let chartWidth = document.getElementById('chart').offsetWidth;
   rasterView
     .width(chartWidth)
@@ -28,7 +30,10 @@ rasterData.on('dataReady', function () {
     .interactionFactor(rasterData.interactionFactor())
     .colorScale(rasterData.colorScale());
 
-  let multiples = d3.select('#chart').selectAll('div.row').data(rasterData.rasterData(), function (d) {return d.key;});
+  legendView(rasterData.colorScale());
+
+  let multiples = d3.select('#chart').selectAll('div.row')
+    .data(rasterData.rasterData(), function (d) {return d.key;});
 
   multiples.enter()
     .append('div')

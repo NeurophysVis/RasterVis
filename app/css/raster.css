@@ -1,0 +1,136 @@
+
+.timeAxis path,
+ .timeAxis line {
+	fill: none;
+	stroke: #777;
+	stroke-opacity: 0.7;
+	shape-rendering: crispEdges;
+}
+.timeAxis text, {
+	font-family: sans-serif;
+	font-size: 11px;
+	fill: #ddd;
+	color: #ddd;
+	font-weight: 400;
+	display: block;
+}
+
+.yLabel text, .yAxis text {
+  font-family: sans-serif;
+	font-size: 11px;
+	fill: #ddd;
+	color: #ddd;
+	font-weight: 400;
+	display: block;
+}
+
+.yAxis line, .yAxis path {
+	stroke: #777;
+	fill: none;
+  stroke-opacity: 0.7;
+  shape-rendering: crispEdges;
+}
+.eventLine {
+	stroke-opacity: 0.3;
+  fill-opacity: 0.3;
+}
+.eventLabel {
+	font-family: sans-serif;
+	font-size: 11px;
+  text-align: center;
+  line-height: 100%;
+}
+.plotLabel {
+	font-family: sans-serif;
+	font-size: 11px;
+	font-weight: 400;
+}
+#tooltip {
+  position: absolute;
+  padding: 10px;
+  font: 11px sans-serif;
+  background: white;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 5px;
+  border-color: #777;
+  pointer-events: none;
+  -moz-box-shadow:    3px 3px 3px #888;
+	-webkit-box-shadow: 3px 3px 3px #888;
+	box-shadow:         3px 3px 3px #888;
+}
+#tooltip hr {
+  margin: 4px;
+  opacity: 0.5;
+  color: #000;
+}
+#filterNav div {
+ margin-top: 20px;
+ margin-bottom: 20px;
+}
+#filterNav {
+  font-size: 12px;
+}
+.kdeLine {
+  fill: none;
+  stroke-width: 1.5px;
+}
+.bottom-buffer {
+  margin-bottom: 20px;
+}
+#permalink {
+  position: absolute;
+  z-index: 200;
+  background: #EEE;
+  border: 1px solid #888;
+  width: 520px;
+  margin: 25px 10px;
+  font-size: 8pt;
+  display: none;
+  padding: 10px;
+}
+#permalink > label {
+  margin-top: 5px;
+}
+.copy-link {
+  width: 100%;
+  padding: 7px 9px;
+  overflow: hidden;
+  resize: none;
+}
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.5);
+}
+#export-link-help > button {
+  border-style: none;
+}
+#helpToolTip {
+  padding: 4px 20px;
+  font-size: 14px;
+  background: #f5f5f5;
+  max-width: 44em;
+  max-height: 44em;
+  vertical-align: middle;
+  visibility: visible;
+  outline: medium none;
+  position: fixed;
+  z-index: 200;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -75%);
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+}
+#filterNav button {
+  overflow: hidden;
+  width: 100%
+}
+#NeuronName {
+  font-size: 12px;
+}

@@ -23,7 +23,7 @@ export default function() {
   let isLoaded = false;
   let dispatch = d3.dispatch('dataReady');
   let dataManager = {};
-  let colorScale = d3.scale.ordinal().domain(['spike']).range(['black']);
+  let colorScale = d3.scale.ordinal().domain(['Spike']).range(['black']);
 
   dataManager.loadRasterData = function () {
     isLoaded = false;

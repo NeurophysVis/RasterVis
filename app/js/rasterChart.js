@@ -22,7 +22,7 @@ export default function () {
   let showSmoothingLines = true;
   let innerHeight;
   let innerWidth;
-  let colorScale = function (d) {return 'black';};
+  let colorScale = d3.scale.ordinal().domain(['Spike']).range(['black']);
 
   function chart(selection) {
     selection.each(function (data) {

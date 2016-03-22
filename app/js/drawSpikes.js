@@ -36,7 +36,8 @@ export default function (selection, sessionInfo, timeScale, yScale, curEvent, in
       return timeScale(d[0]);
     })
     .attr('fill', function (d) {
-      return colorScale(factorLevel[d[1]]);
+      let factorName = (factorLevel[d[1]] === undefined) ? 'Spike' : factorLevel[d[1]];
+      return colorScale(factorName);
     })
     .style('opacity', 1)
     .attr('r', circleRadius)

@@ -75,7 +75,10 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
     .transition()
       .duration(1000)
     .attr('d', function (d) {return line(d.values);})
-    .attr('stroke', function (d) { return colorScale(d.key); });
+    .attr('stroke', function (d) {
+      let factorName = (d.key === 'undefined') ? 'Spike' : d.key;
+      return colorScale(factorName);
+    });
 
   kdeLine.exit()
     .remove();

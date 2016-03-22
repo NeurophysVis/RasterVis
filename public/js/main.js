@@ -2568,7 +2568,7 @@
     let isLoaded = false;
     let dispatch = d3.dispatch('dataReady');
     let dataManager = {};
-    let colorScale = d3.scale.ordinal().domain(['spike']).range(['black']);
+    let colorScale = d3.scale.ordinal().domain(['Spike']).range(['black']);
 
     dataManager.loadRasterData = function () {
       isLoaded = false;
@@ -2867,7 +2867,8 @@
         return timeScale(d[0]);
       })
       .attr('fill', function (d) {
-        return colorScale(factorLevel[d[1]]);
+        let factorName = (factorLevel[d[1]] === undefined) ? 'Spike' : factorLevel[d[1]];
+        return colorScale(factorName);
       })
       .style('opacity', 1)
       .attr('r', circleRadius)
@@ -3034,7 +3035,10 @@
       .transition()
         .duration(1000)
       .attr('d', function (d) {return line(d.values);})
-      .attr('stroke', function (d) { return colorScale(d.key); });
+      .attr('stroke', function (d) {
+        let factorName = (d.key === 'undefined') ? 'Spike' : d.key;
+        return colorScale(factorName);
+      });
 
     kdeLine.exit()
       .remove();
@@ -3184,7 +3188,7 @@
     let showSmoothingLines = true;
     let innerHeight;
     let innerWidth;
-    let colorScale = function (d) {return 'black';};
+    let colorScale = d3.scale.ordinal().domain(['Spike']).range(['black']);
 
     function chart(selection) {
       selection.each(function (data) {

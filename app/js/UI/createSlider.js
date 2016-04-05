@@ -26,6 +26,10 @@ export default function () {
       input.property('step', stepSize);
       input.property('value', value);
       input.on('input', function () {
+        output.text(this.value + ' ' + units);
+      });
+
+      input.on('change', function () {
         dispatch.sliderChange(+this.value);
       });
 

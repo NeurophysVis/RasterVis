@@ -2584,7 +2584,8 @@
 
         loading(isLoaded, neuronName);
 
-        let neuronInfo = neuronList.length ? neuronList.filter(function (d) {return d.name === neuronName;})[0] : neuronList;
+        let neuronInfo = neuronList.length ? neuronList.filter(function (d) {
+          return d.name === neuronName;})[0] : neuronList;
 
         sessionName = neuronInfo.sessionName;
         Subject = neuronInfo.subjectName;
@@ -2604,9 +2605,20 @@
                 return s[interactionFactor];
               })).values();
 
+              let interactingFactorType = factorList.filter(function (d) {
+                return d.value === interactionFactor;
+              })
+              .map(function (d) {return d.factorType;})[0].toUpperCase();
+
+              factorLevels = factorLevels
+                .filter(function (k) {return k.key !== 'null';});
+
+              (interactingFactorType === 'CONTINUOUS') ? factorLevels.sort(d3.ascending()) :
+                factorLevels.sort();
+
               colorScale = d3.scale.ordinal()
                 .domain(factorLevels)
-                .range(['#e41a1c', '#377eb8', '#ff7f00', '#4daf4am', '#984ea3']);
+                .range(['#e41a1c', '#377eb8', '#66a61e', '#984ea3', '#ff7f00']);
             }
 
             dataManager.sortRasterData();
@@ -2964,10 +2976,15 @@
   function drawSmoothingLine (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor, colorScale) {
     // Nest by interaction factor
     let spikes = d3.nest()
-      .key(function (d) {return d[interactionFactor];})
+      .key(function (d) {
+        return d[interactionFactor];
+      })
       .entries(data.filter(function (d) {
-        return d.start_time != null && d.isIncluded === 'Included';
+        return d.start_time != null &&
+               d.isIncluded === 'Included';
       })); // Don't include trials with no start time or excluded
+
+    spikes = spikes.filter(function (k) {return k.key !== 'null';});
 
     // Compute kernel density estimate
     let timeRange = d3.range(d3.min(timeScale.domain()), d3.max(timeScale.domain()));
@@ -3510,6 +3527,10 @@
         input.property('step', stepSize);
         input.property('value', value);
         input.on('input', function () {
+          output.text(this.value + ' ' + units);
+        });
+
+        input.on('change', function () {
           dispatch.sliderChange(+this.value);
         });
 

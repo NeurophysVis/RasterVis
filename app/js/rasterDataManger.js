@@ -39,7 +39,8 @@ export default function() {
 
       loading(isLoaded, neuronName);
 
-      let neuronInfo = neuronList.length ? neuronList.filter(function (d) {return d.name === neuronName;})[0] : neuronList;
+      let neuronInfo = neuronList.length ? neuronList.filter(function (d) {
+        return d.name === neuronName;})[0] : neuronList;
 
       sessionName = neuronInfo.sessionName;
       Subject = neuronInfo.subjectName;
@@ -59,9 +60,20 @@ export default function() {
               return s[interactionFactor];
             })).values();
 
+            let interactingFactorType = factorList.filter(function (d) {
+              return d.value === interactionFactor;
+            })
+            .map(function (d) {return d.factorType;})[0].toUpperCase();
+
+            factorLevels = factorLevels
+              .filter(function (k) {return k.key !== 'null';});
+
+            (interactingFactorType === 'CONTINUOUS') ? factorLevels.sort(d3.ascending()) :
+              factorLevels.sort();
+
             colorScale = d3.scale.ordinal()
               .domain(factorLevels)
-              .range(['#e41a1c', '#377eb8', '#ff7f00', '#4daf4am', '#984ea3']);
+              .range(['#e41a1c', '#377eb8', '#66a61e', '#984ea3', '#ff7f00']);
           }
 
           dataManager.sortRasterData();

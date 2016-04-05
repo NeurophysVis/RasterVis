@@ -4,10 +4,15 @@ import gaussianKernel from './gaussianKernel';
 export default function (selection, data, timeScale, yScale, lineSmoothness, curEvent, interactionFactor, colorScale) {
   // Nest by interaction factor
   let spikes = d3.nest()
-    .key(function (d) {return d[interactionFactor];})
+    .key(function (d) {
+      return d[interactionFactor];
+    })
     .entries(data.filter(function (d) {
-      return d.start_time != null && d.isIncluded === 'Included';
+      return d.start_time != null &&
+             d.isIncluded === 'Included';
     })); // Don't include trials with no start time or excluded
+
+  spikes = spikes.filter(function (k) {return k.key !== 'null';});
 
   // Compute kernel density estimate
   let timeRange = d3.range(d3.min(timeScale.domain()), d3.max(timeScale.domain()));

@@ -14,11 +14,18 @@ This tool allows you to:
 ![change factors](/img/RasterVis-ChangeFactor.gif)
 
 ### Installation
-To run RasterVis locally, you need a to set up a local web server. For example using Python (2.x), browse to the main folder and run:
-``` python -m SimpleHTTPServer 8888 ```. Then open http://localhost:8888/ in your browser.
+To run RasterVis locally, you need to install the dependencies and set up a local web server.
+
+To install the dependencies and start a webserver, run:
+```
+npm install
+npm run postinstall
+
+```
 
 ### Data Format and Naming
 All files must be in the JSON format.
+Time should be measured in milliseconds.
 
 All data must be placed in the /DATA folder
 
@@ -33,13 +40,10 @@ There are three main file types:
 
 The trialInfo.json contains an array of three objects structured as follows:
 <pre>  
-|--Subject (NOTE TO SELF: change name to subject instead of monkey)
-    |--name: Name of subject
-    |--sessionNames
-               |----name: Name of session
-               |----neurons: Array of neuron names
-
-|--timePeriods (NOTE TO SELF: change name to trialEvents)
+|--neurons
+    |--name: Name of neuron
+    |--sessionName: Name of session
+|--timePeriods
     |--name: Name of trial event
     |--label: Short label of trial event
     |--startID: Beginning of trial event
@@ -47,7 +51,8 @@ The trialInfo.json contains an array of three objects structured as follows:
     |--color: Color of trial event
 |--experimentalFactor
     |--name: Name of experimental factor to sort by
-    |--value: experimental factor key (NOTE TO SELF: change name to key)
+    |--value: experimental factor key
+    |--factorType: continuous | categorical | ordinal
 </pre>
 
 The (sessionName)_TrialInfo.json is an array of objects corresponding to each trial. Each trial object contains the properties corresponding to trial events and experimental factors. For example:

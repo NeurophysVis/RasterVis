@@ -4,7 +4,9 @@
   "description": "Interactive visualization of spike rasters and peri-event time histograms",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "bower cache clean && bower install && gulp",
+    "prepublish": "gulp build && gulp zip"
   },
   "repository": {
     "type": "git",
@@ -30,6 +32,7 @@
     "gulp-concat": "^2.6.0",
     "gulp-connect": "^2.3.1",
     "gulp-cssmin": "^0.1.7",
+    "gulp-imagemin": "^2.4.0",
     "gulp-jsonminify": "^1.0.0",
     "gulp-plumber": "^1.0.1",
     "gulp-rename": "^1.2.2",
@@ -38,13 +41,9 @@
     "gulp-uglify": "^1.5.1",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
-    "gulp-autoprefixer": "^3.1.0",
-    "gulp-concat": "^2.6.0",
-    "gulp-cssmin": "^0.1.7",
-    "gulp-imagemin": "^2.4.0",
-    "gulp-streamify": "^1.0.2",
+    "gulp-zip": "^3.1.0",
     "imagemin-pngquant": "^4.2.0",
-    "gulp-zip": "^3.1.0"
+    "rollup": "^0.57.1"
   },
   "dependencies": {
     "d3-queue": "^2.0.2",

@@ -1,3 +1,7 @@
+
+[![DOI](https://zenodo.org/badge/21776036.svg)](https://zenodo.org/badge/latestdoi/21776036)
+
+
 # RasterVis
 
 ### About

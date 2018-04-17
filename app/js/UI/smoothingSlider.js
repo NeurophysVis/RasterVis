@@ -8,8 +8,8 @@ smoothingSlider
   .stepSize(5)
   .units('ms');
 
-smoothingSlider.on('sliderChange', function (smoothing) {
-  rasterData.lineSmoothness(smoothing);
+smoothingSlider.on('sliderChange', function (bandwidth) {
+  rasterData.lineSmoothness(bandwidth);
 });
 
 export default smoothingSlider;

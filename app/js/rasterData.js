@@ -16,7 +16,7 @@ let fuseOptions = { threshold: .4 };
 
 rasterData.on('dataReady', function () {
   d3.select('span#NeuronName')
-    .text('Neuron ' + rasterData.brainArea().toUpperCase() + ' ' + rasterData.neuronName());
+    .text('Neuron ' + rasterData.brainArea() + ' ' + rasterData.neuronName());
   let chartWidth = document.getElementById('chart').offsetWidth;
   rasterView
     .width(chartWidth)

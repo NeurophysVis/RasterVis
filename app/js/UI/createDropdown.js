@@ -4,7 +4,7 @@ export default function() {
   let options;
   let dispatch = d3.dispatch('click');
 
-  function button(selection) {
+  function _createDropdown(selection) {
     selection.each(function (data) {
       let menu = d3.select(this).selectAll('ul').selectAll('li').data(options,
         function (d) { return d[key]; });
@@ -31,7 +31,7 @@ export default function() {
       let curText = options.filter(function (d) {return d[key] === data;})
         .map(function (d) { return d[displayName]; })[0];
 
-      d3.select(this).selectAll('button')
+      d3.select(this).selectAll('_createDropdown')
         .text(curText)
         .append('span')
         .attr('class', 'caret');
@@ -39,26 +39,26 @@ export default function() {
 
   }
 
-  button.key = function (value) {
+  _createDropdown.key = function (value) {
     if (!arguments.length) return key;
     key = value;
-    return button;
+    return _createDropdown;
   };
 
-  button.options = function (value) {
+  _createDropdown.options = function (value) {
     if (!arguments.length) return options;
     options = value;
-    return button;
+    return _createDropdown;
   };
 
-  button.displayName = function (value) {
+  _createDropdown.displayName = function (value) {
     if (!arguments.length) return displayName;
     displayName = value;
-    return button;
+    return _createDropdown;
   };
 
-  d3.rebind(button, dispatch, 'on');
+  d3.rebind(_createDropdown, dispatch, 'on');
 
-  return button;
+  return _createDropdown;
 
 }

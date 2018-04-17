@@ -3,7 +3,7 @@ export default function () {
   let curSelected = '';
   let dispatch = d3.dispatch('click');
 
-  function list(selection) {
+  function _createList(selection) {
     selection.each(function (data) {
       if (data.length === undefined || data.length === 0) {
         if (data[key] !== undefined) {
@@ -28,19 +28,19 @@ export default function () {
     });
   }
 
-  list.key = function (value) {
+  _createList.key = function (value) {
     if (!arguments.length) return key;
     key = value;
-    return list;
+    return _createList;
   };
 
-  list.curSelected = function (value) {
+  _createList.curSelected = function (value) {
     if (!arguments.length) return curSelected;
     curSelected = value;
-    return list;
+    return _createList;
   };
 
-  d3.rebind(list, dispatch, 'on');
+  d3.rebind(_createList, dispatch, 'on');
 
-  return list;
+  return _createList;
 }

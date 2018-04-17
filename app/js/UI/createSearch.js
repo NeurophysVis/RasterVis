@@ -6,7 +6,7 @@ export default function () {
   let guesses;
   const MAX_GUESSES = 10;
 
-  function searchBox(selection) {
+  function _createSearchBox(selection) {
     selection.each(function (data) {
       let fuseSearch = new Fuse(data, fuseOptions);
 
@@ -70,24 +70,24 @@ export default function () {
     });
   }
 
-  searchBox.fuseOptions = function (value) {
+  _createSearchBox.fuseOptions = function (value) {
     if (!arguments.length) return fuseOptions;
     fuseOptions = value;
-    return searchBox;
+    return _createSearchBox;
   };
 
-  searchBox.fuseOptions = function (value) {
+  _createSearchBox.fuseOptions = function (value) {
     if (!arguments.length) return fuseOptions;
     fuseOptions = value;
-    return searchBox;
+    return _createSearchBox;
   };
 
-  searchBox.key = function (value) {
+  _createSearchBox.key = function (value) {
     if (!arguments.length) return key;
     key = value;
-    return searchBox;
+    return _createSearchBox;
   };
 
-  d3.rebind(searchBox, dispatch, 'on');
-  return searchBox;
+  d3.rebind(_createSearchBox, dispatch, 'on');
+  return _createSearchBox;
 }

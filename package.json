@@ -27,7 +27,7 @@
   "homepage": "https://github.com/NeurophysVis/RasterVis#readme",
   "devDependencies": {
     "bower": "^1.7.7",
-    "gulp": "^3.9.0",
+    "gulp": "^3.9.1",
     "gulp-autoprefixer": "^3.1.0",
     "gulp-concat": "^2.6.0",
     "gulp-connect": "^2.3.1",
@@ -49,6 +49,7 @@
     "d3-queue": "^2.0.2",
     "d3-save-svg": "0.0.2",
     "lodash": "^4.2.1",
-    "lodash-es": "^4.2.1"
+    "lodash-es": "^4.2.1",
+    "npm": "^5.8.0"
   }
 }

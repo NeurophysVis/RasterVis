@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,6 +10,7 @@
   <!-- Bootstrap -->
   <link href="css/main.css" rel="stylesheet">
 </head>
+
 <body>
   <div class="container">
     <!-- Title Panel -->
@@ -99,13 +101,10 @@
       <h4>How to Use RasterVis</h4>
       <div id="toolTip-content">
         <p>
-          <strong>WARNING</strong>: This visualization may take a long time to
-          load due to some large files. Please be patient on the first load.
+          <strong>WARNING</strong>: This visualization may take a long time to load due to some large files. Please be patient on the first load.
         </p>
         <p>
-          <strong>Use the neuron search</strong> to quickly find a neuron
-          or scroll to a neuron in the box above and click to load that neuron's raster plot.
-          The currently loaded neuron will show next to the RasterVis title.
+          <strong>Use the neuron search</strong> to quickly find a neuron or scroll to a neuron in the box above and click to load that neuron's raster plot. The currently loaded neuron will show next to the RasterVis title.
         </p>
         <p>
           <strong>Mouse over</strong> the raster plot to see information about individual trials.
@@ -120,8 +119,7 @@
           <strong>Line smoothing</strong> controls the standard deviation of the Gaussian-smoothed histogram of the plot.
         </p>
         <p>
-          <strong>Show lines and show spikes</strong> will turn on and off the raster spikes and Gaussian-smoothed histogram. Turning
-          off the raster spikes will collapse the heights of the plots so that they are easier to see in one window.
+          <strong>Show lines and show spikes</strong> will turn on and off the raster spikes and Gaussian-smoothed histogram. Turning off the raster spikes will collapse the heights of the plots so that they are easier to see in one window.
         </p>
       </div>
     </div>
@@ -134,9 +132,9 @@
     var query = window.location.search.substring(1);
     if (query !== '') {
       var vars = query.split('&');
-      vars.forEach(function (v) {
+      vars.forEach(function(v) {
         var p = v.split('=');
-        var isUndefined = (typeof (p[1]) === 'undefined');
+        var isUndefined = (typeof(p[1]) === 'undefined');
         var isEmpty = (p[1] === '');
         if (isUndefined || isEmpty) {
           extractedParams[p[0]] = null;
@@ -149,5 +147,6 @@
     // Initialized visualization
     rasterVis.init(extractedParams);
   </script>
-  </body>
+</body>
+
 </html>

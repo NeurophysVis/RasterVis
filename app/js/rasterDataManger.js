@@ -11,6 +11,7 @@ export default function() {
   let factorList = [];
   let trialEvents = [];
   let neuronList = [];
+  let includeBrainAreas = [];
   let rasterData = {};
   let spikeInfo = {};
   let sessionInfo = {};
@@ -32,6 +33,7 @@ export default function() {
       factorList = trialInfo.experimentalFactor;
       trialEvents = trialInfo.timePeriods;
       neuronList = trialInfo.neurons;
+      includeBrainAreas = d3.map(neuronList,  function(d) { return d.brainArea; }).keys();
 
       if (neuronName === '') {
         neuronName = neuronList.length ? neuronList[0].name : neuronList.name;
@@ -219,6 +221,13 @@ export default function() {
   dataManager.colorScale = function (value) {
     if (!arguments.length) return colorScale;
     colorScale = value;
+    return dataManager;
+  };
+
+  dataManager.includeBrainAreas = function (value) {
+    if (!arguments.length) return includeBrainAreas;
+    includeBrainAreas = value;
+    if (isLoaded) dispatch.dataReady();
     return dataManager;
   };
 

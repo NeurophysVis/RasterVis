@@ -8,6 +8,7 @@ import neuronList from './UI/neuronList';
 import neuronSearch from './UI/neuronSearch';
 import showLinesCheckbox from './UI/showLinesCheckbox';
 import showSpikesCheckbox from './UI/showSpikesCheckbox';
+import brainAreaCheckboxes from './UI/brainAreaCheckboxes';
 import legendView from './legendView';
 
 let rasterData = rasterDataManger();
@@ -50,8 +51,11 @@ rasterData.on('dataReady', function () {
   d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorButton);
   d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventButton);
   d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);
-  d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronList);
+  d3.select('#NeuronMenu').datum(rasterData.neuronList().filter(
+    function (d) {return rasterData.includeBrainAreas().includes(d.brainArea);})
+   ).call(neuronList);
   d3.select('#NeuronSearch').datum(rasterData.neuronList()).call(neuronSearch);
+  d3.select('#NeuronFilter').datum(rasterData.includeBrainAreas()).call(brainAreaCheckboxes);
 
   showLinesCheckbox.property('checked', rasterData.showSmoothingLines());
   showSpikesCheckbox.property('checked', rasterData.showSpikes());

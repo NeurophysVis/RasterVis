@@ -44,6 +44,7 @@ rasterData.on('dataReady', function () {
   multiples.exit().remove();
   multiples.call(rasterView);
 
+  // UI
   factorButton.options(rasterData.factorList());
   eventButton.options(rasterData.trialEvents());
 

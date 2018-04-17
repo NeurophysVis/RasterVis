@@ -31,7 +31,7 @@ export default function() {
       let curText = options.filter(function (d) {return d[key] === data;})
         .map(function (d) { return d[displayName]; })[0];
 
-      d3.select(this).selectAll('_createDropdown')
+      d3.select(this).selectAll('button')
         .text(curText)
         .append('span')
         .attr('class', 'caret');

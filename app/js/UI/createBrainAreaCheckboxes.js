@@ -8,12 +8,20 @@ export default function() {
       }
 
       let checkboxes = d3.select(this).selectAll('.checkbox').data(data);
-      checkboxes.enter()
+      var checkboxEnter = checkboxes.enter()
         .append('div')
-        .attr('class', 'checkbox')
+        .attr('class', 'checkbox');
+      checkboxEnter
+        .append('input')
+        .attr('id', function (brainArea) {return brainArea;})
+        .attr('checked', 'checked')
+        .attr('type', 'checkbox')
+        .attr('class', 'form-check-input');
+      checkboxEnter
         .append('label').html(function (brainArea) {
-          return '<input id="' + brainArea + '" type="checkbox" class="category" checked="checked">' + brainArea;
-        });
+          return brainArea;
+        })
+        .attr('class', 'form-check-label');
 
       checkboxes.select('input').on('change', function (d) {
         dispatch.change();

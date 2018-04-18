@@ -121,7 +121,7 @@ gulp.task('webserver', function () {
 });
 
 gulp.task('watch', function () {
-  gulp.watch('app/css/spectra.css', ['copyCSS']);
+  gulp.watch('app/css/raster.css', ['copyCSS']);
   gulp.watch('app/js/main.js', ['createMainJS']);
   gulp.watch('app/js/vendor.js', ['createVendorJS']);
 });

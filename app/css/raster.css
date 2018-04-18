@@ -65,11 +65,11 @@
   color: #000;
 }
 #filterNav div {
- margin-top: 20px;
- margin-bottom: 20px;
+ margin-top: 10px;
 }
 #filterNav {
   font-size: 12px;
+  margin-top: 20px;
 }
 .kdeLine {
   fill: none;
@@ -133,4 +133,16 @@
 }
 #NeuronName {
   font-size: 12px;
+}
+
+#NeuronFilter.form-inline label {
+    margin-left: 5px;
+}
+
+#NeuronFilter.form-inline div {
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+
 }

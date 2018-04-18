@@ -2209,6 +2209,7 @@
     let factorList = [];
     let trialEvents = [];
     let neuronList = [];
+    let includeBrainAreas = [];
     let rasterData = {};
     let spikeInfo = {};
     let sessionInfo = {};
@@ -2230,6 +2231,7 @@
         factorList = trialInfo.experimentalFactor;
         trialEvents = trialInfo.timePeriods;
         neuronList = trialInfo.neurons;
+        includeBrainAreas = d3.map(neuronList,  function(d) { return d.brainArea; }).keys();
 
         if (neuronName === '') {
           neuronName = neuronList.length ? neuronList[0].name : neuronList.name;
@@ -2417,6 +2419,13 @@
     dataManager.colorScale = function (value) {
       if (!arguments.length) return colorScale;
       colorScale = value;
+      return dataManager;
+    };
+
+    dataManager.includeBrainAreas = function (value) {
+      if (!arguments.length) return includeBrainAreas;
+      includeBrainAreas = value;
+      if (isLoaded) dispatch.dataReady();
       return dataManager;
     };
 
@@ -3091,7 +3100,7 @@
     let options;
     let dispatch = d3.dispatch('click');
 
-    function button(selection) {
+    function _createDropdown(selection) {
       selection.each(function (data) {
         let menu = d3.select(this).selectAll('ul').selectAll('li').data(options,
           function (d) { return d[key]; });
@@ -3126,27 +3135,27 @@
 
     }
 
-    button.key = function (value) {
+    _createDropdown.key = function (value) {
       if (!arguments.length) return key;
       key = value;
-      return button;
+      return _createDropdown;
     };
 
-    button.options = function (value) {
+    _createDropdown.options = function (value) {
       if (!arguments.length) return options;
       options = value;
-      return button;
+      return _createDropdown;
     };
 
-    button.displayName = function (value) {
+    _createDropdown.displayName = function (value) {
       if (!arguments.length) return displayName;
       displayName = value;
-      return button;
+      return _createDropdown;
     };
 
-    d3.rebind(button, dispatch, 'on');
+    d3.rebind(_createDropdown, dispatch, 'on');
 
-    return button;
+    return _createDropdown;
 
   }
 
@@ -3181,7 +3190,7 @@
     let delay = 200;
     let dispatch = d3.dispatch('sliderChange', 'start', 'stop');
 
-    function slider(selection) {
+    function _createSlider(selection) {
       selection.each(function (value) {
         let input = d3.select(this).selectAll('input');
         let output = d3.select(this).selectAll('output');
@@ -3207,49 +3216,49 @@
       });
     };
 
-    slider.stepSize = function (value) {
+    _createSlider.stepSize = function (value) {
       if (!arguments.length) return stepSize;
       stepSize = value;
-      return slider;
+      return _createSlider;
     };
 
-    slider.running = function (value) {
+    _createSlider.running = function (value) {
       if (!arguments.length) return running;
       running = value;
-      return slider;
+      return _createSlider;
     };
 
-    slider.delay = function (value) {
+    _createSlider.delay = function (value) {
       if (!arguments.length) return delay;
       delay = value;
-      return slider;
+      return _createSlider;
     };
 
-    slider.domain = function (value) {
+    _createSlider.domain = function (value) {
       if (!arguments.length) return domain;
       domain = value;
-      return slider;
+      return _createSlider;
     };
 
-    slider.units = function (value) {
+    _createSlider.units = function (value) {
       if (!arguments.length) return units;
       units = value;
-      return slider;
+      return _createSlider;
     };
 
-    slider.maxStepInd = function (value) {
+    _createSlider.maxStepInd = function (value) {
       if (!arguments.length) return maxStepInd;
       maxStepInd = value;
-      return slider;
+      return _createSlider;
     };
 
-    slider.curValue = function (value) {
+    _createSlider.curValue = function (value) {
       if (!arguments.length) return curValue;
       curValue = value;
-      return slider;
+      return _createSlider;
     };
 
-    slider.play = function () {
+    _createSlider.play = function () {
       running = true;
       dispatch.start();
 
@@ -3267,20 +3276,20 @@
       }
     };
 
-    slider.stop = function () {
+    _createSlider.stop = function () {
       running = false;
       dispatch.stop();
     };
 
-    slider.reset = function () {
+    _createSlider.reset = function () {
       running = false;
       dispatch.sliderChange(minValue);
       dispatch.stop();
     };
 
-    d3.rebind(slider, dispatch, 'on');
+    d3.rebind(_createSlider, dispatch, 'on');
 
-    return slider;
+    return _createSlider;
 
   }
 
@@ -3291,8 +3300,8 @@
     .stepSize(5)
     .units('ms');
 
-  smoothingSlider.on('sliderChange', function (smoothing) {
-    rasterData.lineSmoothness(smoothing);
+  smoothingSlider.on('sliderChange', function (bandwidth) {
+    rasterData.lineSmoothness(bandwidth);
   });
 
   /* If showing spikes, set to reasonable height so spikes are visible, else
@@ -3313,7 +3322,7 @@
     let curSelected = '';
     let dispatch = d3.dispatch('click');
 
-    function list(selection) {
+    function _createList(selection) {
       selection.each(function (data) {
         if (data.length === undefined || data.length === 0) {
           if (data[key] !== undefined) {
@@ -3338,21 +3347,21 @@
       });
     }
 
-    list.key = function (value) {
+    _createList.key = function (value) {
       if (!arguments.length) return key;
       key = value;
-      return list;
+      return _createList;
     };
 
-    list.curSelected = function (value) {
+    _createList.curSelected = function (value) {
       if (!arguments.length) return curSelected;
       curSelected = value;
-      return list;
+      return _createList;
     };
 
-    d3.rebind(list, dispatch, 'on');
+    d3.rebind(_createList, dispatch, 'on');
 
-    return list;
+    return _createList;
   }
 
   let neuronList = createList();
@@ -3371,7 +3380,7 @@
     let guesses;
     const MAX_GUESSES = 10;
 
-    function searchBox(selection) {
+    function _createSearchBox(selection) {
       selection.each(function (data) {
         let fuseSearch = new Fuse(data, fuseOptions);
 
@@ -3435,26 +3444,26 @@
       });
     }
 
-    searchBox.fuseOptions = function (value) {
+    _createSearchBox.fuseOptions = function (value) {
       if (!arguments.length) return fuseOptions;
       fuseOptions = value;
-      return searchBox;
+      return _createSearchBox;
     };
 
-    searchBox.fuseOptions = function (value) {
+    _createSearchBox.fuseOptions = function (value) {
       if (!arguments.length) return fuseOptions;
       fuseOptions = value;
-      return searchBox;
+      return _createSearchBox;
     };
 
-    searchBox.key = function (value) {
+    _createSearchBox.key = function (value) {
       if (!arguments.length) return key;
       key = value;
-      return searchBox;
+      return _createSearchBox;
     };
 
-    d3.rebind(searchBox, dispatch, 'on');
-    return searchBox;
+    d3.rebind(_createSearchBox, dispatch, 'on');
+    return _createSearchBox;
   }
 
   let neuronSearch = createSearch();
@@ -3485,6 +3494,56 @@
 
   showSpikesCheckbox.on('change', function () {
     rasterData.showSpikes(this.checked);
+  });
+
+  function createBrainAreaCheckboxes() {
+    let dispatch = d3.dispatch('change');
+
+    function _createCheckbox(selection) {
+      selection.each(function (data) {
+        if (data.length === undefined || data.length === 0) {
+          return;
+        }
+
+        let checkboxes = d3.select(this).selectAll('.checkbox').data(data);
+        var checkboxEnter = checkboxes.enter()
+          .append('div')
+          .attr('class', 'checkbox');
+        checkboxEnter
+          .append('input')
+          .attr('id', function (brainArea) {return brainArea;})
+          .attr('checked', 'checked')
+          .attr('type', 'checkbox')
+          .attr('class', 'form-check-input');
+        checkboxEnter
+          .append('label').html(function (brainArea) {
+            return brainArea;
+          })
+          .attr('class', 'form-check-label');
+
+        checkboxes.select('input').on('change', function (d) {
+          dispatch.change();
+        });
+      });
+    }
+
+    d3.rebind(_createCheckbox, dispatch, 'on');
+
+    return _createCheckbox;
+  }
+
+  let brainAreaCheckboxes = createBrainAreaCheckboxes();
+
+  brainAreaCheckboxes.on('change', function () {
+    var choices = [];
+    d3.selectAll('.checkbox').each(function (d) {
+      let cb = d3.select(this).select('input');
+      if (cb.property('checked')) {
+        choices.push(cb.property('id'));
+      }
+    });
+
+    rasterData.includeBrainAreas(choices);
   });
 
   function legendView(scale) {
@@ -3519,7 +3578,7 @@
   let rasterData = rasterDataManger();
   rasterData.on('dataReady', function () {
     d3.select('span#NeuronName')
-      .text('Neuron ' + rasterData.brainArea().toUpperCase() + ' ' + rasterData.neuronName());
+      .text('Neuron ' + rasterData.brainArea() + ' ' + rasterData.neuronName());
     let chartWidth = document.getElementById('chart').offsetWidth;
     rasterView
       .width(chartWidth)
@@ -3547,6 +3606,7 @@
     multiples.exit().remove();
     multiples.call(rasterView);
 
+    // UI
     factorDropdown.options(rasterData.factorList());
     eventDropdown.options(rasterData.trialEvents());
 
@@ -3554,8 +3614,11 @@
     d3.select('#FactorSortMenu').datum(rasterData.curFactor()).call(factorDropdown);
     d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventDropdown);
     d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);
-    d3.select('#NeuronMenu').datum(rasterData.neuronList()).call(neuronList);
+    d3.select('#NeuronMenu').datum(rasterData.neuronList().filter(
+      function (d) {return rasterData.includeBrainAreas().includes(d.brainArea);})
+     ).call(neuronList);
     d3.select('#NeuronSearch').datum(rasterData.neuronList()).call(neuronSearch);
+    d3.select('#NeuronFilter').datum(rasterData.includeBrainAreas()).call(brainAreaCheckboxes);
 
     showLinesCheckbox.property('checked', rasterData.showSmoothingLines());
     showSpikesCheckbox.property('checked', rasterData.showSpikes());

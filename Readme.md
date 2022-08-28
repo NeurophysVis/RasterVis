@@ -17,6 +17,10 @@ This tool allows you to:
 * Group spikes based on experimental factors.
 ![change factors](/img/RasterVis-ChangeFactor.gif)
 
+
+#### Example
+See an example here: https://neurophysvis.github.io/RasterVis/public/
+
 ### Installation
 To run RasterVis locally, you need to install the dependencies and set up a local web server.
 

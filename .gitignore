@@ -1,6 +1,8 @@
 *.mat
-/DATA
-/public/DATA
+*.json
+!public/DATA/*HPa_01_04_*.json
+!trialinfo.json
+
 /node_modules
 /bower_components
 *.DS_Store

@@ -1,0 +1,21 @@
+name: nwb_to_RasterVis
+channels:
+- conda-forge
+- edeno
+- franklab
+dependencies:
+- loren_frank_data_processing
+- franklab_nwb_extensions
+- pynwb
+- numpy
+- jupyter
+- jupyterlab
+- matplotlib
+- numpy
+- "python >= 3.6"
+- nb_conda
+- setuptools
+- pytest
+- pytest-cov
+- coveralls
+- pip

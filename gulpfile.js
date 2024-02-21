@@ -139,5 +139,5 @@ gulp.task('zip', function () {
     .pipe(gulp.dest('./'));
 });
 
-gulp.task('default', ['copyDATA', 'bundle', 'createVendorJS', 'copyCSS', 'webserver', 'watch']);
-gulp.task('build', ['createMainJS', 'createMainJS', 'createVendorJS', 'copyCSS', 'createMainJS-build', 'createVendorJS-build', 'minifyCSS', 'compressImages', 'minifyJSON']);
+gulp.task('default', gulp.series('copyDATA', 'bundle', 'createVendorJS', 'copyCSS', 'webserver', 'watch'));
+gulp.task('build', gulp.series('createMainJS', 'createVendorJS', 'copyCSS', 'createMainJS-build', 'createVendorJS-build', 'minifyCSS', 'minifyJSON'));

@@ -62,11 +62,10 @@ gulp.task('createMainJS', function () {
 });
 
 gulp.task('bundle', function () {
-  gulp.src('./index.js', { read: false })
+  return gulp.src('./index.js', { read: false })
     .pipe(rollup({
       format: 'umd',
-      moduleName: 'rasterVis',
-      moduleId: 'rasterVis',
+      name: 'rasterVis',
     }))
     .pipe(rename('main.js'))
     .pipe(gulp.dest('public/js/'))

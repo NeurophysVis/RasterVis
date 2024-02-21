@@ -25,9 +25,7 @@ gulp.task('createVendorJS', function () {
     'app/components/jquery/dist/jquery.js',
     'app/components/bootstrap/js/dropdown.js',
     'app/components/d3/d3.js',
-    'app/components/queue-async/queue.js',
     'app/components/colorbrewer/colorbrewer.js',
-    'app/components/spin.js/spin.js',
     'app/components/d3-legend/d3-legend.js',
     'app/components/fuse.js/src/fuse.js',
   ]).pipe(concat('vendor.js'))

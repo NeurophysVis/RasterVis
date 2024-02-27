@@ -1,8 +1,8 @@
 let toolTip = d3.select('body').selectAll('div#tooltip').data([{}]);
 toolTip.enter()
   .append('div')
-    .attr('id', 'tooltip')
-    .style('opacity', 1e-6);
+  .attr('id', 'tooltip')
+  .style('opacity', 1e-6);
 
 export default function (selection, data, timeScale, yScale, curEvent, width) {
   // Append invisible box for mouseover
@@ -12,7 +12,7 @@ export default function (selection, data, timeScale, yScale, curEvent, width) {
     .remove();
   mouseBox.enter()
     .append('rect')
-      .attr('class', 'trialBox');
+    .attr('class', 'trialBox');
   mouseBox
     .attr('x', function (d) {
       if (d.start_time !== null) {
@@ -49,11 +49,11 @@ function mouseBoxOver(d) {
           & (varName != 'sortInd');
         if (isValid) {
           table += '<tr><td>' + varName + ':' + '</td><td><b>' + d[varName]
-          + '</b></td></tr>';
+            + '</b></td></tr>';
         }
       }
 
-      table +=  '</table>';
+      table += '</table>';
       return table;
     });
 

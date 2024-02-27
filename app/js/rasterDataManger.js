@@ -3,7 +3,7 @@ import queue from '../../node_modules/d3-queue/src/queue';
 import loading from './loading';
 import {loadTrialInfo, loadSessionTrialData, loadNeuronData} from './loadData';
 
-export default function() {
+export default function () {
   let neuronName = '';
   let sessionName = '';
   let brainArea = '';
@@ -33,7 +33,7 @@ export default function() {
       factorList = trialInfo.experimentalFactor;
       trialEvents = trialInfo.timePeriods;
       neuronList = trialInfo.neurons;
-      includeBrainAreas = d3.map(neuronList,  function(d) { return d.brainArea; }).keys();
+      includeBrainAreas = d3.map(neuronList, function (d) { return d.brainArea; }).keys();
 
       if (neuronName === '') {
         neuronName = neuronList.length ? neuronList[0].name : neuronList.name;
@@ -42,7 +42,8 @@ export default function() {
       loading(isLoaded, neuronName);
 
       let neuronInfo = neuronList.length ? neuronList.filter(function (d) {
-        return d.name === neuronName;})[0] : neuronList;
+        return d.name === neuronName;
+      })[0] : neuronList;
 
       sessionName = neuronInfo.sessionName;
       Subject = neuronInfo.subjectName;
@@ -65,10 +66,10 @@ export default function() {
             let interactingFactorType = factorList.filter(function (d) {
               return d.value === interactionFactor;
             })
-            .map(function (d) {return d.factorType;})[0].toUpperCase();
+              .map(function (d) { return d.factorType; })[0].toUpperCase();
 
             factorLevels = factorLevels
-              .filter(function (k) {return k.key !== 'null';});
+              .filter(function (k) { return k.key !== 'null'; });
 
             (interactingFactorType === 'CONTINUOUS') ? factorLevels.sort(d3.ascending()) :
               factorLevels.sort();
@@ -97,13 +98,13 @@ export default function() {
 
   dataManager.sortRasterData = function () {
     rasterData = merge(sessionInfo, spikeInfo);
-    let factorType = factorList.filter(function (d) {return d.value === curFactor;})
-                               .map(function (d) {return d.factorType;})[0].toUpperCase();
+    let factorType = factorList.filter(function (d) { return d.value === curFactor; })
+      .map(function (d) { return d.factorType; })[0].toUpperCase();
 
     // Nest and Sort Data
     if (factorType !== 'CONTINUOUS') {
       rasterData = d3.nest()
-        .key(function (d) { return d[curFactor] + '_' + sessionName;}) // nests data by selected factor
+        .key(function (d) { return d[curFactor] + '_' + sessionName; }) // nests data by selected factor
         .sortKeys(function (a, b) {
           // Sort ordinal keys
           if (factorType === 'ORDINAL') return d3.descending(+a[curFactor], +b[curFactor]);
@@ -120,46 +121,46 @@ export default function() {
         .entries(rasterData);
     } else {
       rasterData = d3.nest()
-        .key(function (d) {return d[''] + '_' + sessionName;}) // nests data by selected factor
-          .sortValues(function (a, b) { // sorts values on factor if continuous
-            return d3.descending(+a[curFactor], +b[curFactor]);
-          })
+        .key(function (d) { return d[''] + '_' + sessionName; }) // nests data by selected factor
+        .sortValues(function (a, b) { // sorts values on factor if continuous
+          return d3.descending(+a[curFactor], +b[curFactor]);
+        })
         .entries(rasterData);
     }
   };
 
-  dataManager.neuronName  = function (value) {
+  dataManager.neuronName = function (value) {
     if (!arguments.length) return neuronName;
     neuronName = value;
     dataManager.loadRasterData();
     return dataManager;
   };
 
-  dataManager.brainArea  = function (value) {
+  dataManager.brainArea = function (value) {
     if (!arguments.length) return brainArea;
     brainArea = value;
     return dataManager;
   };
 
-  dataManager.sessionName  = function (value) {
+  dataManager.sessionName = function (value) {
     if (!arguments.length) return sessionName;
     sessionName = value;
     return dataManager;
   };
 
-  dataManager.interactionFactor  = function (value) {
+  dataManager.interactionFactor = function (value) {
     if (!arguments.length) return interactionFactor;
     interactionFactor = value;
     return dataManager;
   };
 
-  dataManager.rasterData  = function (value) {
+  dataManager.rasterData = function (value) {
     if (!arguments.length) return rasterData;
     rasterData = value;
     return dataManager;
   };
 
-  dataManager.showSpikes  = function (value) {
+  dataManager.showSpikes = function (value) {
     if (!arguments.length) return showSpikes;
     showSpikes = value;
     if (isLoaded) dispatch.dataReady();

@@ -19,18 +19,18 @@ export default function () {
         }
         guesses = fuseSearch.search(curInput);
 
-        guesses = guesses.filter(function (g) {return g.score < 0.05;});
+        guesses = guesses.filter(function (g) { return g.score < 0.05; });
 
         if (guesses.length > MAX_GUESSES) guesses = guesses.slice(0, MAX_GUESSES);
 
-        let guessList = selection.select('ul').selectAll('li').data(guesses.map(function (d) {return d.item[key];}), String);
+        let guessList = selection.select('ul').selectAll('li').data(guesses.map(function (d) { return d.item[key]; }), String);
 
         guessList.enter()
           .append('li')
-            .append('a')
-            .attr('role', 'menuitem')
-            .attr('tabindex', -1)
-            .text(function (d) {return d;});
+          .append('a')
+          .attr('role', 'menuitem')
+          .attr('tabindex', -1)
+          .text(function (d) { return d; });
 
         guessList.selectAll('a').on('click', function (d) {
           selection.select('input').property('value', '');

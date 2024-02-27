@@ -1,4 +1,4 @@
-export default function() {
+export default function () {
   let dispatch = d3.dispatch('change');
 
   function _createCheckbox(selection) {
@@ -13,7 +13,7 @@ export default function() {
         .attr('class', 'checkbox');
       checkboxEnter
         .append('input')
-        .attr('id', function (brainArea) {return brainArea;})
+        .attr('id', function (brainArea) { return brainArea; })
         .attr('checked', 'checked')
         .attr('type', 'checkbox')
         .attr('class', 'form-check-input');

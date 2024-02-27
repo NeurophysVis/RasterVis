@@ -18,11 +18,11 @@ export default function () {
 
       options.enter()
         .append('option')
-        .text(function (d) {return d[key];});
+        .text(function (d) { return d[key]; });
 
       options.exit().remove();
       options.property('selected', false);
-      options.filter(function (d) {return d[key] === curSelected;}).property('selected', true);
+      options.filter(function (d) { return d[key] === curSelected; }).property('selected', true);
       options.on('click', function (d) { return dispatch.click(d[key]); });
 
     });

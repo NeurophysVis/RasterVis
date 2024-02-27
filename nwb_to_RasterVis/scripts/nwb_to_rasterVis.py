@@ -57,7 +57,6 @@ def make_neurons_json(trials, units, nwbfile, output_path="", brain_area_column=
         }
         neuron_filename = Path(output_path) / Path(f"Neuron_{subject}_{unit_id}.json")
         json_output = json.dumps(json_data)
-
         with open(neuron_filename, "w") as file:
             file.write(json_output)
 
@@ -121,7 +120,8 @@ def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=No
                 "factorType": factor_type,
             }
         )
-    trials_filename = Path(output_path) / Path(f"trialInfo.json")
+
+    trials_filename = Path(output_path) / Path("trialInfo.json")
     json_data = {
         "neurons": neurons,
         "timePeriods": time_periods,

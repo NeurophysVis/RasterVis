@@ -5,17 +5,11 @@ channels:
 - franklab
 dependencies:
 - loren_frank_data_processing
-- franklab_nwb_extensions
 - pynwb
-- numpy
 - jupyter
 - jupyterlab
 - matplotlib
 - numpy
-- "python >= 3.6"
-- nb_conda
-- setuptools
-- pytest
-- pytest-cov
-- coveralls
 - pip
+- pip:
+  - dandi

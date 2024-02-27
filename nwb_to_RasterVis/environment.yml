@@ -14,3 +14,4 @@ dependencies:
 - pip:
   - dandi
   - remfile
+  - kachery-cloud

@@ -8,10 +8,16 @@ import h5py
 
 def make_trials_json(trials, nwbfile, output_path=""):
     subject = str(nwbfile.subject.subject_id)
-    json_data = [
-        {"trial_id": trial_id, **trial.to_dict()}
-        for trial_id, trial in trials.iterrows()
-    ]
+    json_data = []
+    for trial_id, trial in trials.iterrows():
+        trial = trial.to_dict()
+        trial["end_time"] = trial.pop("stop_time")
+        json_data.append(
+            {
+                "trial_id": trial_id,
+                **trial,
+            }
+        )
     trials_filename = Path(output_path) / Path(f"{subject}_TrialInfo.json")
     json_output = json.dumps(json_data)
 

@@ -185,7 +185,7 @@ def run_conversion_streaming(s3_url, output_path="", time_periods=None):
             )
 
 
-def json_smash(data_path, output_path=""):
+def json_smash(data_path, output_path="", remove_file=False):
     """Converts a directory of json files into a single json file with a specific format.
 
     Parameters
@@ -194,12 +194,17 @@ def json_smash(data_path, output_path=""):
         The directory containing the json files to be converted.
     output_path : str
         The directory to save the output json file to.
+    remove_file : bool, optional
+        Whether to remove the original json files after conversion, by default True
     """
     obj = {"objects": {}}
     for json_file in Path(data_path).glob("*.json"):
         with open(json_file, "r") as fin:
             content = json.load(fin)
             obj["objects"][json_file.stem] = content
+
+        if remove_file:
+            json_file.unlink()
 
     output_path = Path(output_path) / Path("figurl_data.json")
     with open(output_path, "w") as fout:

@@ -132,6 +132,17 @@ def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=No
 
 
 def run_conversion(nwb_path, output_path="", time_periods=None):
+    """Converts an NWB file to the RasterVis format.
+
+    Parameters
+    ----------
+    nwb_path : str
+        The path to the NWB file to be converted.
+    output_path : str, optional
+        The directory to save the output json file to., by default ""
+    time_periods : _type_, optional
+        Describes the time periods within trial, by default None
+    """
     with NWBHDF5IO(nwb_path, "r", load_namespaces=True) as io:
         nwbfile = io.read()
         units = nwbfile.units.to_dataframe()
@@ -144,6 +155,17 @@ def run_conversion(nwb_path, output_path="", time_periods=None):
 
 
 def run_conversion_streaming(s3_url, output_path="", time_periods=None):
+    """Converts an NWB file stored on S3 to the RasterVis format.
+
+    Parameters
+    ----------
+    s3_url : str
+        The S3 url of the NWB file to be converted.
+    output_path : str, optional
+        The directory to save the output json file to., by default ""
+    time_periods : dict, optional
+        Describes the time periods within trial, by default None
+    """
     rem_file = remfile.File(s3_url)
     with h5py.File(rem_file, "r") as h5py_file:
         with NWBHDF5IO(file=h5py_file, load_namespaces=True) as io:

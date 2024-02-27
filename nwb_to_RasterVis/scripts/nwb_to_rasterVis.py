@@ -117,7 +117,7 @@ def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=No
         experimental_factor.append(
             {
                 "name": column,
-                "value": other_trial_columns[column].to_list(),
+                "value": column,
                 "factorType": factor_type,
             }
         )

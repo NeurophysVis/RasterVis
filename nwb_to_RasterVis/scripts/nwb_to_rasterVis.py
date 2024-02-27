@@ -139,19 +139,23 @@ def run_conversion(nwb_path, output_path="", time_periods=None):
         make_neurons_json(trials, units, nwbfile, output_path=output_path)
         make_trials_json(trials, nwbfile, output_path=output_path)
         make_trial_info(
-            trials, nwbfile, output_path=output_path, time_periods=time_periods
+            trials, units, nwbfile, output_path=output_path, time_periods=time_periods
         )
 
 
 def run_conversion_streaming(s3_url, output_path="", time_periods=None):
     rem_file = remfile.File(s3_url)
     with h5py.File(rem_file, "r") as h5py_file:
-        with NWBHDF5IO(h5py_file, "r", load_namespaces=True) as io:
+        with NWBHDF5IO(file=h5py_file, load_namespaces=True) as io:
             nwbfile = io.read()
             units = nwbfile.units.to_dataframe()
             trials = nwbfile.trials.to_dataframe()
             make_neurons_json(trials, units, nwbfile, output_path=output_path)
             make_trials_json(trials, nwbfile, output_path=output_path)
             make_trial_info(
-                trials, nwbfile, output_path=output_path, time_periods=time_periods
+                trials,
+                units,
+                nwbfile,
+                output_path=output_path,
+                time_periods=time_periods,
             )

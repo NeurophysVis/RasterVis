@@ -106,7 +106,9 @@ def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=No
         other_trial_columns[column].nunique() < 10
         for column in other_trial_columns.columns
     ]
-    experimental_factor = []
+    experimental_factor = [
+        {"name": "trial_id", "value": "trial_id", "factorType": "continuous"}
+    ]
     for column, is_cat in zip(other_trial_columns.columns, is_categorical):
         if is_cat:
             factor_type = "categorical"

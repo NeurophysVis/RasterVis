@@ -60,10 +60,82 @@ def make_neurons_json(trials, units, nwbfile, output_path="", brain_area_column=
             file.write(json_output)
 
 
-def run_conversion(nwb_path, output_path=""):
+def make_trial_info(trials, nwbfile, output_path="", time_periods=None):
+    subject = str(nwbfile.subject.subject_id)
+    # time_periods = [
+    #     {
+    #         "name": name,
+    #         "label": label,
+    #         "startID": start_id,
+    #         "endID": end_id,
+    #         "color": color,
+    #     }
+    # ]
+    if time_periods is None:
+        time_periods = []
+
+    subject = str(nwbfile.subject.subject_id)
+    brain_area_column = None
+
+    session_name = nwbfile.session_id
+
+    neurons = []
+    for unit_id, unit in units.iterrows():
+        if brain_area_column is not None:
+            brain_area = unit[brain_area_column]
+        else:
+            try:
+                brain_area = str(unit["electrodes"].location.to_numpy()[0])
+            except AttributeError:
+                brain_area = "unknown"
+        name = f"{subject}_{unit_id}"
+        neurons.append(
+            {
+                "name": name,
+                "sessionName": session_name,
+                "brainArea": brain_area,
+            }
+        )
+
+    other_trial_columns = trials.loc[
+        :, trials.columns[~trials.columns.isin(["start_time", "stop_time"])]
+    ]
+    is_categorical = [
+        other_trial_columns[column].nunique() < 10
+        for column in other_trial_columns.columns
+    ]
+    experimental_factor = []
+    for column, is_cat in zip(other_trial_columns.columns, is_categorical):
+        if is_cat:
+            factor_type = "categorical"
+        else:
+            factor_type = "continuous"
+        experimental_factor.append(
+            {
+                "name": column,
+                "value": other_trial_columns[column].to_list(),
+                "factorType": factor_type,
+            }
+        )
+    trials_filename = Path(output_path) / Path(f"trialInfo.json")
+    json_data = {
+        "neurons": neurons,
+        "timePeriods": time_periods,
+        "experimentalFactor": experimental_factor,
+    }
+    json_output = json.dumps(json_data)
+
+    with open(trials_filename, "w") as file:
+        file.write(json_output)
+
+
+def run_conversion(nwb_path, output_path="", time_periods=None):
     with NWBHDF5IO(nwb_path, "r") as io:
         nwbfile = io.read()
         units = nwbfile.units.to_dataframe()
         trials = nwbfile.trials.to_dataframe()
         make_neurons_json(trials, units, nwbfile, output_path=output_path)
         make_trials_json(trials, nwbfile, output_path=output_path)
+        make_trial_info(
+            trials, nwbfile, output_path=output_path, time_periods=time_periods
+        )

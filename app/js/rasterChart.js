@@ -45,36 +45,36 @@ export default function () {
       // Initialize the chart, set up drawing layers
       let enterG = svg.enter()
         .append('svg')
-          .append('g');
+        .append('g');
       enterG
         .append('rect')
-          .attr('class', 'backgroundLayer');
+        .attr('class', 'backgroundLayer');
       svg.select('rect.backgroundLayer')
-          .attr('width', innerWidth)
-          .attr('height', innerHeight)
-          .attr('opacity', 0.1)
-          .attr('fill', '#aaa');
+        .attr('width', innerWidth)
+        .attr('height', innerHeight)
+        .attr('opacity', 0.1)
+        .attr('fill', '#aaa');
       enterG
         .append('g')
-          .attr('class', 'trialEvents');
+        .attr('class', 'trialEvents');
       enterG
         .append('g')
-          .attr('class', 'spikes');
+        .attr('class', 'spikes');
       enterG
         .append('g')
-          .attr('class', 'smoothLine');
+        .attr('class', 'smoothLine');
       enterG
         .append('g')
-          .attr('class', 'trialBox');
+        .attr('class', 'trialBox');
       enterG
         .append('g')
-          .attr('class', 'timeAxis');
+        .attr('class', 'timeAxis');
       enterG
         .append('g')
-          .attr('class', 'yAxis');
+        .attr('class', 'yAxis');
       enterG
         .append('g')
-          .attr('class', 'eventMarker');
+        .attr('class', 'eventMarker');
 
       // Fix title names
       let s = data.key.split('_');

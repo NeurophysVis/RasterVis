@@ -3,7 +3,7 @@
 
 export default function (selection, sessionInfo, trialEvents, curEvent, timeScale, yScale) {
 
-  let eventArea = selection.selectAll('path.eventArea').data(trialEvents, function (d) {return d.label;});
+  let eventArea = selection.selectAll('path.eventArea').data(trialEvents, function (d) { return d.label; });
 
   /* Reformat data for area chart. Duplicate data twice in order to draw
   straight vertical edges at the beginning and end of trials */
@@ -12,21 +12,21 @@ export default function (selection, sessionInfo, trialEvents, curEvent, timeScal
   // Plot area corresponding to trial events
   eventArea.enter()
     .append('path')
-      .attr('class', 'eventArea')
-      .attr('id', function (d) {return d.label;})
-      .attr('opacity', 1E-6)
-      .attr('fill', function (d) {return d.color;});
+    .attr('class', 'eventArea')
+    .attr('id', function (d) { return d.label; })
+    .attr('opacity', 1E-6)
+    .attr('fill', function (d) { return d.color; });
 
   eventArea.exit().remove();
 
   eventArea
     .transition()
-      .duration(1000)
-      .ease('linear')
-      .attr('opacity', 0.90)
-      .attr('d', function (t) {
-        return AreaFun(dupData, t, timeScale, yScale, curEvent);
-      });
+    .duration(1000)
+    .ease('linear')
+    .attr('opacity', 0.90)
+    .attr('d', function (t) {
+      return AreaFun(dupData, t, timeScale, yScale, curEvent);
+    });
 }
 
 function AreaFun(values, trialEvents, timeScale, yScale, curEvent) {

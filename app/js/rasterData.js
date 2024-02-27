@@ -34,12 +34,12 @@ rasterData.on('dataReady', function () {
   legendView(rasterData.colorScale());
 
   let multiples = d3.select('#chart').selectAll('div.row')
-    .data(rasterData.rasterData(), function (d) {return d.key;});
+    .data(rasterData.rasterData(), function (d) { return d.key; });
 
   multiples.enter()
     .append('div')
-      .attr('class', 'row')
-      .attr('id', function (d) {return d.key;});
+    .attr('class', 'row')
+    .attr('id', function (d) { return d.key; });
 
   multiples.exit().remove();
   multiples.call(rasterView);
@@ -53,8 +53,8 @@ rasterData.on('dataReady', function () {
   d3.select('#EventMenu').datum(rasterData.curEvent()).call(eventButton);
   d3.select('#LineSmoothSliderPanel').datum(rasterData.lineSmoothness()).call(smoothingSlider);
   d3.select('#NeuronMenu').datum(rasterData.neuronList().filter(
-    function (d) {return rasterData.includeBrainAreas().includes(d.brainArea);})
-   ).call(neuronList);
+    function (d) { return rasterData.includeBrainAreas().includes(d.brainArea); })
+  ).call(neuronList);
   d3.select('#NeuronSearch').datum(rasterData.neuronList()).call(neuronSearch);
   d3.select('#NeuronFilter').datum(rasterData.includeBrainAreas()).call(brainAreaCheckboxes);
 

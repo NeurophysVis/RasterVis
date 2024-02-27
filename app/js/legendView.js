@@ -1,4 +1,4 @@
-export default function(scale) {
+export default function (scale) {
   const CIRCLE_RADIUS = 7.5;
   let margin = { top: 10, right: 10, bottom: 10, left: 10 };
   let outerWidth = document.getElementById('legend').offsetWidth;
@@ -16,7 +16,7 @@ export default function(scale) {
   let svg = legendID.selectAll('svg').data([{}]);
   svg.enter()
     .append('svg')
-      .append('g');
+    .append('g');
   svg
     .attr('width', innerWidth + margin.left + margin.right)
     .attr('height', innerHeight + margin.top + margin.bottom);

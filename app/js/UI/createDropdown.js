@@ -1,4 +1,4 @@
-export default function() {
+export default function () {
   let key;
   let displayName;
   let options;
@@ -13,22 +13,22 @@ export default function() {
 
       menu.enter()
         .append('li')
-          .attr('id', function (d) {
-            return d[key];
-          })
-          .attr('role', 'presentation')
-          .append('a')
-            .attr('role', 'menuitem')
-            .attr('tabindex', -1)
-            .text(function (d) {
-              return d[displayName];
-            });
+        .attr('id', function (d) {
+          return d[key];
+        })
+        .attr('role', 'presentation')
+        .append('a')
+        .attr('role', 'menuitem')
+        .attr('tabindex', -1)
+        .text(function (d) {
+          return d[displayName];
+        });
 
       menu.on('click', dispatch.click);
 
       menu.exit().remove();
 
-      let curText = options.filter(function (d) {return d[key] === data;})
+      let curText = options.filter(function (d) { return d[key] === data; })
         .map(function (d) { return d[displayName]; })[0];
 
       d3.select(this).selectAll('button')

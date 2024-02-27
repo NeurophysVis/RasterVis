@@ -15,7 +15,7 @@ export default function (selection, sessionInfo, timeScale, yScale, curEvent, in
     });
   });
 
-  let factorLevel = sessionInfo.map(function (d) {return d[interactionFactor];});
+  let factorLevel = sessionInfo.map(function (d) { return d[interactionFactor]; });
 
   // Flatten
   data = flatten(data);
@@ -26,11 +26,11 @@ export default function (selection, sessionInfo, timeScale, yScale, curEvent, in
     .style('opacity', 1E-5);
   circles.exit()
     .transition()
-      .duration(1000)
-      .style('opacity', 1E-5).remove();
+    .duration(1000)
+    .style('opacity', 1E-5).remove();
 
   circles
-  .transition()
+    .transition()
     .duration(1000)
     .attr('cx', function (d) {
       return timeScale(d[0]);

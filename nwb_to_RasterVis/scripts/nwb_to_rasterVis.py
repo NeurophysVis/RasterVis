@@ -60,7 +60,7 @@ def make_neurons_json(trials, units, nwbfile, output_path="", brain_area_column=
             file.write(json_output)
 
 
-def make_trial_info(trials, nwbfile, output_path="", time_periods=None):
+def make_trial_info(trials, units, nwbfile, output_path="", time_periods=None):
     subject = str(nwbfile.subject.subject_id)
     # time_periods = [
     #     {

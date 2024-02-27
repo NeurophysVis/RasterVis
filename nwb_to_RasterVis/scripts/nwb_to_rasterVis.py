@@ -62,7 +62,7 @@ def make_neurons_json(trials, units, nwbfile, output_path="", brain_area_column=
             file.write(json_output)
 
 
-def make_trial_info(trials, units, nwbfile, output_path="", time_periods=None):
+def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=None):
     subject = str(nwbfile.subject.subject_id)
     # time_periods = [
     #     {
@@ -138,7 +138,7 @@ def run_conversion(nwb_path, output_path="", time_periods=None):
         trials = nwbfile.trials.to_dataframe()
         make_neurons_json(trials, units, nwbfile, output_path=output_path)
         make_trials_json(trials, nwbfile, output_path=output_path)
-        make_trial_info(
+        make_trial_info_json(
             trials, units, nwbfile, output_path=output_path, time_periods=time_periods
         )
 
@@ -152,7 +152,7 @@ def run_conversion_streaming(s3_url, output_path="", time_periods=None):
             trials = nwbfile.trials.to_dataframe()
             make_neurons_json(trials, units, nwbfile, output_path=output_path)
             make_trials_json(trials, nwbfile, output_path=output_path)
-            make_trial_info(
+            make_trial_info_json(
                 trials,
                 units,
                 nwbfile,

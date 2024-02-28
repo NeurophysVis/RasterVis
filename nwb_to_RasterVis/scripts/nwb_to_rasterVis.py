@@ -95,7 +95,7 @@ def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=No
         else:
             try:
                 brain_area = str(unit["electrodes"].location.to_numpy()[0])
-            except AttributeError:
+            except KeyError:
                 brain_area = "unknown"
         name = f"{subject}_{unit_id}"
         neurons.append(

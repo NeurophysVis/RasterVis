@@ -15,6 +15,52 @@ def _get_session_name(nwbfile):
     return f"{subject}_{session}"
 
 
+def _discover_trial_events(trials):
+    within_trial_columns = trials.columns[
+        [
+            np.all(
+                np.logical_and(
+                    trials[column] >= trials.start_time,
+                    trials[column] <= trials.stop_time,
+                )
+            )
+            for column in trials.columns
+        ]
+    ]
+    sorted_event_names = (
+        trials[within_trial_columns].iloc[0].sort_values().index.to_numpy()
+    )
+    event_colors = [
+        "#fdcdac",
+        "#cbd5e8",
+        "#f4cae4",
+        "#e6f5c9",
+        "#f1e2cc",
+    ]
+    time_periods = [
+        {
+            "name": "Trial Start",
+            "label": "Trial Start",
+            "startID": "start_time",
+            "endID": "end_time",
+            "color": "#b3e2cd",
+        },
+    ]
+    for event1, event2, event_color in zip(
+        sorted_event_names[:-1], sorted_event_names[1:], event_colors
+    ):
+        time_periods.append(
+            {
+                "name": event1,
+                "label": event1,
+                "startID": event1,
+                "endID": event2,
+                "color": event_color,
+            }
+        )
+    return time_periods
+
+
 def make_trials_json(trials, nwbfile, output_path=""):
     json_data = []
     for trial_id, trial in trials.iterrows():
@@ -81,15 +127,7 @@ def make_neurons_json(trials, units, nwbfile, output_path="", brain_area_column=
 
 def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=None):
     if time_periods is None:
-        time_periods = [
-            {
-                "name": "Trial Start",
-                "label": "Trial Start",
-                "startID": "start_time",
-                "endID": "end_time",
-                "color": "#756bb1",
-            },
-        ]
+        time_periods = _discover_trial_events(trials)
 
     brain_area_column = None
 

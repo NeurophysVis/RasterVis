@@ -222,7 +222,7 @@ def json_smash(data_path, output_path="", remove_file=False):
 def create_figurl(s3_url):
     with TemporaryDirectory() as tmpdir:
         run_conversion_streaming(s3_url, output_path=tmpdir)
-        json_smash(tmpdir, output_path=tmpdir)
+        json_smash(tmpdir, output_path=".")
         uri = kcl.store_file("figurl_data.json")
         figurl = f"https://figurl.org/f?v=https://figurl-raster-vis.surge.sh/index.html&d={uri}&label=figurl_data.json"
         print(figurl)

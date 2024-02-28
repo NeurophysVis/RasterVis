@@ -4,6 +4,8 @@ import numpy as np
 from pynwb import NWBHDF5IO
 import remfile
 import h5py
+import kachery_cloud as kcl
+from tempfile import TemporaryDirectory
 
 
 def make_trials_json(trials, nwbfile, output_path=""):
@@ -217,15 +219,17 @@ def json_smash(data_path, output_path="", remove_file=False):
         json.dump(obj, fout)
 
 
-if __name__ == "__main__":
-    import kachery_cloud as kcl
-    from tempfile import TemporaryDirectory
-
-    s3_url = "https://api.dandiarchive.org/api/assets/b3cd4cca-58ad-4c9f-8247-401fa99c68e8/download/"
-
+def create_figurl(s3_url):
     with TemporaryDirectory() as tmpdir:
         run_conversion_streaming(s3_url, output_path=tmpdir)
         json_smash(tmpdir, output_path=tmpdir)
         uri = kcl.store_file("figurl_data.json")
         figurl = f"https://figurl.org/f?v=https://figurl-raster-vis.surge.sh/index.html&d={uri}&label=figurl_data.json"
         print(figurl)
+
+        return figurl
+
+
+if __name__ == "__main__":
+    s3_url = "https://api.dandiarchive.org/api/assets/b3cd4cca-58ad-4c9f-8247-401fa99c68e8/download/"
+    create_figurl(s3_url)

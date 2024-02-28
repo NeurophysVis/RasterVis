@@ -1,3 +1,4 @@
+"""Converts an NWB file to the RasterVis format."""
 import json
 from pathlib import Path
 import numpy as np
@@ -8,8 +9,13 @@ import kachery_cloud as kcl
 from tempfile import TemporaryDirectory
 
 
-def make_trials_json(trials, nwbfile, output_path=""):
+def _get_session_name(nwbfile):
     subject = str(nwbfile.subject.subject_id)
+    session = nwbfile.session_id if nwbfile.session_id else "0"
+    return f"{subject}_{session}"
+
+
+def make_trials_json(trials, nwbfile, output_path=""):
     json_data = []
     for trial_id, trial in trials.iterrows():
         trial = trial.to_dict()
@@ -20,7 +26,8 @@ def make_trials_json(trials, nwbfile, output_path=""):
                 **trial,
             }
         )
-    trials_filename = Path(output_path) / Path(f"{subject}_TrialInfo.json")
+    session_name = _get_session_name(nwbfile)
+    trials_filename = Path(output_path) / Path(f"{session_name}_TrialInfo.json")
     json_output = json.dumps(json_data)
 
     with open(trials_filename, "w") as file:
@@ -30,6 +37,7 @@ def make_trials_json(trials, nwbfile, output_path=""):
 def make_neurons_json(trials, units, nwbfile, output_path="", brain_area_column=None):
     n_trials = len(trials)
     subject = str(nwbfile.subject.subject_id)
+    session_name = _get_session_name(nwbfile)
 
     for unit_id, unit in units.iterrows():
         unit_spike_times = unit["spike_times"]
@@ -63,7 +71,9 @@ def make_neurons_json(trials, units, nwbfile, output_path="", brain_area_column=
             "Number_of_Trials": n_trials,
             "Spikes": spikes_list,
         }
-        neuron_filename = Path(output_path) / Path(f"Neuron_{subject}_{unit_id}.json")
+        neuron_filename = Path(output_path) / Path(
+            f"Neuron_{session_name}_{unit_id}.json"
+        )
         json_output = json.dumps(json_data)
         with open(neuron_filename, "w") as file:
             file.write(json_output)
@@ -86,7 +96,7 @@ def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=No
     subject = str(nwbfile.subject.subject_id)
     brain_area_column = None
 
-    session_name = nwbfile.session_id
+    session_name = _get_session_name(nwbfile)
 
     neurons = []
     for unit_id, unit in units.iterrows():
@@ -97,7 +107,7 @@ def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=No
                 brain_area = str(unit["electrodes"].location.to_numpy()[0])
             except KeyError:
                 brain_area = "unknown"
-        name = f"{subject}_{unit_id}"
+        name = f"{session_name}_{unit_id}"
         neurons.append(
             {
                 "name": name,

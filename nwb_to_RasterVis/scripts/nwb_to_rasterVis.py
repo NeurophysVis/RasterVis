@@ -238,5 +238,6 @@ def create_figurl(s3_url, time_periods=None):
 
 
 if __name__ == "__main__":
-    s3_url = "https://api.dandiarchive.org/api/assets/b3cd4cca-58ad-4c9f-8247-401fa99c68e8/download/"
-    create_figurl(s3_url)
+    import sys
+
+    create_figurl(sys.argv[1])

@@ -80,18 +80,16 @@ def make_neurons_json(trials, units, nwbfile, output_path="", brain_area_column=
 
 
 def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=None):
-    subject = str(nwbfile.subject.subject_id)
-    # time_periods = [
-    #     {
-    #         "name": name,
-    #         "label": label,
-    #         "startID": start_id,
-    #         "endID": end_id,
-    #         "color": color,
-    #     }
-    # ]
     if time_periods is None:
-        time_periods = []
+        time_periods = [
+            {
+                "name": "Trial Start",
+                "label": "Trial Start",
+                "startID": "start_time",
+                "endID": "end_time",
+                "color": "#756bb1",
+            },
+        ]
 
     subject = str(nwbfile.subject.subject_id)
     brain_area_column = None

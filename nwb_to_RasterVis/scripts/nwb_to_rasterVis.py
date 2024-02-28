@@ -91,7 +91,6 @@ def make_trial_info_json(trials, units, nwbfile, output_path="", time_periods=No
             },
         ]
 
-    subject = str(nwbfile.subject.subject_id)
     brain_area_column = None
 
     session_name = _get_session_name(nwbfile)
@@ -227,9 +226,9 @@ def json_smash(data_path, output_path="", remove_file=False):
         json.dump(obj, fout)
 
 
-def create_figurl(s3_url):
+def create_figurl(s3_url, time_periods=None):
     with TemporaryDirectory() as tmpdir:
-        run_conversion_streaming(s3_url, output_path=tmpdir)
+        run_conversion_streaming(s3_url, output_path=tmpdir, time_periods=time_periods)
         json_smash(tmpdir, output_path=".")
         uri = kcl.store_file("figurl_data.json")
         figurl = f"https://figurl.org/f?v=https://figurl-raster-vis.surge.sh/index.html&d={uri}&label=figurl_data.json"

@@ -41,7 +41,7 @@ def make_neurons_json(trials, units, nwbfile, output_path="", brain_area_column=
         else:
             try:
                 brain_area = str(unit["electrodes"].location.to_numpy()[0])
-            except AttributeError:
+            except KeyError:
                 brain_area = "unknown"
 
         spikes_list = [

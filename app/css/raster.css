@@ -6,14 +6,13 @@
   shape-rendering: crispEdges;
 }
 
-.timeAxis text,
-{
-font-family: sans-serif;
-font-size: 11px;
-fill: #ddd;
-color: #ddd;
-font-weight: 400;
-display: block;
+.timeAxis text {
+  font-family: sans-serif;
+  font-size: 11px;
+  fill: #ddd;
+  color: #ddd;
+  font-weight: 400;
+  display: block;
 }
 
 .yLabel text,

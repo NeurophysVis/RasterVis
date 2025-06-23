@@ -4303,24 +4303,41 @@
       return defaultFileName;
     }
 
-    let exportButton = d3.select('button#export');
+    const exportButton = d3.select('button#export');
 
     exportButton
       .on('click', function () {
-        let svg = d3.selectAll('#chart').selectAll('svg')[0];
-        let levelNames = rasterData.rasterData().map(function (d) { return d.key; });
-        let curFactor = rasterData.curFactor();
-        let curEvent = rasterData.curEvent();
-        let neuronName = rasterData.neuronName();
+        const svgs = d3.selectAll('#chart').selectAll('svg').nodes();
 
-        svg.forEach(function (s, i) {
-          let saveName = neuronName + '_' +
-            curEvent + '_' +
-            curFactor + '_' +
-            levelNames[i];
-          save(s, { filename: saveName });
+        svgs.forEach((svgNode, i) => {
+          const svgSelection = d3.select(svgNode);
+          // Find the canvas associated with this SVG
+          const canvas = svgSelection.select('.spikes-canvas').node();
+          if (!canvas) return;
+
+          // Get the canvas content as a base64 image URL
+          const imgData = canvas.toDataURL('image/png');
+
+          // Temporarily embed the canvas image into the SVG for export.
+          // We insert it before '.smoothLine' to ensure it's under the smoothing line.
+          const tempImage = svgSelection.select('g').insert('image', '.smoothLine')
+            .attr('xlink:href', imgData)
+            .attr('width', canvas.width)
+            .attr('height', canvas.height);
+
+          // Prepare the filename (logic from original file)
+          const levelNames = rasterData.rasterData().map(function (d) { return d.key; });
+          const curFactor = rasterData.curFactor();
+          const curEvent = rasterData.curEvent();
+          const neuronName = rasterData.neuronName();
+          const saveName = `${neuronName}_${curEvent}_${curFactor}_${levelNames[i]}`;
+
+          // Save the modified SVG
+          save(svgNode, { filename: saveName });
+
+          // IMPORTANT: Remove the temporary image after saving to restore the live chart
+          tempImage.remove();
         });
-
       });
 
     let permalinkBox = d3.select('#permalink');

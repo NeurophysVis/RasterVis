@@ -1,7 +1,7 @@
-import merge from '../../node_modules/lodash-es/merge';
-import queue from '../../node_modules/d3-queue/src/queue';
+import merge from 'lodash-es/merge';
+import queue from 'd3-queue/src/queue';
 import loading from './loading';
-import {loadTrialInfo, loadSessionTrialData, loadNeuronData} from './loadData';
+import { loadTrialInfo, loadSessionTrialData, loadNeuronData } from './loadData';
 
 export default function () {
   let neuronName = '';

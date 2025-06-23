@@ -1,4 +1,5 @@
-import drawSpikes from './drawSpikes';
+import animateSpikesOnCanvas from './animateSpikesOnCanvas';
+
 import drawTrialEvents from './drawTrialEvents';
 import drawSmoothingLine from './drawSmoothingLine';
 import drawMouseBox from './drawMouseBox';
@@ -57,15 +58,23 @@ export default function () {
       enterG
         .append('g')
         .attr('class', 'trialEvents');
+
+      // Add a canvas layer for spikes
       enterG
-        .append('g')
-        .attr('class', 'spikes');
+        .append('foreignObject')
+        .attr('class', 'spike-canvas-wrapper')
+        .append('xhtml:canvas')
+        .attr('class', 'spikes-canvas');
+
       enterG
         .append('g')
         .attr('class', 'smoothLine');
+
+      // Ensure the interactive layer is on top of the canvas
       enterG
         .append('g')
         .attr('class', 'trialBox');
+
       enterG
         .append('g')
         .attr('class', 'timeAxis');
@@ -83,7 +92,6 @@ export default function () {
       } else {
         s[0] = ': ' + s[0];
       };
-
       let title = enterG
         .append('text')
         .attr('class', 'title')
@@ -100,7 +108,6 @@ export default function () {
         .attr('height', innerHeight + margin.top + margin.bottom);
       svg.select('g')
         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
       timeScale
         .domain(timeDomain)
         .range([0, innerWidth]);
@@ -109,17 +116,36 @@ export default function () {
         .rangeBands([innerHeight, 0]);
 
       // Draw the chart
-      let spikesG = svg.select('g.spikes');
+      svg.select('.spike-canvas-wrapper')
+        .attr('width', innerWidth)
+        .attr('height', innerHeight)
+        .select('.spikes-canvas')
+        .attr('width', innerWidth)
+        .attr('height', innerHeight);
+
       let trialEventsG = svg.select('g.trialEvents');
       let trialBoxG = svg.select('g.trialBox');
       let smoothLineG = svg.select('g.smoothLine');
       let eventMarkerG = svg.select('g.eventMarker');
 
-      showSpikes ? drawSpikes(spikesG, data.values, timeScale, yScale, curEvent, interactionFactor, colorScale) : spikesG.selectAll('circle').remove();
       drawTrialEvents(trialEventsG, data.values, trialEvents, curEvent, timeScale, yScale);
       drawMouseBox(trialBoxG, data.values, timeScale, yScale, curEvent, innerWidth);
-      let maxKDE = showSmoothingLines ? drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor, colorScale) : d3.selectAll('path.kdeLine').remove();
       eventMarkers(eventMarkerG, data.values, trialEvents, timeScale, curEvent, innerHeight);
+
+      const canvas = svg.select('.spikes-canvas').node();
+      if (showSpikes) {
+        animateSpikesOnCanvas(canvas, data.values, timeScale, yScale, curEvent, interactionFactor, colorScale);
+      } else {
+        if (canvas.__animation_timer) canvas.__animation_timer.stop();
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      let maxKDE = 0;
+      if (showSmoothingLines) {
+        maxKDE = drawSmoothingLine(smoothLineG, data.values, timeScale, yScale, lineSmoothness, curEvent, interactionFactor, colorScale);
+      } else {
+        smoothLineG.selectAll('path.kdeLine').remove();
+      }
 
       // Draw the time axis
       let timeAxisG = svg.select('g.timeAxis');
@@ -150,9 +176,7 @@ export default function () {
         // hide axis
         yAxisG.attr('display', 'none');
       }
-
     });
-
   };
 
   chart.width = function (value) {
@@ -160,67 +184,56 @@ export default function () {
     outerWidth = value;
     return chart;
   };
-
   chart.height = function (value) {
     if (!arguments.length) return outerHeight;
     outerHeight = value;
     return chart;
   };
-
   chart.margin = function (value) {
     if (!arguments.length) return margin;
     margin = value;
     return chart;
   };
-
   chart.timeDomain = function (value) {
     if (!arguments.length) return timeDomain;
     timeDomain = value;
     return chart;
   };
-
   chart.curEvent = function (value) {
     if (!arguments.length) return curEvent;
     curEvent = value;
     return chart;
   };
-
   chart.curFactor = function (value) {
     if (!arguments.length) return curFactor;
     curFactor = value;
     return chart;
   };
-
   chart.interactionFactor = function (value) {
     if (!arguments.length) return interactionFactor;
     interactionFactor = value;
     return chart;
   };
-
   chart.trialEvents = function (value) {
     if (!arguments.length) return trialEvents;
     trialEvents = value;
     return chart;
   };
-
   chart.lineSmoothness = function (value) {
     if (!arguments.length) return lineSmoothness;
     lineSmoothness = value;
     return chart;
   };
-
   chart.showSmoothingLines = function (value) {
     if (!arguments.length) return showSmoothingLines;
     showSmoothingLines = value;
     return chart;
   };
-
   chart.showSpikes = function (value) {
     if (!arguments.length) return showSpikes;
     showSpikes = value;
     return chart;
   };
-
   chart.colorScale = function (value) {
     if (!arguments.length) return colorScale;
     colorScale = value;
@@ -228,5 +241,4 @@ export default function () {
   };
 
   return chart;
-
 }

@@ -1,7 +1,7 @@
 import createDropdown from './createDropdown';
 import rasterData from '../rasterData';
 
-var factorDropdown = createDropdown()
+const factorDropdown = createDropdown()
   .key('value')
   .displayName('name');
 

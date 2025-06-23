@@ -1,7 +1,7 @@
 import createDropdown from './createDropdown';
 import rasterData from '../rasterData';
 
-var neuronDropdown = createDropdown();
+const neuronDropdown = createDropdown();
 
 neuronDropdown
   .key('')

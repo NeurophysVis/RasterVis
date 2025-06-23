@@ -76,12 +76,6 @@ export default function () {
     return _createSearchBox;
   };
 
-  _createSearchBox.fuseOptions = function (value) {
-    if (!arguments.length) return fuseOptions;
-    fuseOptions = value;
-    return _createSearchBox;
-  };
-
   _createSearchBox.key = function (value) {
     if (!arguments.length) return key;
     key = value;

@@ -2998,16 +2998,21 @@
     }
 
     /**
-     * Renders spikes on a canvas with a fade-in animation
+     * Renders spikes onto a canvas with a simple fade-in animation (D3 v3-compatible).
      *
-     * @param {HTMLCanvasElement} canvas The canvas element to draw on.
-     * @param {Array<Object>} sessionInfo The data array containing trial and spike information.
-     * @param {Function} timeScale The D3 time scale from rasterChart.js.
-     * @param {Function} yScale The D3 ordinal scale from rasterChart.js.
-     * @param {string} curEvent The current event to align spike times to.
-     * @param {string} interactionFactor The factor for coloring spikes.
-     * @param {Function} colorScale The D3 color scale.
-     * @param {number} [duration=1000] The duration of the fade-in animation.
+     * ‼ NOTE: D3 v3 timers stop when the callback **returns true** – there is no
+     *         `Timer.stop()` method.  A small cancel-hook is attached to the
+     *         canvas so outside code can interrupt the animation when switching
+     *         neurons.
+     *
+     * @param {HTMLCanvasElement} canvas              The canvas element to draw on.
+     * @param {Array<Object>}     sessionInfo         Trial objects with spike data.
+     * @param {Function}          timeScale           D3 scale: ms → px.
+     * @param {Function}          yScale              D3 ordinal scale: trial → px.
+     * @param {string}            curEvent            Key used to align spike times.
+     * @param {string}            interactionFactor   Field used to colour spikes.
+     * @param {Function}          colorScale          D3 colour scale.
+     * @param {number}            [duration=1000]     Fade-in duration (ms).
      */
     function animateSpikesOnCanvas(
         canvas,
@@ -3019,56 +3024,69 @@
         colorScale,
         duration = 1000
     ) {
-        const context = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d');
 
-        // Stop any previously running animation on this canvas to prevent conflicts.
-        if (canvas.__animation_timer) {
-            canvas.__animation_timer.stop();
+        /* ──────────────────────────────────────────────────────────────────────────
+         * 1.  Cancel any animation already running for this canvas
+         * ─────────────────────────────────────────────────────────────────────── */
+        if (canvas.__animation_cancel) {
+            canvas.__animation_cancel(); // flag previous timer to finish immediately
         }
 
-        // Prepare spike data using logic derived from the original drawSpikes.js
-        const spikeData = sessionInfo.flatMap((trial, ind) => {
-            if (!Array.isArray(trial.spikes)) {
-                return [];
+        /* ──────────────────────────────────────────────────────────────────────────
+         * 2.  Prepare spike data: [relativeTime(ms), trialIndex]
+         *    (Use Array#reduce to stay ES5-friendly and avoid optional chaining /
+         *     nullish-coalescing that older bundlers choke on.)
+         * ─────────────────────────────────────────────────────────────────────── */
+        const spikeData = sessionInfo.reduce(function (acc, trial, i) {
+            if (!Array.isArray(trial.spikes)) return acc;
+            for (var s = 0; s < trial.spikes.length; ++s) {
+                acc.push([trial.spikes[s] - trial[curEvent], i]);
             }
-            return trial.spikes.map(spike => [spike - trial[curEvent], ind]);
-        });
-        const factorLevel = sessionInfo.map(d => d[interactionFactor]);
-        const circleRadius = yScale.rangeBand() / 2;
+            return acc;
+        }, []);
 
-        const animationTimer = d3.timer(elapsed => {
-            // Clear the entire canvas on each frame of the animation.
-            context.clearRect(0, 0, canvas.width, canvas.height);
+        const factorLevels = sessionInfo.map(function (d) { return d[interactionFactor]; });
+        // yScale.bandwidth() exists in v4+, rangeBand() in v3 – support both:
+        const circleR = (typeof yScale.bandwidth === 'function' ? yScale.bandwidth() : yScale.rangeBand()) / 2;
 
-            // Calculate animation progress as a value from 0.0 to 1.0.
-            const progress = Math.min(1, elapsed / duration);
+        /* ──────────────────────────────────────────────────────────────────────────
+         * 3.  Start the D3 v3 timer.  Returning **true** stops the timer.
+         * ─────────────────────────────────────────────────────────────────────── */
+        var cancelled = false;
+        canvas.__animation_cancel = function () {
+            cancelled = true;
+        };
 
-            const currentOpacity = d3.interpolate(0, 1)(progress);
-            context.globalAlpha = currentOpacity;
+        d3.timer(function (elapsed) {
+            if (cancelled) return true; // interrupt immediately if a new neuron is selected
 
-            // Draw all spikes with the calculated opacity for the current frame.
-            spikeData.forEach(d => {
-                const [spikeTime, trialIndex] = d;
-                const cx = timeScale(spikeTime);
-                const cy = yScale(trialIndex) + circleRadius;
+            // Animation progress 0→1
+            var progress = Math.min(1, elapsed / duration);
 
-                const factorName = factorLevel[trialIndex] === undefined ? 'Spike' : factorLevel[trialIndex];
-                context.fillStyle = colorScale(factorName);
+            // Clear & draw current frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = progress;
 
-                context.beginPath();
-                context.arc(cx, cy, circleRadius, 0, 2 * Math.PI);
-                context.fill();
-            });
+            for (var j = 0; j < spikeData.length; ++j) {
+                var t = spikeData[j][0];
+                var trialIdx = spikeData[j][1];
+                var cx = timeScale(t);
+                var cy = yScale(trialIdx) + circleR;
+                var factor = (factorLevels[trialIdx] === undefined ? 'Spike' : factorLevels[trialIdx]);
 
-            // Stop the animation timer once the duration has been reached.
+                ctx.fillStyle = colorScale(factor);
+                ctx.beginPath();
+                ctx.arc(cx, cy, circleR, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // End of animation – freeze final frame and stop timer
             if (progress >= 1) {
-                animationTimer.stop();
-                context.globalAlpha = 1.0; // Ensure final state is fully opaque.
+                ctx.globalAlpha = 1;
+                return true; // ← required to stop the timer in D3 v3
             }
         });
-
-        // Store the timer on the canvas node itself so it can be interrupted later.
-        canvas.__animation_timer = animationTimer;
     }
 
     /* Draws each trial event (e.g. saccade, cue period, reward) from the beginning to

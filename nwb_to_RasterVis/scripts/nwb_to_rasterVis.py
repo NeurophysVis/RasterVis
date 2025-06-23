@@ -2,13 +2,14 @@
 
 import json
 from pathlib import Path
-import numpy as np
-from pynwb import NWBHDF5IO
-import remfile
+from tempfile import TemporaryDirectory
+
 import h5py
 import kachery_cloud as kcl
-from tempfile import TemporaryDirectory
+import numpy as np
 import pandas as pd
+import remfile
+from pynwb import NWBHDF5IO
 
 
 def _get_session_name(nwbfile):
@@ -272,7 +273,8 @@ def create_figurl(s3_url, time_periods=None):
         run_conversion_streaming(s3_url, output_path=tmpdir, time_periods=time_periods)
         json_smash(tmpdir, output_path=".")
         uri = kcl.store_file("figurl_data.json")
-        figurl = f"https://figurl.org/f?v=https://figurl-raster-vis.surge.sh/index.html&d={uri}&label=figurl_data.json"
+        figurl = f"https://figurl.org/f?v=http://localhost:8000&d={uri}&label=figurl_data.json"
+        # figurl = f"https://figurl.org/f?v=https://figurl-raster-vis.surge.sh/index.html&d={uri}&label=figurl_data.json"
         print(figurl)
 
         return figurl

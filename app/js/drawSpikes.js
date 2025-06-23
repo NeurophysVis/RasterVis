@@ -7,18 +7,16 @@ export default function (selection, sessionInfo, timeScale, yScale, curEvent, in
 
   // Reshape to spike time, trial position.
   // Adjust spike time relative to current trial event
-  let data = sessionInfo.map(function (trial, ind) {
-    if (!Array.isArray(trial.spikes)) { return []; };
-
-    return trial.spikes.map(function (spike) {
-      return [spike - trial[curEvent], ind];
-    });
+  const data = sessionInfo.flatMap((trial, ind) => {
+    if (!Array.isArray(trial.spikes)) {
+      return [];
+    }
+    return trial.spikes.map(spike => [spike - trial[curEvent], ind]);
   });
 
   let factorLevel = sessionInfo.map(function (d) { return d[interactionFactor]; });
 
-  // Flatten
-  data = flatten(data);
+
 
   let circles = selection.selectAll('circle').data(data);
   circles.enter()

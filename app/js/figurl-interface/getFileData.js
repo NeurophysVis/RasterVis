@@ -40,9 +40,9 @@ const getFileData = (
         resolve(response.fileData);
       }
     })
-    .catch((err) => {
-      reject(err);
-    })
+      .catch((err) => {
+        reject(err);
+      })
   })
 };
 
@@ -60,42 +60,11 @@ export const getFileDataUrl = (uri) => {
       }
       resolve(response.fileDataUrl);
     })
-    .catch((err) => {
-      reject(err);
-    })
+      .catch((err) => {
+        reject(err);
+      })
   })
 }
-
-// export const storeFileData = async (fileData, o = {}) => {
-//   const request = {
-//     type: 'storeFile',
-//     fileData,
-//     figurlProtocolVersion: 'p1'
-//   };
-//   const response = await sendRequestToParent(request);
-//   if (!isStoreFileResponse(response)) throw Error('Invalid response to storeFile');
-//   if (response.error) {
-//     throw Error(`Error storing file data: ${response.error}`);
-//   }
-//   if (response.uri === undefined) {
-//     throw Error('Unexpected response.uri is undefined');
-//   }
-//   return response.uri;
-// };
-
-// export const storeGithubFileData = async (o) => {
-//   const request = {
-//     type: 'storeGithubFile',
-//     fileData: o.fileData,
-//     uri: o.uri,
-//     figurlProtocolVersion: 'p1'
-//   };
-//   const response = await sendRequestToParent(request);
-//   if (!isStoreGithubFileResponse(response)) throw Error('Invalid response to storeFile');
-//   if (response.error) {
-//     throw Error(`Error storing file data: ${response.error}`);
-//   }
-// };
 
 const progressListeners = {};
 
@@ -109,38 +78,4 @@ export const handleFileDownloadProgress = ({
     x({ loaded, total });
   }
 };
-
-// export const useFileData = (uri, responseType, o = {}) => {
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   const [fileData, setFileData] = useState<any | undefined>(undefined);
-//   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-//   const { progress, reportProgress } = useMemo(() => {
-//     let _callback = ({ loaded, total }) => {};
-//     const reportProgress = (a) => {
-//       _callback(a);
-//     };
-//     const progress = {
-//       onProgress: (callback) => {
-//         _callback = callback;
-//       },
-//     };
-//     return { progress, reportProgress };
-//   }, []);
-//   useEffect(() => {
-//     setErrorMessage(undefined);
-//     setFileData(undefined);
-//     getFileData(uri, responseType, reportProgress, {
-//       startByte: o.startByte,
-//       endByte: o.endByte
-//     })
-//       .then((data) => {
-//         setFileData(data);
-//       })
-//       .catch((err) => {
-//         setErrorMessage(err.message);
-//       });
-//   }, [uri, reportProgress, o.startByte, o.endByte, responseType]);
-//   return { fileData, progress, errorMessage };
-// };
-
 export default getFileData;

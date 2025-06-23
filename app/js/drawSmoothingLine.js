@@ -36,14 +36,20 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
       };
     });
 
-    factor.values = timeRange.map(function (time, ind) {
-      return [
-        time,
-        1000 * d3.mean(y.map(function (row) {
-          if (row != undefined) return row[ind];
-        })),
-      ];
+    const summedKDE = new Array(timeRange.length).fill(0);
+    let validTrialCount = 0;
+    y.forEach(trialKDE => {
+      if (trialKDE !== undefined) {
+        validTrialCount++;
+        for (let i = 0; i < timeRange.length; i++) {
+          summedKDE[i] += trialKDE[i];
+        }
+      }
+    });
 
+    factor.values = timeRange.map((time, ind) => {
+      const meanValue = validTrialCount > 0 ? summedKDE[ind] / validTrialCount : 0;
+      return [time, 1000 * meanValue];
     });
 
   });

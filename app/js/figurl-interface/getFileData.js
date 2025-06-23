@@ -78,4 +78,3 @@ export const handleFileDownloadProgress = ({
     x({ loaded, total });
   }
 };
-export default getFileData;

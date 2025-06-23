@@ -23,11 +23,13 @@ export default function (selection, sessionInfo, timeScale, yScale, curEvent, in
     .append('circle')
     .style('opacity', 1E-5);
   circles.exit()
+    .interrupt()
     .transition()
     .duration(1000)
     .style('opacity', 1E-5).remove();
 
   circles
+    .interrupt()
     .transition()
     .duration(1000)
     .attr('cx', function (d) {

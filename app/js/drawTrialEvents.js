@@ -20,6 +20,7 @@ export default function (selection, sessionInfo, trialEvents, curEvent, timeScal
   eventArea.exit().remove();
 
   eventArea
+    .interrupt()
     .transition()
     .duration(1000)
     .ease('linear')

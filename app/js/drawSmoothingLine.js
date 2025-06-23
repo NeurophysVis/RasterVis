@@ -83,6 +83,7 @@ export default function (selection, data, timeScale, yScale, lineSmoothness, cur
     .append('path')
     .attr('class', 'kdeLine');
   kdeLine
+    .interrupt()
     .transition()
     .duration(1000)
     .attr('d', function (d) { return line(d.values); })

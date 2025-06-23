@@ -1,4 +1,5 @@
 """Converts an NWB file to the RasterVis format."""
+
 import json
 from pathlib import Path
 import numpy as np
@@ -7,6 +8,7 @@ import remfile
 import h5py
 import kachery_cloud as kcl
 from tempfile import TemporaryDirectory
+import pandas as pd
 
 
 def _get_session_name(nwbfile):
@@ -64,6 +66,7 @@ def _discover_trial_events(trials):
 def make_trials_json(trials, nwbfile, output_path=""):
     json_data = []
     for trial_id, trial in trials.iterrows():
+        trial = trial.where(pd.notnull(trial), None)
         trial = trial.to_dict()
         trial["end_time"] = trial.pop("stop_time")
         json_data.append(

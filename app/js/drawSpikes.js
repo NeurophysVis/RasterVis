@@ -1,5 +1,3 @@
-import flatten from '../../node_modules/lodash-es/flatten';
-
 // Draws spikes as circles
 export default function (selection, sessionInfo, timeScale, yScale, curEvent, interactionFactor, colorScale) {
 

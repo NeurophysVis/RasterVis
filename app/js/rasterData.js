@@ -1,4 +1,4 @@
-import rasterDataManager from './rasterDataManager';
+import rasterDataManger from './rasterDataManger';
 import rasterView from './rasterView';
 import factorButton from './UI/factorButton';
 import eventButton from './UI/eventButton';
@@ -11,7 +11,7 @@ import showSpikesCheckbox from './UI/showSpikesCheckbox';
 import brainAreaCheckboxes from './UI/brainAreaCheckboxes';
 import legendView from './legendView';
 
-let rasterData = rasterDataManager();
+let rasterData = rasterDataManger();
 let fuseOptions = { threshold: .4 };
 
 rasterData.on('dataReady', function () {

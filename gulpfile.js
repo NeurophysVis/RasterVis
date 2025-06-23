@@ -45,6 +45,8 @@ gulp.task('createVendorJS-build', function () {
     'app/components/spin.js/spin.js',
     'app/components/d3-legend/d3-legend.js',
     'app/components/src/fuse.js',
+    'app/components/lodash/lodash.js',
+    'app/components/d3-queue/d3-queue.js',
   ]).pipe(concat('vendor.js'))
     .pipe(uglify())
     .pipe(rename({

@@ -28,6 +28,8 @@ gulp.task('createVendorJS', function () {
     'app/components/colorbrewer/colorbrewer.js',
     'app/components/d3-legend/d3-legend.js',
     'app/components/fuse.js/src/fuse.js',
+    'app/components/lodash/lodash.js',
+    'app/components/d3-queue/d3-queue.js',
   ]).pipe(concat('vendor.js'))
     .pipe(gulp.dest('public/js'))
     .pipe(connect.reload());

@@ -27,6 +27,8 @@
     "bootstrap": "^3.3.6",
     "colorbrewer": "^1.0.0",
     "d3-legend": "^1.8.0",
-    "fuse.js": "^2.0.1"
+    "fuse.js": "^2.0.1",
+    "lodash": "^4.17.21",
+    "d3-queue": "^2.0.2"
   }
 }

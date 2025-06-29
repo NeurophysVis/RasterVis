@@ -32,7 +32,7 @@
     "gulp-concat": "^2.6.0",
     "gulp-connect": "^5.7.0",
     "gulp-cssmin": "^0.1.7",
-    "gulp-imagemin": "^2.4.0",
+    "gulp-imagemin": "^9.1.0",
     "gulp-jsonminify": "^1.0.0",
     "gulp-plumber": "^1.0.1",
     "gulp-rename": "^1.2.2",
@@ -42,7 +42,7 @@
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
     "gulp-zip": "^3.1.0",
-    "imagemin-pngquant": "^4.2.0",
+    "imagemin-pngquant": "^10.0.0",
     "rollup": "^3.29.5"
   },
   "dependencies": {

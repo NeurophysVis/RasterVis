@@ -48,7 +48,7 @@
   "dependencies": {
     "d3-queue": "^2.0.2",
     "d3-save-svg": "0.0.2",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "lodash-es": "^4.17.21",
     "npm": "^11.7.0"
   }
